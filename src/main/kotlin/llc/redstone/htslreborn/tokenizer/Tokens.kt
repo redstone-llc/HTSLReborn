@@ -1,4 +1,4 @@
-package dev.wekend.housingtoolbox.feature.importer.lexar
+package llc.redstone.htslreborn.tokenizer
 
 import guru.zoroark.tegral.niwen.lexer.StateBuilder
 import guru.zoroark.tegral.niwen.lexer.StateLabel
@@ -35,6 +35,7 @@ enum class Operators: TokenType {
     DIVIDE,
     BITWISE_AND,
     BITWISE_OR,
+    BITWISE_XOR,
     LEFT_SHIFT,
     ARITHMETIC_RIGHT_SHIFT,
     LOGICAL_RIGHT_SHIFT

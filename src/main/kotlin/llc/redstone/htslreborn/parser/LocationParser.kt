@@ -1,0 +1,54 @@
+package llc.redstone.htslreborn.parser
+
+import dev.wekend.housingtoolbox.feature.data.Location
+import guru.zoroark.tegral.niwen.lexer.Token
+
+object LocationParser {
+    fun parse(str: String, iterator: Iterator<Token>): Location =
+        when (str.lowercase().replace("_", " ")) {
+            "house spawn" -> Location.HouseSpawn
+            "current location" -> Location.CurrentLocation
+            "invokers location" -> Location.InvokersLocation
+            "custom coordinates" -> {
+                val stringCoords = iterator.next().string
+                val parts = stringCoords.split(" ")
+
+                if (parts.size != 3 && parts.size != 5) {
+                    error("Invalid custom location format: $stringCoords")
+                }
+
+                val xPart = parts[0]
+                val yPart = parts[1]
+                val zPart = parts[2]
+                val pitchPart = parts.getOrNull(3)
+                val yawPart = parts.getOrNull(4)
+
+                val relX = xPart.startsWith("~")
+                val relY = yPart.startsWith("~")
+                val relZ = zPart.startsWith("~")
+                val relPitch = pitchPart?.startsWith("~") ?: false
+                val relYaw = yawPart?.startsWith("~") ?: false
+
+                val x = xPart.removePrefix("~").toDoubleOrNull()
+                val y = yPart.removePrefix("~").toDoubleOrNull()
+                val z = zPart.removePrefix("~").toDoubleOrNull()
+                val pitch = pitchPart?.removePrefix("~")?.toFloatOrNull()
+                val yaw = yawPart?.removePrefix("~")?.toFloatOrNull()
+
+                Location.Custom(
+                    relX = relX,
+                    relY = relY,
+                    relZ = relZ,
+                    relPitch = relPitch,
+                    relYaw = relYaw,
+                    x = x,
+                    y = y,
+                    z = z,
+                    pitch = pitch,
+                    yaw = yaw,
+                )
+            }
+
+            else -> error("Unknown location type: $str")
+        }
+}
