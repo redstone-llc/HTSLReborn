@@ -1,8 +1,5 @@
 package llc.redstone.htslreborn.tokenizer
 
-import dev.wekend.housingtoolbox.feature.data.Action
-import dev.wekend.housingtoolbox.feature.data.Action.*
-import dev.wekend.housingtoolbox.feature.data.Condition
 import llc.redstone.htslreborn.tokenizer.States.*
 import guru.zoroark.tegral.niwen.lexer.StateLabel
 import guru.zoroark.tegral.niwen.lexer.Token
@@ -27,6 +24,7 @@ object Tokenizer {
                 anyOf("} else {", "}else{", "}else {", "} else{") isToken Tokens.ELSE_KEYWORD
                 '}' isToken Tokens.DEPTH_SUBTRACT
                 "random" isToken Tokens.RANDOM_KEYWORD
+                "goto" isToken Tokens.GOTO_KEYWORD
 
                 matches("if\\(|if \\(|if and\\(|if and \\(") isToken Tokens.IF_AND_CONDITION_START thenState IF_CONDITION
                 matches("if or\\(|if or \\(") isToken Tokens.IF_OR_CONDITION_START thenState IF_CONDITION

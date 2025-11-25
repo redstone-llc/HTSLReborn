@@ -1,21 +1,19 @@
 package llc.redstone.htslreborn.parser
 
-import dev.wekend.housingtoolbox.feature.data.Action
-import dev.wekend.housingtoolbox.feature.data.Action.*
-import dev.wekend.housingtoolbox.feature.data.ItemStack
-import dev.wekend.housingtoolbox.feature.data.Keyed
-import dev.wekend.housingtoolbox.feature.data.Location
-import dev.wekend.housingtoolbox.feature.data.StatOp
-import dev.wekend.housingtoolbox.feature.data.StatValue
+import llc.redstone.systemsapi.data.*
+import llc.redstone.systemsapi.data.Action.*
 import guru.zoroark.tegral.niwen.lexer.Token
 import llc.redstone.htslreborn.tokenizer.Operators
 import llc.redstone.htslreborn.tokenizer.Tokens
+import net.minecraft.nbt.NbtIo
+import net.minecraft.nbt.NbtSizeTracker
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
+import java.io.File
+import java.nio.charset.Charset
+import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.companionObjectInstance
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.primaryConstructor
-import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.*
 
 object ActionParser {
     val keywords = mapOf(
@@ -66,7 +64,7 @@ object ActionParser {
         "displayNametag" to ToggleNametagDisplay::class,
     )
 
-    fun createAction(keyword: String, iterator: Iterator<Token>): Action? {
+    fun createAction(keyword: String, iterator: Iterator<Token>, file: File): Action? {
         //Get the action class
         val clazz = keywords[keyword] ?: return null
 
@@ -80,13 +78,12 @@ object ActionParser {
             val token = iterator.next()
             //End of action
             if (token.tokenType == Tokens.NEWLINE) continue
-            println(token.tokenType)
 
             args[param] = when (prop.returnType.classifier) {
                 String::class -> token.string
                 Int::class -> token.string.toInt()
                 Long::class -> token.string.removeSuffix("L").toLong()
-                Double::class -> token.string.toDouble()
+                Double::class -> token.string.removeSuffix("D").toDouble()
                 Boolean::class -> token.string.toBoolean()
                 //Stat Values
                 StatValue::class -> {
@@ -102,13 +99,18 @@ object ActionParser {
                 Location::class -> LocationParser.parse(token.string, iterator)
 
                 ItemStack::class -> {
-//                        val relativeFileLocation = token.string
-//                        val nbtString = File(relativeFileLocation).readText()
-//
-//                        ItemStack(
-//                            nbt = nbt,
-//                            relativeFileLocation = relativeFileLocation,
-//                        )
+                    val relativeFileLocation = token.string
+                    val parent = if (file.isDirectory) file else file.parentFile
+                    val nbtString = File(parent, relativeFileLocation).readText()
+                    val input = ByteArrayInputStream(nbtString.toByteArray(Charset.forName("UTF-8")))
+                    val dataIn = DataInputStream(input)
+
+                    val element = NbtIo.read(dataIn, NbtSizeTracker.ofUnlimitedBytes()).asCompound().getOrNull()
+
+                    ItemStack(
+                        nbt = element,
+                        relativeFileLocation = relativeFileLocation,
+                    )
                 }
 
                 StatOp::class -> when (token.tokenType) {

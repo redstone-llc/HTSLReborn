@@ -43,8 +43,10 @@ dependencies {
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
     modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
     modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
-    modImplementation("dev.wekend:HousingToolbox:0.2.3+1.21.9")
-    include(modImplementation("de.siphalor.amecs-api:amecs-api-mc${stonecutter.current.version}:${property("deps.amecs")}")!!)
+    include(modImplementation("llc.redstone:SystemsAPI:0.0.2+1.21.9")!!)
+
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-fabric-api:2.22.0")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-fabric-core:2.22.0")
 
     implementation(tegralLibs.niwen.lexer)
 

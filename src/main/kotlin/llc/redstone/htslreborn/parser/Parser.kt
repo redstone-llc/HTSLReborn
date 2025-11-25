@@ -1,15 +1,17 @@
 package llc.redstone.htslreborn.parser
 
-import dev.wekend.housingtoolbox.feature.data.Action
-import dev.wekend.housingtoolbox.feature.data.Action.Conditional
-import dev.wekend.housingtoolbox.feature.data.Action.RandomAction
-import dev.wekend.housingtoolbox.feature.data.Condition
+import llc.redstone.systemsapi.data.Action
+import llc.redstone.systemsapi.data.Action.Conditional
+import llc.redstone.systemsapi.data.Action.RandomAction
+import llc.redstone.systemsapi.data.Condition
 import guru.zoroark.tegral.niwen.lexer.Token
 import llc.redstone.htslreborn.tokenizer.Tokens
+import java.io.File
 
 object Parser {
-    fun parse(tokens: List<Token>): List<Action> {
+    fun parse(tokens: List<Token>, file: File): MutableMap<String, List<Action>> {
         val compiledActions = mutableListOf<Action>()
+        val gotoCompiled = mutableMapOf<String, List<Action>?>()
 
         var conditions = mutableListOf<Condition>()
         var conditional: String? = null
@@ -18,11 +20,41 @@ object Parser {
             0 to Pair(mutableListOf(), mutableListOf()),
         )
         var isElse = false
+
         val iterator = tokens.iterator()
+
         while (iterator.hasNext()) {
             val token = iterator.next()
 
             when (token.tokenType) {
+                Tokens.GOTO_KEYWORD -> {
+                    val previous = gotoCompiled.entries.find { it.value == null }
+                    if (previous != null) {
+                        gotoCompiled[previous.key] = compiledActions.toMutableList()
+                        compiledActions.clear()
+                    }
+
+                    val type = iterator.next()
+                    val args = when(type.string.lowercase()) {
+                        "function" -> {
+                            val name = iterator.next().string
+                            "function $name"
+                        }
+                        "event" -> {
+                            val name = iterator.next().string
+                            "event $name"
+                        }
+                        else -> error("Unexpected token type $type")
+                    }
+
+                    if (gotoCompiled.isEmpty()) {
+                        gotoCompiled["base"] = compiledActions.toMutableList()
+                        compiledActions.clear()
+                    }
+
+                    gotoCompiled[args] = null
+                }
+
                 Tokens.RANDOM_KEYWORD -> {
                     isRandom = true
                 }
@@ -42,25 +74,17 @@ object Parser {
                         val index = tokens.indexOf(token)
                         if (index > 0 && tokens[index - 1].tokenType == Tokens.INVERTED) {
                             println("Found inverted condition")
-                            conditions.add(ConditionParser.createCondition(token.string, iterator, true) ?: run {
-                                println("Did not expect null condition")
-                                continue
-                            })
+                            conditions.add(ConditionParser.createCondition(token.string, iterator, file, true) ?: error("Did not expect null condition"))
                             continue
                         }
-                        conditions.add(ConditionParser.createCondition(token.string, iterator) ?: run {
-                            println("Did not expect null condition")
-                            continue
-                        })
+
+                        conditions.add(ConditionParser.createCondition(token.string, iterator, file) ?: error("Did not expect null condition"))
                     }
                 }
 
                 Tokens.COMMA -> {
                     if (conditional != null && iterator.hasNext()) {
-                        conditions.add(ConditionParser.createCondition(iterator.next().string, iterator) ?: run {
-                            println("Did not expect null condition")
-                            continue
-                        })
+                        conditions.add(ConditionParser.createCondition(iterator.next().string, iterator, file) ?: error("Did not expect null condition"))
                     }
                 }
 
@@ -93,11 +117,7 @@ object Parser {
                 }
 
                 Tokens.ACTION_KEYWORD -> {
-                    val action = ActionParser.createAction(token.string, iterator) ?: run {
-                        println("Did not expect null")
-                        continue
-                    }
-                    println("Created action: $action")
+                    val action = ActionParser.createAction(token.string, iterator, file) ?: error("Did not action to be null")
                     if (depth.size - 1 == 0) {
                         compiledActions.add(action)
                         continue
@@ -109,10 +129,23 @@ object Parser {
                         }
                     }
                 }
-
             }
         }
 
-        return compiledActions
+        if (gotoCompiled.isEmpty()) {
+            gotoCompiled["base"] = compiledActions.toMutableList()
+        } else {
+            val previous = gotoCompiled.entries.find { it.value == null }
+            if (previous != null) {
+                gotoCompiled[previous.key] = compiledActions.toMutableList()
+            }
+        }
+
+        val returned = mutableMapOf<String, List<Action>>()
+        for (entry in gotoCompiled) {
+            returned[entry.key] = entry.value ?: continue
+        }
+
+        return returned
     }
 }

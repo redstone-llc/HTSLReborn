@@ -1,6 +1,6 @@
 package llc.redstone.htslreborn.parser
 
-import dev.wekend.housingtoolbox.feature.data.Location
+import llc.redstone.systemsapi.data.Location
 import guru.zoroark.tegral.niwen.lexer.Token
 
 object LocationParser {

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "Library that abstracts Hypixel Housing's systems for other mods to use.",
+  "authors": [
+    "Wekend",
+    "Sin_ender"
+  ],
+  "contact": {
+    "homepage": "https://redstone.llc/",
+    "sources": "https://github.com/redstone-llc/${id}",
+    "issues": "https://github.com/redstone-llc/${id}/issues"
+  },
+  "license": "LGPL-3.0",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "llc.redstone.htslreborn.HTSLReborn"
+      }
+    ]
+  },
+  "mixins": [
+    "htslreborn.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${fabric_loader}",
+    "minecraft": "${minecraft}",
+    "fabric-language-kotlin": ">=${fabric_language_kotlin}"
+  }
+}

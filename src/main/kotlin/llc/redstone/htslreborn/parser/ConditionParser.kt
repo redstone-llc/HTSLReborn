@@ -1,13 +1,21 @@
 package llc.redstone.htslreborn.parser
 
-import dev.wekend.housingtoolbox.feature.data.Comparison
-import dev.wekend.housingtoolbox.feature.data.Condition
-import dev.wekend.housingtoolbox.feature.data.Condition.*
-import dev.wekend.housingtoolbox.feature.data.Keyed
-import dev.wekend.housingtoolbox.feature.data.StatValue
+import llc.redstone.systemsapi.data.Comparison
+import llc.redstone.systemsapi.data.Condition
+import llc.redstone.systemsapi.data.Condition.*
+import llc.redstone.systemsapi.data.ItemStack
+import llc.redstone.systemsapi.data.Keyed
+import llc.redstone.systemsapi.data.StatValue
 import guru.zoroark.tegral.niwen.lexer.Token
 import llc.redstone.htslreborn.tokenizer.Comparators
 import llc.redstone.htslreborn.tokenizer.Tokens
+import net.minecraft.nbt.NbtIo
+import net.minecraft.nbt.NbtSizeTracker
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
+import java.io.File
+import java.nio.charset.Charset
+import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.isSubtypeOf
@@ -49,7 +57,7 @@ object ConditionParser {
         "inRegion" to InRegion::class,
     )
 
-    fun createCondition(keyword: String, iterator: Iterator<Token>, inverted: Boolean = false): Condition? {
+    fun createCondition(keyword: String, iterator: Iterator<Token>, file: File, inverted: Boolean = false): Condition? {
         val clazz = keywords[keyword] ?: return null
 
         val constructor = clazz.primaryConstructor ?: return null
@@ -66,7 +74,7 @@ object ConditionParser {
                 String::class -> token.string
                 Int::class -> token.string.toInt()
                 Long::class -> token.string.removeSuffix("L").toLong()
-                Double::class -> token.string.toDouble()
+                Double::class -> token.string.removeSuffix("D").toDouble()
                 Boolean::class -> token.string.toBoolean()
                 StatValue::class -> {
                     when (token.tokenType) {
@@ -76,6 +84,21 @@ object ConditionParser {
                         Tokens.DOUBLE -> StatValue.Dbl(token.string.removeSuffix("D").toDouble())
                         else -> StatValue.Str(token.string)
                     }
+                }
+
+                ItemStack::class -> {
+                    val relativeFileLocation = token.string
+                    val parent = if (file.isDirectory) file else file.parentFile
+                    val nbtString = File(parent, relativeFileLocation).readText()
+                    val input = ByteArrayInputStream(nbtString.toByteArray(Charset.forName("UTF-8")))
+                    val dataIn = DataInputStream(input)
+
+                    val element = NbtIo.read(dataIn, NbtSizeTracker.ofUnlimitedBytes()).asCompound().getOrNull()
+
+                    ItemStack(
+                        nbt = element,
+                        relativeFileLocation = relativeFileLocation,
+                    )
                 }
 
                 Comparison::class -> when (token.tokenType) {
