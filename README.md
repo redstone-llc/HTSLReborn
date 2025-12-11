@@ -1,4 +1,6 @@
 <h1 align="center">
+    <img src="src/main/resources/assets/htslreborn/icon.png" height="256" alt="HTSL Reborn Icon">
+    <br>
     HTSL Reborn
     <br>
     <a href="https://github.com/redstone-llc/HTSLReborn/commits/main/">
