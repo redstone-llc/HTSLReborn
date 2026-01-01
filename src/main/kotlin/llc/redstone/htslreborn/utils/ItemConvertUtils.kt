@@ -10,7 +10,7 @@ import java.io.FileInputStream
 
 object ItemConvertUtils {
     fun fileToNbtCompound(file: File): NbtCompound {
-        val name = file.name
+        val name = file.name    
         val content = file.readText()
         if (name.endsWith(".json")) {
             return ItemUtils.toNBT(ItemUtils.createFromJsonString(content))

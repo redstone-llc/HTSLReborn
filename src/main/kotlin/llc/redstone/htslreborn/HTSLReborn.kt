@@ -1,6 +1,5 @@
 package llc.redstone.htslreborn
 
-import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
 import llc.redstone.htslreborn.commands.HTSLCommand
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -24,8 +23,6 @@ object HTSLReborn : ClientModInitializer {
         // Proceed with mild caution.
 
         LOGGER.info("Loaded HTSL Reborn v$VERSION for Minecraft $MINECRAFT.");
-
-        mcCoroutineConfiguration.minecraftExecutor = MinecraftClient.getInstance()
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, registryAccess ->
             HTSLCommand.register(dispatcher)
