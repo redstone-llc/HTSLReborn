@@ -1,6 +1,5 @@
 package llc.redstone.htslreborn.ui
 
-import com.github.shynixn.mccoroutine.fabric.launch
 import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.MOD_ID
@@ -15,7 +14,7 @@ import llc.redstone.htslreborn.utils.RenderUtils
 import llc.redstone.htslreborn.utils.RenderUtils.drawText
 import llc.redstone.htslreborn.utils.RenderUtils.drawTexture
 import llc.redstone.systemsapi.SystemsAPI
-import llc.redstone.systemsapi.util.ItemUtils
+import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
@@ -78,14 +77,23 @@ object FileBrowser {
     private fun getItemForFile(fileDir: String, file: File): ItemStack? {
         return cachedItems.getOrPut(fileDir) {
             try {
-                ItemConvertUtils.fileToItemStack(file)
+                return@getOrPut ItemConvertUtils.fileToItemStack(file)
             } catch (e: Exception) {
+                e.printStackTrace()
                 return null
             }
         }
     }
 
-    private fun renderFileIcon(ctx: DrawContext, fileName: String, fileDir: String, file: File, x: Int, y: Int, size: Int) {
+    private fun renderFileIcon(
+        ctx: DrawContext,
+        fileName: String,
+        fileDir: String,
+        file: File,
+        x: Int,
+        y: Int,
+        size: Int
+    ) {
         if (fileName.endsWith(".nbt", true)) {
             val item = getItemForFile(fileDir, file)
             if (item != null) {
@@ -111,8 +119,10 @@ object FileBrowser {
         val xBound = input.x + input.getWidth()
 
         updateWidgetPositions(chestX, screenWidth, screenHeight, xBound)
-        ctx.fill(input.x - 5, topBound, input.x - 5 + input.width + 10, topBound + screenHeight / 7 * 6 - topBound,
-            RenderUtils.getColor(30, 30, 30, 200))
+        ctx.fill(
+            input.x - 5, topBound, input.x - 5 + input.width + 10, topBound + screenHeight / 7 * 6 - topBound,
+            RenderUtils.getColor(30, 30, 30, 200)
+        )
 
         linesPerPage = floor((screenHeight / 7 * 6 - topBound - 9) / 20.0).toInt()
         var hovered = false
@@ -236,7 +246,7 @@ object FileBrowser {
                 fileDir += ".htsl"
             }
             val file = File("HTSL/imports", fileDir)
-            HTSLReborn.launch {
+            SystemsAPI.launch {
                 val actions = SystemsAPI.getHousingImporter().getOpenActionContainer()?.getActions() ?: return@launch
                 val htslCode = HTSLExporter.export(actions)
                 file.parentFile?.let {
@@ -260,7 +270,10 @@ object FileBrowser {
         val fileDir = subDir.replace("\\", "/") + fileName
         val file = File("HTSL/imports", fileDir)
 
-        if (click.x.toInt() in (input.x + input.width - 24) until (input.x + input.width - 8) && click.y.toInt() in (input.y + 30 + 20 * (index - page * linesPerPage)) until (input.y + 30 + 20 * (index - page * linesPerPage) + 20) && fileName.contains(".")) {
+        if (click.x.toInt() in (input.x + input.width - 24) until (input.x + input.width - 8) &&
+            click.y.toInt() in (input.y + 30 + 20 * (index - page * linesPerPage)) until (input.y + 30 + 20 * (index - page * linesPerPage) + 20) &&
+            fileName.contains(".")
+        ) {
             // Delete file
             if (file.isDirectory) {
                 file.deleteRecursively()
@@ -276,8 +289,9 @@ object FileBrowser {
             refreshFiles()
         } else {
             if (fileName.endsWith(".nbt", true)) {
-                val item = getItemForFile(fileDir, file) ?: return true
-                ItemUtils.placeInventory(item, MC.player?.inventory?.indexOfFirst { it.isEmpty } ?: 0)
+                val item = getItemForFile(fileDir, file)
+                val slot = convertSlot(MC.player?.inventory?.emptySlot ?: -1)
+                item?.giveItem(slot)
             } else if (fileName.endsWith(".htsl", true)) {
                 input.text = fileName.dropLast(5)
                 filteredFiles = files.filter { it.lowercase().contains(input.text.lowercase()) }.toMutableList()
@@ -288,6 +302,13 @@ object FileBrowser {
         }
         return true
     }
+
+    private fun convertSlot(slot: Int) = when (slot) {
+        in 0..8 -> slot + 36
+        in 9..35 -> slot
+        else -> -1
+    }
+
 
     private fun refreshFiles() {
         val baseDir = File("HTSL/imports", subDir)
@@ -337,11 +358,28 @@ object FileBrowser {
         backwardPage.x = input.x - 5
     }
 
-    private fun renderHoveredFile(ctx: DrawContext, fileName: String, fileDir: String, file: File, x: Int, xBound: Int, yPos: Int) {
-        ctx.fill(input.x - 3, yPos + 2, input.x - 3 + input.width + 6, yPos + 2 + 21, RenderUtils.getColor(60, 60, 60, 200))
+    private fun renderHoveredFile(
+        ctx: DrawContext,
+        fileName: String,
+        fileDir: String,
+        file: File,
+        x: Int,
+        xBound: Int,
+        yPos: Int
+    ) {
+        ctx.fill(
+            input.x - 3,
+            yPos + 2,
+            input.x - 3 + input.width + 6,
+            yPos + 2 + 21,
+            RenderUtils.getColor(60, 60, 60, 200)
+        )
         if (fileName.contains(".")) {
             val trashIcon = if (x in (xBound - 24) until (xBound - 8)) openTrashBin else trashBin
             ctx.drawTexture(trashIcon, xBound - 24, yPos + 3, 20, 20)
+        }
+        if (fileName.endsWith(".htsl", true)) {
+
         }
         renderFileIcon(ctx, fileName, fileDir, file, input.x - 2, yPos + 3, 20)
         ctx.drawText(subDir + fileName, input.x + 22, yPos + 8)
@@ -349,7 +387,7 @@ object FileBrowser {
 
     private fun renderNavigationControls(ctx: DrawContext, x: Int, y: Int, delta: Float, chestX: Int, topBound: Int) {
         if (filteredFiles.isEmpty()) {
-            ctx.drawText( "Nothing is here...", input.x + 10, topBound + 9)
+            ctx.drawText("Nothing is here...", input.x + 10, topBound + 9)
         }
         if (subDir.isNotEmpty()) {
             backDir.render(ctx, x, y, delta)

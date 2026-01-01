@@ -1,7 +1,5 @@
 package llc.redstone.htslreborn.htslio
 
-import com.github.shynixn.mccoroutine.fabric.launch
-import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.importing
 import llc.redstone.htslreborn.parser.Parser
@@ -46,7 +44,7 @@ object HTSLImporter {
 
         //TODO: go through the compiled code and look for anything that doesnt exist yet and prompt the user to create it first
 
-        HTSLReborn.launch {
+        SystemsAPI.launch {
             try {
                 importing = true
                 for ((goto, actions) in compiledCode) {
