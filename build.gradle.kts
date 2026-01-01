@@ -82,7 +82,8 @@ tasks {
             "minecraft" to project.property("mod.mc_dep"),
             "fabric_loader" to project.property("deps.fabric_loader"),
             "fabric_language_kotlin" to project.property("deps.fabric_language_kotlin"),
-            "yacl" to project.property("deps.yacl")
+            "yacl" to project.property("deps.yacl"),
+            "systemsapi" to project.property("deps.systemsapi")
         )
 
         filesMatching("fabric.mod.json") { expand(props) }
