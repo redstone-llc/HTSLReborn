@@ -36,14 +36,13 @@ class FileBrowser : BaseOwoScreen<FlowLayout>() {
         searchBox.verticalSizing(Sizing.fill())
         searchBox.setPlaceholder(Text.literal("Search"))
 
-        val openFolderButton = Components.button(Text.of("Folder")) { button ->
-            TODO("Not implemented yet")
-        }
+        val openFolderButton = Components.button(Text.of("\uD83D\uDDC0")) { button ->}
         openFolderButton.sizing(Sizing.content(), Sizing.fill())
 
         val header = Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20))
             .child(searchBox)
             .child(openFolderButton)
+            .gap(2)
 
 
         // File Explorer
@@ -53,6 +52,8 @@ class FileBrowser : BaseOwoScreen<FlowLayout>() {
                 Containers.verticalFlow(Sizing.fill(), Sizing.fixed(25))
                     .also {
                         it.surface(Surface.PANEL)
+                        it.mouseEnter().subscribe { it.cursorStyle(CursorStyle.HAND) }
+                        it.mouseLeave().subscribe { it.cursorStyle(CursorStyle.POINTER) }
                     }
             )
 
@@ -62,6 +63,7 @@ class FileBrowser : BaseOwoScreen<FlowLayout>() {
             Sizing.expand(), Sizing.expand(),
             Containers.verticalFlow(Sizing.fill(), Sizing.content())
                 .children(fileDummies)
+                .gap(1)
                 .margins(Insets.right(4))
         )
 
@@ -77,8 +79,15 @@ class FileBrowser : BaseOwoScreen<FlowLayout>() {
 
         // Action buttons
         val actionButtons = Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20))
+        actionButtons.gap(2)
         actionButtons.child(
-            Components.button(Text.of("Import")) { button ->}
+            Containers.horizontalFlow(Sizing.content(), Sizing.fill())
+                .child(
+                    Components.button(Text.of("Import")) { button ->}
+                )
+                .child(
+                    Components.button(Text.of("↓")) { button ->}
+                )
         )
         actionButtons.child(
             Components.button(Text.of("Export")) { button ->}
@@ -87,10 +96,10 @@ class FileBrowser : BaseOwoScreen<FlowLayout>() {
             Containers.horizontalFlow(Sizing.expand(), Sizing.fill())
         )
         actionButtons.child(
-            Components.button(Text.of("Open")) { button ->}
+            Components.button(Text.of("✎")) { button ->}
         )
         actionButtons.child(
-            Components.button(Text.of("Delete")) { button ->}
+            Components.button(Text.of("\uD83D\uDDD1")) { button ->}
         )
 
 
