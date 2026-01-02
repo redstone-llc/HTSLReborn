@@ -11,5 +11,8 @@
   },
   "overwrites": {
     "requireAnnotations": true
-  }
+  },
+  "mixins": [
+    "KeyboardMixin"
+  ]
 }

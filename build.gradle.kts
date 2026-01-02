@@ -22,7 +22,8 @@ repositories {
 
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     strictMaven("https://maven.terraformersmc.com/", "Terraformers")
-    strictMaven("https://maven.isxander.dev/releases", "Xander Maven")
+    strictMaven("https://maven.isxander.dev/releases", "xanderRepoReleases")
+    strictMaven("https://maven.wispforest.io/releases", "wispForestReleases")
     strictMaven("https://repo.redstone.llc/releases", "redstoneReleases")
 
     strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth")
@@ -40,10 +41,11 @@ dependencies {
     minecraft("com.mojang:minecraft:${stonecutter.current.version}")
     mappings("net.fabricmc:yarn:${property("deps.yarn")}:v2")
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
-
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
-    modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+
     modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
+    modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    modImplementation("io.wispforest:owo-lib:${property("deps.owo")}")
     modImplementation("llc.redstone:SystemsAPI:${property("deps.systemsapi")}")
 
     implementation(tegralLibs.niwen.lexer)
