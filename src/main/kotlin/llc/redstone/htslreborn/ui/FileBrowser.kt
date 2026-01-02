@@ -7,8 +7,6 @@ import llc.redstone.htslreborn.HTSLReborn.importing
 import llc.redstone.htslreborn.accessors.HandledScreenAccessor
 import llc.redstone.htslreborn.htslio.HTSLExporter
 import llc.redstone.htslreborn.htslio.HTSLImporter
-import llc.redstone.htslreborn.parser.Parser
-import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.utils.ItemConvertUtils
 import llc.redstone.htslreborn.utils.RenderUtils
 import llc.redstone.htslreborn.utils.RenderUtils.drawText
@@ -23,13 +21,9 @@ import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.client.input.CharInput
 import net.minecraft.client.input.KeyInput
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtIo
-import net.minecraft.nbt.StringNbtReader
 import net.minecraft.text.Text.literal
 import net.minecraft.util.Identifier
-import java.io.DataInputStream
 import java.io.File
-import java.io.FileInputStream
 import kotlin.math.floor
 
 object FileBrowser {
