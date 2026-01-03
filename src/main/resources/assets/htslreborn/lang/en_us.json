@@ -1,0 +1,17 @@
+{
+  "htslreborn.menu.title": "HTSL Reborn",
+  "htslreborn.menu.searchbox": "Search",
+  "htslreborn.menu.button.openfolder": "Open Folder",
+  "htslreborn.menu.button.openfolder.description": "Open folder in file explorer",
+  "htslreborn.menu.button.import": "Import",
+  "htslreborn.menu.button.import.add": "Add",
+  "htslreborn.menu.button.import.add.description": "Import, adding actions to the end of this container.",
+  "htslreborn.menu.button.import.replace": "Replace",
+  "htslreborn.menu.button.import.replace.description": "Import, replacing the actions currently in this container.",
+  "htslreborn.menu.button.import.update": "Update",
+  "htslreborn.menu.button.import.update.description": "Import, dynamically updating actions already in this container.",
+  "htslreborn.menu.button.export": "Export",
+  "htslreborn.menu.button.export.description": "Export actions into this file.",
+  "htslreborn.menu.button.openfile.description": "Open file in text editor",
+  "htslreborn.menu.button.deletefile.description": "Delete file"
+}

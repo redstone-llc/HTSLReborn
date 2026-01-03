@@ -11,10 +11,14 @@ fun createSettingsGui(parent: Screen?): Screen = YetAnotherConfigLib(HTSLReborn.
     save(HTSLRebornSettings::saveToFile)
 
     categories.register("input") {
-        val fileExplorer by groups.registering {
+        groups.register("explorer") {
             options.register(HTSLRebornSettings.showFileExplorer) {
                 defaultDescription()
                 controller = tickBox()
+            }
+            options.register(HTSLRebornSettings.defaultImportMethod) {
+                defaultDescription()
+                controller = enumDropdown { it.displayName }
             }
         }
 
