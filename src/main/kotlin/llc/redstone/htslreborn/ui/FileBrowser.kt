@@ -19,124 +19,123 @@ class FileBrowser : BaseOwoScreen<FlowLayout>() {
         return OwoUIAdapter.create(this, Containers::verticalFlow)
     }
 
+    private fun FlowLayout.hoverCursor(
+        hover: CursorStyle = CursorStyle.HAND,
+        normal: CursorStyle = CursorStyle.POINTER
+    ) = apply {
+        mouseEnter().subscribe { cursorStyle(hover) }
+        mouseLeave().subscribe { cursorStyle(normal) }
+    }
+
+    private fun buildHeader(): FlowLayout {
+        val searchBox = Components.textBox(Sizing.expand()).apply {
+            verticalSizing(Sizing.fill())
+            setPlaceholder(Text.literal("Search"))
+        }
+
+        val openFolderButton = Components.button(Text.of("\uD83D\uDDC0")) { /*...*/ }
+            .apply { sizing(Sizing.content(), Sizing.fill()) }
+
+        return Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
+            child(searchBox)
+            child(openFolderButton)
+            gap(2)
+        }
+    }
+
+    private fun buildExplorer(): ScrollContainer<FlowLayout> {
+        val fileRows: List<FlowLayout> = List(20) {
+            Containers.verticalFlow(Sizing.fill(), Sizing.fixed(25)).apply {
+                surface(Surface.PANEL)
+                hoverCursor()
+            }
+        }
+
+        val content = Containers.verticalFlow(Sizing.fill(), Sizing.content()).apply {
+            children(fileRows)
+            gap(1)
+            margins(Insets.right(4))
+        }
+
+        return Containers.verticalScroll(Sizing.expand(), Sizing.expand(), content).apply {
+            surface(Surface.PANEL_INSET)
+            margins(Insets.vertical(5))
+            padding(Insets.of(2))
+            scrollbar(ScrollContainer.Scrollbar.vanillaFlat())
+            scrollbarThiccness(4)
+        }
+    }
+
+    private fun buildButtons(): FlowLayout {
+        return Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
+            gap(2)
+            allowOverflow(true)
+
+            child(
+                Containers.horizontalFlow(Sizing.content(), Sizing.fill()).apply {
+                    children(
+                        listOf(
+                            Components.button(Text.of("Import")) { /*...*/ },
+                            Components.button(Text.of("↓")) { /*...*/ }
+                        )
+                    )
+                    allowOverflow(true)
+                }
+            )
+
+            child(Components.button(Text.of("Export")) { /*...*/ })
+            child(Containers.horizontalFlow(Sizing.expand(), Sizing.fill())) // spacer
+            child(Components.button(Text.of("✎")) { /*...*/ })
+            child(Components.button(Text.of("\uD83D\uDDD1")) { /*...*/ })
+        }
+    }
+
+    private fun buildBreadcrumbs(): FlowLayout {
+        fun crumb(name: String): LabelComponent =
+            Components.label(Text.literal(name)).apply {
+                mouseEnter().subscribe {
+                    text(Text.literal(name).withColor(0x808080))
+                    cursorStyle(CursorStyle.HAND)
+                }
+                mouseLeave().subscribe {
+                    text(Text.literal(name))
+                    cursorStyle(CursorStyle.POINTER)
+                }
+            }
+
+        return Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
+            alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
+            gap(4)
+            children(
+                listOf(
+                    crumb("imports"),
+                    Components.label(Text.literal(">").withColor(0x505050)),
+                    crumb("Project"),
+                )
+            )
+        }
+    }
+
     override fun build(root: FlowLayout) {
         val accessor = (MC.currentScreen as? HandledScreenAccessor) ?: return //TODO: throw error
 
-        root.sizing(Sizing.fixed(accessor.getGuiLeft()), Sizing.expand())
-        root.padding(Insets.of(5))
+        root.apply {
+            sizing(Sizing.fixed(accessor.getGuiLeft()), Sizing.expand())
+            padding(Insets.of(5))
 
-        val background = Containers.verticalFlow(Sizing.fill(), Sizing.fill())
+            child(
+                Containers.verticalFlow(Sizing.fill(), Sizing.fill()).apply {
+                    surface(Surface.DARK_PANEL)
+                    padding(Insets.of(5))
 
-        background
-            .surface(Surface.DARK_PANEL)
-            .padding(Insets.of(5))
-
-        // Header
-        val searchBox = Components.textBox(Sizing.expand())
-        searchBox.verticalSizing(Sizing.fill())
-        searchBox.setPlaceholder(Text.literal("Search"))
-
-        val openFolderButton = Components.button(Text.of("\uD83D\uDDC0")) { button ->}
-        openFolderButton.sizing(Sizing.content(), Sizing.fill())
-
-        val header = Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20))
-            .child(searchBox)
-            .child(openFolderButton)
-            .gap(2)
-
-
-        // File Explorer
-        val fileDummies = mutableListOf<FlowLayout>()
-        repeat(20) {
-            fileDummies.add(
-                Containers.verticalFlow(Sizing.fill(), Sizing.fixed(25))
-                    .also {
-                        it.surface(Surface.PANEL)
-                        it.mouseEnter().subscribe { it.cursorStyle(CursorStyle.HAND) }
-                        it.mouseLeave().subscribe { it.cursorStyle(CursorStyle.POINTER) }
-                    }
+                    children(listOf(
+                        buildHeader(),
+                        buildExplorer(),
+                        buildButtons(),
+                        buildBreadcrumbs()
+                    ))
+                }
             )
-
         }
-
-        val explorer = Containers.verticalScroll(
-            Sizing.expand(), Sizing.expand(),
-            Containers.verticalFlow(Sizing.fill(), Sizing.content())
-                .children(fileDummies)
-                .gap(1)
-                .margins(Insets.right(4))
-        )
-
-        explorer
-            .surface(Surface.PANEL_INSET)
-        explorer
-            .margins(Insets.vertical(5))
-        explorer
-            .padding(Insets.of(2))
-        explorer
-            .scrollbar(ScrollContainer.Scrollbar.vanillaFlat())
-            .scrollbarThiccness(4)
-
-        // Action buttons
-        val actionButtons = Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20))
-        actionButtons.gap(2)
-        actionButtons.child(
-            Containers.horizontalFlow(Sizing.content(), Sizing.fill())
-                .child(
-                    Components.button(Text.of("Import")) { button ->}
-                )
-                .child(
-                    Components.button(Text.of("↓")) { button ->}
-                )
-        )
-        actionButtons.child(
-            Components.button(Text.of("Export")) { button ->}
-        )
-        actionButtons.child(
-            Containers.horizontalFlow(Sizing.expand(), Sizing.fill())
-        )
-        actionButtons.child(
-            Components.button(Text.of("✎")) { button ->}
-        )
-        actionButtons.child(
-            Components.button(Text.of("\uD83D\uDDD1")) { button ->}
-        )
-
-
-        //Breadcrumbs
-        val breadcrumbs = Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20))
-        breadcrumbs
-            .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
-        breadcrumbs
-            .gap(4)
-
-        fun breadcrumbDummy(name: String): LabelComponent {
-            val dummy = Components.label(Text.literal(name))
-            dummy.mouseEnter().subscribe {
-                dummy.text(Text.literal(name).withColor(0x808080))
-                dummy.cursorStyle(CursorStyle.HAND)
-            }
-            dummy.mouseLeave().subscribe {
-                dummy.text(Text.literal(name))
-                dummy.cursorStyle(CursorStyle.POINTER)
-            }
-            return dummy
-        }
-
-        breadcrumbs
-            .children(listOf(
-                breadcrumbDummy("imports"),
-                Components.label(Text.literal(">").withColor(0x505050)),
-                breadcrumbDummy("Project"),
-            ))
-
-        background.children(listOf(
-            header,
-            explorer,
-            actionButtons,
-            breadcrumbs,
-        ))
-
-        root.child(background)
     }
 }
