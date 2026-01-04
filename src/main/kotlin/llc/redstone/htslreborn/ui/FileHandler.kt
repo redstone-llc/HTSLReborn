@@ -13,16 +13,28 @@ object FileHandler {
     internal var selectedIndex = -1
     internal var subDir = ""
     internal var search = ""
+
+    private val importDir = File("HTSL/imports")
+    val itemExtensions = listOf(".json", ".nbt")
+    val htslExtensions = listOf(".htsl")
+
     fun refreshFiles() {
-        val baseDir = File("HTSL/imports", subDir)
-        if (!baseDir.exists()) {
-            baseDir.mkdirs()
+        if (!importDir.exists()) {
+            importDir.mkdirs()
         }
+        var baseDir = File(importDir, subDir)
+        if (!baseDir.exists()) {
+            subDir = ""
+            baseDir = importDir
+        }
+
         files = baseDir.listFiles().filter {
             if (it.isDirectory) {
                 true
             } else {
-                it.name.endsWith(".htsl", true) || it.name.endsWith(".nbt", true)
+                val name = it.name.lowercase()
+                itemExtensions.any { ext -> name.endsWith(ext) } ||
+                        htslExtensions.any { ext -> name.endsWith(ext)  }
             }
         }.map { it.name }.toMutableList()
         files.sortWith(compareBy({ !File(baseDir, it).isDirectory }, { it.lowercase() }))

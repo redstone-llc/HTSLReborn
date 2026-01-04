@@ -1,8 +1,16 @@
 package llc.redstone.htslreborn.ui
 
 import llc.redstone.htslreborn.ui.FileHandler.search
+import llc.redstone.htslreborn.ui.components.FileEntryComponent
 
 object FileBrowserHandler {
+    fun getSelectedEntry(): FileEntryComponent {
+        val explorerContent = FileBrowser.INSTANCE.content
+        return explorerContent.children()
+            .filterIsInstance<FileEntryComponent>()
+            .first { it.isFocused }
+    }
+
     fun onSearchChanged(newSearch: String) {
         if (newSearch != search) {
             search = newSearch
@@ -13,19 +21,23 @@ object FileBrowserHandler {
     }
 
     fun onBreadcrumbClicked(name: String, index: Int) {
-        if (name == "imports") {
-            FileHandler.subDir = ""
-        } else {
-            val dir = ("imports/" + FileHandler.subDir)
-                .split("/")
-                .subList(0, index + 1)
-                .joinToString("/")
-            FileHandler.subDir = dir.removePrefix("imports/")
+        try {
+            if (index == -1) {
+                FileHandler.subDir = ""
+            } else {
+                val dir = (FileHandler.subDir)
+                    .split("/")
+                    .subList(0, index + 1)
+                    .joinToString("/")
+                FileHandler.subDir = dir
+                println("Changed directory to: ${FileHandler.subDir} ")
+            }
+            FileHandler.refreshFiles()
+            FileBrowser.INSTANCE.refreshExplorer()
+            FileBrowser.INSTANCE.refreshBreadcrumbs()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        //TODO: there was a concurrent modification exception here :D
-        FileHandler.refreshFiles()
-        FileBrowser.INSTANCE.refreshExplorer()
-        FileBrowser.INSTANCE.refreshBreadcrumbs()
     }
 
     //Index of the

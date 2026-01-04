@@ -14,7 +14,7 @@ import llc.redstone.htslreborn.ui.FileBrowserHandler.onSearchChanged
 import llc.redstone.htslreborn.ui.FileHandler.filteredFiles
 import llc.redstone.htslreborn.ui.FileHandler.refreshFiles
 import llc.redstone.htslreborn.ui.components.DropdownComponent
-import llc.redstone.htslreborn.ui.components.FocusableFlowLayout
+import llc.redstone.htslreborn.ui.components.FileEntryComponent
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.input.CharInput
 import net.minecraft.client.input.KeyInput
@@ -23,12 +23,6 @@ import net.minecraft.text.Text
 class FileBrowser() : BaseOwoScreen<FlowLayout>() {
     companion object {
         var INSTANCE = FileBrowser()
-    }
-
-    enum class ExplorerEntryType {
-        FILE,
-        FOLDER,
-        ITEM
     }
 
     override fun createAdapter(): OwoUIAdapter<FlowLayout?> {
@@ -87,11 +81,11 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    fun explorerEntry(type: ExplorerEntryType, name: String, index: Int): FlowLayout {
-        val icon = Components.label(Text.of("[${type.name}]")) // TODO: replace with Components.sprite()
-        val label = Components.label(Text.of(name))
+    fun explorerEntry(name: String, index: Int): FlowLayout {
+        return FileEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index).apply {
+            val icon = Components.texture(this.spriteId(), 0, 0, 16, 16, 16, 16)
+            val label = Components.label(Text.of(name))
 
-        return FocusableFlowLayout.create(Sizing.fill(), Sizing.fixed(25), index).apply {
             surface(Surface.DARK_PANEL)
             gap(4)
             padding(Insets.of(5).withLeft(8).withRight(8))
@@ -105,10 +99,11 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
                     // set buttons to type
                     buttons.clearChildren()
                     buttons.children(
-                        when (type) {
-                            ExplorerEntryType.FILE -> buildFileButtons()
-                            ExplorerEntryType.FOLDER -> buildFolderButtons()
-                            ExplorerEntryType.ITEM -> buildItemButtons()
+                        when {
+                            isHTSLScript() -> buildFileButtons()
+                            isFolder() -> buildFolderButtons()
+                            isItem() -> buildItemButtons()
+                            else -> emptyList()
                         }
                     )
                 } else {
@@ -132,29 +127,39 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         margins(Insets.right(6))
 
         children(filteredFiles.mapIndexed { index, fileName ->
-            explorerEntry(
-                when {
-                    fileName.endsWith(".htsl") -> ExplorerEntryType.FILE
-                    fileName.endsWith(".nbt") -> ExplorerEntryType.ITEM
-                    else -> ExplorerEntryType.FOLDER
-                },
-                fileName, index
-            )
+            explorerEntry(fileName, index)
         })
     }
 
-    fun refreshExplorer() {
+    fun updateButtons(entry: FileEntryComponent?) {
+        val buttons = this.uiAdapter.rootComponent
+            .childById(FlowLayout::class.java, "base")
+            .childById(FlowLayout::class.java, "buttons")
+        buttons.queue {
+            buttons.clearChildren()
+            buttons.children(
+                when {
+                    entry == null -> emptyList()
+                    entry.isHTSLScript() -> buildFileButtons()
+                    entry.isFolder() -> buildFolderButtons()
+                    entry.isItem() -> buildItemButtons()
+                    else -> emptyList()
+                }
+            )
+        }
+    }
+
+    fun refreshExplorer(queue: Boolean = false) {
+        if (queue) {
+            content.queue {
+                refreshExplorer(false)
+            }
+            return
+        }
         content.clearChildren()
         content.children(
             filteredFiles.mapIndexed { index, fileName ->
-                explorerEntry(
-                    when {
-                        fileName.endsWith(".htsl") -> ExplorerEntryType.FILE
-                        fileName.endsWith(".nbt") -> ExplorerEntryType.ITEM
-                        else -> ExplorerEntryType.FOLDER
-                    },
-                    fileName, index
-                )
+                explorerEntry(fileName, index)
             }
         )
     }
@@ -172,18 +177,21 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
 
     var fileButtons = mutableListOf<ButtonComponent>()
 
-    private var importButton = Components.button(Text.translatable("htslreborn.explorer.button.file.import")) { /*...*/ }.apply {
-        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.add.description")))
-    }
+    private var importButton =
+        Components.button(Text.translatable("htslreborn.explorer.button.file.import")) { /*...*/ }.apply {
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.add.description")))
+        }
     private val dropdown: DropdownComponent = buildDropdown()
 
     fun buildFileButtons(): List<Component> {
         val dropdownButton = Components.button(Text.of("↓")) { dropdown.handleDropdownButton(it) }
         val import = Containers.horizontalFlow(Sizing.content(), Sizing.fill()).apply {
-            children(listOf(
-                importButton,
-                dropdownButton
-            ))
+            children(
+                listOf(
+                    importButton,
+                    dropdownButton
+                )
+            )
         }
 
         val export = Components.button(Text.translatable("htslreborn.explorer.button.file.export")) { /*...*/ }.apply {
@@ -199,12 +207,14 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.delete.description")))
         }
 
-        fileButtons.addAll(listOf(
-            importButton,
-            export,
-            open,
-            delete
-        ))
+        fileButtons.addAll(
+            listOf(
+                importButton,
+                export,
+                open,
+                delete
+            )
+        )
 
         return listOf(
             import,
@@ -234,7 +244,7 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
     }
 
     fun buildItemButtons(): List<Component> {
-        val spacer = Components.spacer()
+        val spacer = Components.spacer() //TODO: give item button?
         val open = Components.button(Text.of("✎")) { /*...*/ }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.open.description")))
@@ -251,16 +261,17 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         )
     }
 
-    private fun buildButtons(type: ExplorerEntryType?): FlowLayout {
+    private fun buildButtons(entry: FileEntryComponent?): FlowLayout {
         fileButtons.clear()
         return Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
             id("buttons")
             gap(2)
             children(
-                when (type) {
-                    ExplorerEntryType.FILE -> buildFileButtons()
-                    ExplorerEntryType.FOLDER -> buildFolderButtons()
-                    ExplorerEntryType.ITEM -> buildItemButtons()
+                when {
+                    entry == null -> emptyList()
+                    entry.isHTSLScript() -> buildFileButtons()
+                    entry.isFolder() -> buildFolderButtons()
+                    entry.isItem() -> buildItemButtons()
                     else -> emptyList()
                 }
             )
@@ -278,6 +289,7 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
                 cursorStyle(CursorStyle.POINTER)
             }
             mouseDown().subscribe { _, _ ->
+                println("Breadcrumb clicked: $name at index $index")
                 FileBrowserHandler.onBreadcrumbClicked(name, index)
                 false
             }
@@ -288,14 +300,16 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
 
     fun refreshBreadcrumbs() {
         val subDir = FileHandler.subDir
-        breadcrumbs.clearChildren()
-        breadcrumbs.child(breadcrumb("imports", -1))
-        if (subDir.isEmpty()) return
-        val split = subDir.split("/")
-        for (i in split.indices) {
-            val name = split[i]
-            breadcrumbs.child(Components.label(Text.literal(">").withColor(0x505050)))
-            breadcrumbs.child(breadcrumb(name, i))
+        breadcrumbs.queue {
+            breadcrumbs.clearChildren()
+            breadcrumbs.child(breadcrumb("imports", -1))
+            if (subDir.isEmpty()) return@queue
+            val split = subDir.split("/")
+            for (i in split.indices) {
+                val name = split[i]
+                breadcrumbs.child(Components.label(Text.literal(">").withColor(0x505050)))
+                breadcrumbs.child(breadcrumb(name, i))
+            }
         }
     }
 
@@ -304,13 +318,13 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
             gap(4)
             alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
             children(
-                  listOf(
-                        breadcrumb("imports", -1),
+                listOf(
+                    breadcrumb("imports", -1),
                 )
             )
         }
     }
-    
+
     fun buildDropdown(): DropdownComponent {
         return DropdownComponent.create(Sizing.fixed(50), Sizing.content()).apply {
             surface(Surface.DARK_PANEL)
@@ -354,13 +368,15 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
                     surface(Surface.DARK_PANEL)
                     padding(Insets.of(5))
 
-                    children(listOf(
-                        buildTitle(),
-                        buildHeader(),
-                        buildExplorer(),
-                        buildButtons(null),
-                        breadcrumbs
-                    ))
+                    children(
+                        listOf(
+                            buildTitle(),
+                            buildHeader(),
+                            buildExplorer(),
+                            buildButtons(null),
+                            breadcrumbs
+                        )
+                    )
                 }
             )
 
