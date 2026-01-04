@@ -8,6 +8,7 @@ import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.event.MouseEnter
 import io.wispforest.owo.util.EventSource
 import llc.redstone.htslreborn.HTSLReborn.LOGGER
+import llc.redstone.htslreborn.ui.FileBrowser
 import llc.redstone.htslreborn.ui.FileBrowserHandler
 import net.minecraft.client.gui.Click
 

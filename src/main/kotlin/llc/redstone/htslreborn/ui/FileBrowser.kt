@@ -10,7 +10,6 @@ import io.wispforest.owo.ui.container.ScrollContainer
 import io.wispforest.owo.ui.core.*
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.accessors.HandledScreenAccessor
-import llc.redstone.htslreborn.accessors.ScreenAccessor
 import llc.redstone.htslreborn.ui.FileBrowserHandler.onSearchChanged
 import llc.redstone.htslreborn.ui.FileHandler.filteredFiles
 import llc.redstone.htslreborn.ui.FileHandler.refreshFiles
@@ -26,12 +25,18 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         var INSTANCE = FileBrowser()
     }
 
+    enum class ExplorerEntryType {
+        FILE,
+        FOLDER,
+        ITEM
+    }
+
     override fun createAdapter(): OwoUIAdapter<FlowLayout?> {
         return OwoUIAdapter.create(this, Containers::verticalFlow)
     }
 
     private fun buildTitle(): Component {
-        return Components.label(Text.translatable("htslreborn.menu.title")).apply {
+        return Components.label(Text.translatable("htslreborn.explorer.title")).apply {
             sizing(Sizing.fill(), Sizing.content())
             horizontalTextAlignment(HorizontalAlignment.CENTER)
             verticalTextAlignment(VerticalAlignment.CENTER)
@@ -41,7 +46,7 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
 
     private val searchBox = Components.textBox(Sizing.expand()).apply {
         verticalSizing(Sizing.fill())
-        setPlaceholder(Text.translatable("htslreborn.menu.searchbox"))
+        setPlaceholder(Text.translatable("htslreborn.explorer.search"))
     }
 
     override fun charTyped(input: CharInput): Boolean {
@@ -68,7 +73,7 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
     private fun buildHeader(): FlowLayout {
         val openFolderButton = Components.button(Text.of("\uD83D\uDDC0")) { /*...*/ }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
-            setTooltip(Tooltip.of(Text.translatable("htslreborn.menu.button.openfolder.description")))
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.openfolder.description")))
         }
 
         return Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
@@ -82,8 +87,8 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    fun explorerEntry(name: String, index: Int): FlowLayout {
-        val icon = Components.label(Text.of("[ICON]")) // TODO: replace with Components.sprite()
+    fun explorerEntry(type: ExplorerEntryType, name: String, index: Int): FlowLayout {
+        val icon = Components.label(Text.of("[${type.name}]")) // TODO: replace with Components.sprite()
         val label = Components.label(Text.of(name))
 
         return FocusableFlowLayout.create(Sizing.fill(), Sizing.fixed(25), index).apply {
@@ -91,6 +96,27 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
             gap(4)
             padding(Insets.of(5).withLeft(8).withRight(8))
             alignment(HorizontalAlignment.LEFT, VerticalAlignment.CENTER)
+
+            mouseDown().subscribe { click, bool ->
+                val buttons = root()
+                    .childById(FlowLayout::class.java, "base")
+                    .childById(FlowLayout::class.java, "buttons")
+                if (isFocused) {
+                    // set buttons to type
+                    buttons.clearChildren()
+                    buttons.children(
+                        when (type) {
+                            ExplorerEntryType.FILE -> buildFileButtons()
+                            ExplorerEntryType.FOLDER -> buildFolderButtons()
+                            ExplorerEntryType.ITEM -> buildItemButtons()
+                        }
+                    )
+                } else {
+                    // remove buttons
+                    buttons.clearChildren()
+                }
+                true
+            }
 
             children(
                 listOf(
@@ -106,7 +132,14 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         margins(Insets.right(6))
 
         children(filteredFiles.mapIndexed { index, fileName ->
-            explorerEntry(fileName, index)
+            explorerEntry(
+                when {
+                    fileName.endsWith(".htsl") -> ExplorerEntryType.FILE
+                    fileName.endsWith(".nbt") -> ExplorerEntryType.ITEM
+                    else -> ExplorerEntryType.FOLDER
+                },
+                fileName, index
+            )
         })
     }
 
@@ -114,7 +147,14 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         content.clearChildren()
         content.children(
             filteredFiles.mapIndexed { index, fileName ->
-                explorerEntry(fileName, index)
+                explorerEntry(
+                    when {
+                        fileName.endsWith(".htsl") -> ExplorerEntryType.FILE
+                        fileName.endsWith(".nbt") -> ExplorerEntryType.ITEM
+                        else -> ExplorerEntryType.FOLDER
+                    },
+                    fileName, index
+                )
             }
         )
     }
@@ -132,60 +172,97 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
 
     var fileButtons = mutableListOf<ButtonComponent>()
 
-    private var importButton = Components.button(Text.translatable("htslreborn.menu.button.import")) { /*...*/ }.apply {
-        setTooltip(Tooltip.of(Text.translatable("htslreborn.menu.button.import.add.description")))
+    private var importButton = Components.button(Text.translatable("htslreborn.explorer.button.file.import")) { /*...*/ }.apply {
+        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.add.description")))
     }
-
     private val dropdown: DropdownComponent = buildDropdown()
 
-    private fun buildButtons(): FlowLayout {
+    fun buildFileButtons(): List<Component> {
         val dropdownButton = Components.button(Text.of("↓")) { dropdown.handleDropdownButton(it) }
         val import = Containers.horizontalFlow(Sizing.content(), Sizing.fill()).apply {
-            children(
-                listOf(
-                    importButton,
-                    dropdownButton
-                )
-            )
+            children(listOf(
+                importButton,
+                dropdownButton
+            ))
         }
 
-        val export = Components.button(Text.translatable("htslreborn.menu.button.export")) { /*...*/ }.apply {
-            setTooltip(Tooltip.of(Text.translatable("htslreborn.menu.button.export.description")))
+        val export = Components.button(Text.translatable("htslreborn.explorer.button.file.export")) { /*...*/ }.apply {
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.export.description")))
         }
-
         val spacer = Components.spacer()
-
-        val edit = Components.button(Text.of("✎")) { /*...*/ }.apply {
+        val open = Components.button(Text.of("✎")) { /*...*/ }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
-            setTooltip(Tooltip.of(Text.translatable("htslreborn.menu.button.openfile.description")))
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.open.description")))
         }
-
         val delete = Components.button(Text.of("\uD83D\uDDD1")) { /*...*/ }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
-            setTooltip(Tooltip.of(Text.translatable("htslreborn.menu.button.deletefile.description")))
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.delete.description")))
         }
 
-        fileButtons.clear()
-        fileButtons.addAll(
-            listOf(
-                importButton,
-                export,
-                edit,
-                delete
-            )
-        )
+        fileButtons.addAll(listOf(
+            importButton,
+            export,
+            open,
+            delete
+        ))
 
+        return listOf(
+            import,
+            export,
+            spacer,
+            open,
+            delete
+        )
+    }
+
+    fun buildFolderButtons(): List<Component> {
+        val spacer = Components.spacer()
+        val delete = Components.button(Text.of("\uD83D\uDDD1")) { /*...*/ }.apply {
+            sizing(Sizing.fixed(20), Sizing.fill())
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.folder.delete.description")))
+        }
+        val open = Components.button(Text.of("✎")) { /*...*/ }.apply {
+            sizing(Sizing.fixed(20), Sizing.fill())
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.folder.open.description")))
+        }
+
+        return listOf(
+            spacer,
+            open,
+            delete
+        )
+    }
+
+    fun buildItemButtons(): List<Component> {
+        val spacer = Components.spacer()
+        val open = Components.button(Text.of("✎")) { /*...*/ }.apply {
+            sizing(Sizing.fixed(20), Sizing.fill())
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.open.description")))
+        }
+        val delete = Components.button(Text.of("\uD83D\uDDD1")) { /*...*/ }.apply {
+            sizing(Sizing.fixed(20), Sizing.fill())
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.delete.description")))
+        }
+
+        return listOf(
+            spacer,
+            open,
+            delete
+        )
+    }
+
+    private fun buildButtons(type: ExplorerEntryType?): FlowLayout {
+        fileButtons.clear()
         return Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
+            id("buttons")
             gap(2)
-            allowOverflow(true)
             children(
-                listOf(
-                    import,
-                    export,
-                    spacer,
-                    edit,
-                    delete
-                )
+                when (type) {
+                    ExplorerEntryType.FILE -> buildFileButtons()
+                    ExplorerEntryType.FOLDER -> buildFolderButtons()
+                    ExplorerEntryType.ITEM -> buildItemButtons()
+                    else -> emptyList()
+                }
             )
         }
     }
@@ -241,20 +318,20 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
             positioning(Positioning.absolute(0, 0))
             children(
                 listOf(
-                    Components.button(Text.translatable("htslreborn.menu.button.import.add")) {}.apply {
+                    Components.button(Text.translatable("htslreborn.explorer.button.file.import.add")) {}.apply {
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                        setTooltip(Tooltip.of(Text.translatable("htslreborn.menu.button.import.add.description")))
+                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.add.description")))
                     },
-                    Components.button(Text.translatable("htslreborn.menu.button.import.replace")) {}.apply {
+                    Components.button(Text.translatable("htslreborn.explorer.button.file.import.replace")) {}.apply {
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                        setTooltip(Tooltip.of(Text.translatable("htslreborn.menu.button.import.replace.description")))
+                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.replace.description")))
                     },
-                    Components.button(Text.translatable("htslreborn.menu.button.import.update")) {}.apply {
+                    Components.button(Text.translatable("htslreborn.explorer.button.file.import.update")) {}.apply {
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                        setTooltip(Tooltip.of(Text.translatable("htslreborn.menu.button.import.update.description")))
+                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.update.description")))
                     },
                 )
             )
@@ -273,19 +350,17 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
 
             child(
                 Containers.verticalFlow(Sizing.fill(), Sizing.fill()).apply {
-                    id("container")
+                    id("base")
                     surface(Surface.DARK_PANEL)
                     padding(Insets.of(5))
 
-                    children(
-                        listOf(
-                            buildTitle(),
-                            buildHeader(),
-                            buildExplorer(),
-                            buildButtons(),
-                            breadcrumbs
-                        )
-                    )
+                    children(listOf(
+                        buildTitle(),
+                        buildHeader(),
+                        buildExplorer(),
+                        buildButtons(null),
+                        breadcrumbs
+                    ))
                 }
             )
 

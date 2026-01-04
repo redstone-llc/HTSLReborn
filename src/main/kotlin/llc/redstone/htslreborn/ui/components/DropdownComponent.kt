@@ -38,8 +38,9 @@ class DropdownComponent(
         val component = this.childAt(click.x.toInt() + x, click.y.toInt() + y) as? ButtonComponent
         val accessor = component as? ClickableWidgetAccessor
         if (component != null && accessor != null) {
-            actionComponent?.message = component.message
-            actionComponent?.setTooltip(accessor.`owo$getTooltip`()?.tooltip)
+            // TODO: This isn't what we want; just run the specified action, no switching out the actual button
+//            actionComponent?.message = component.message
+//            actionComponent?.setTooltip(accessor.`owo$getTooltip`()?.tooltip)
             isVisible = false
             return true
         }
