@@ -4,6 +4,8 @@
   "package": "llc.redstone.htslreborn.mixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "KeyboardMixin",
+    "ScreenMixin",
     "ScreenHandlerMixin"
   ],
   "injectors": {
@@ -11,8 +13,5 @@
   },
   "overwrites": {
     "requireAnnotations": true
-  },
-  "mixins": [
-    "KeyboardMixin"
-  ]
+  }
 }
