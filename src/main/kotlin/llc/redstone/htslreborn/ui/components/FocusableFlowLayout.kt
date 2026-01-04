@@ -1,8 +1,13 @@
 package llc.redstone.htslreborn.ui.components
 
 import io.wispforest.owo.ui.container.FlowLayout
+import io.wispforest.owo.ui.core.Component
+import io.wispforest.owo.ui.core.CursorStyle
 import io.wispforest.owo.ui.core.OwoUIDrawContext
 import io.wispforest.owo.ui.core.Sizing
+import io.wispforest.owo.ui.event.MouseEnter
+import io.wispforest.owo.util.EventSource
+import llc.redstone.htslreborn.HTSLReborn.LOGGER
 import llc.redstone.htslreborn.ui.FileBrowserHandler
 import net.minecraft.client.gui.Click
 
@@ -11,11 +16,31 @@ class FocusableFlowLayout(
 ): FlowLayout(horizontalSizing, verticalSizing, Algorithm.HORIZONTAL) {
     var isFocused = false
 
+    init {
+        mouseEnter().subscribe {
+            cursorStyle(CursorStyle.HAND)
+        }
+    }
+
+    override fun child(child: Component?): FlowLayout? {
+        mouseEnter().subscribe {
+            cursorStyle(CursorStyle.HAND)
+        }
+        return super.child(child)
+    }
+
+    override fun children(children: Collection<Component?>?): FlowLayout? {
+        children?.forEach {
+            it?.mouseEnter()?.subscribe {
+                it.cursorStyle(CursorStyle.HAND)
+            }
+        }
+        return super.children(children)
+    }
+
     override fun draw(context: OwoUIDrawContext?, mouseX: Int, mouseY: Int, partialTicks: Float, delta: Float) {
         super.draw(context, mouseX, mouseY, partialTicks, delta)
-        if (isFocused) {
-            this.drawFocusHighlight(context, mouseX, mouseY, partialTicks, delta)
-        }
+        if (isFocused) this.drawFocusHighlight(context, mouseX, mouseY, partialTicks, delta)
     }
 
     override fun onMouseDown(click: Click, doubled: Boolean): Boolean {

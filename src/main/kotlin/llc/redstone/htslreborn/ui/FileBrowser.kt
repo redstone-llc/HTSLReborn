@@ -30,14 +30,6 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         return OwoUIAdapter.create(this, Containers::verticalFlow)
     }
 
-    private fun FlowLayout.hoverCursor(
-        hover: CursorStyle = CursorStyle.HAND,
-        normal: CursorStyle = CursorStyle.POINTER
-    ) = apply {
-        mouseEnter().subscribe { cursorStyle(hover) }
-        mouseLeave().subscribe { cursorStyle(normal) }
-    }
-
     private fun buildTitle(): Component {
         return Components.label(Text.translatable("htslreborn.menu.title")).apply {
             sizing(Sizing.fill(), Sizing.content())
@@ -99,7 +91,6 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
             gap(4)
             padding(Insets.of(5).withLeft(8).withRight(8))
             alignment(HorizontalAlignment.LEFT, VerticalAlignment.CENTER)
-            hoverCursor()
 
             children(
                 listOf(
