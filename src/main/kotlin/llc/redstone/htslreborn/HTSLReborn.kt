@@ -3,6 +3,7 @@ package llc.redstone.htslreborn
 import llc.redstone.htslreborn.commands.HTSLCommand
 import llc.redstone.htslreborn.ui.FileBrowser
 import llc.redstone.htslreborn.ui.FileHandler
+import llc.redstone.htslreborn.utils.RenderUtils.isInitialized
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.minecraft.client.MinecraftClient
@@ -56,8 +57,8 @@ object HTSLReborn : ClientModInitializer {
                         }
                     }
                     fileEditCooldown[filename.name] = System.currentTimeMillis()
-                    if (MC.currentScreen is FileBrowser) {
-                        FileHandler.refreshFiles()
+                    if (FileBrowser.INSTANCE.isInitialized()) {
+                        FileHandler.refreshFiles(true)
                         FileBrowser.INSTANCE.refreshExplorer(true)
                     }
                 }

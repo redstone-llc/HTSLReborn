@@ -5,8 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "KeyboardMixin",
-    "ScreenHandlerMixin",
-    "ScreenMixin"
+    "ScreenHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -18,7 +18,7 @@ object FileHandler {
     val itemExtensions = listOf(".json", ".nbt")
     val htslExtensions = listOf(".htsl")
 
-    fun refreshFiles() {
+    fun refreshFiles(live: Boolean = false) {
         if (!importDir.exists()) {
             importDir.mkdirs()
         }
@@ -47,6 +47,10 @@ object FileHandler {
             filteredFiles = files.filter { it.lowercase().contains(query) }.toMutableList()
         } else {
             filteredFiles = files.toMutableList()
+        }
+
+        if (!live) {
+            FileBrowser.INSTANCE.updateButtons(null)
         }
     }
 

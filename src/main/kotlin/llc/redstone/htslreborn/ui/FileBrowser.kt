@@ -91,28 +91,6 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
             padding(Insets.of(5).withLeft(8).withRight(8))
             alignment(HorizontalAlignment.LEFT, VerticalAlignment.CENTER)
 
-            mouseDown().subscribe { click, bool ->
-                val buttons = root()
-                    .childById(FlowLayout::class.java, "base")
-                    .childById(FlowLayout::class.java, "buttons")
-                if (isFocused) {
-                    // set buttons to type
-                    buttons.clearChildren()
-                    buttons.children(
-                        when {
-                            isHTSLScript() -> buildFileButtons()
-                            isFolder() -> buildFolderButtons()
-                            isItem() -> buildItemButtons()
-                            else -> emptyList()
-                        }
-                    )
-                } else {
-                    // remove buttons
-                    buttons.clearChildren()
-                }
-                true
-            }
-
             children(
                 listOf(
                     icon,
@@ -356,7 +334,7 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
     public override fun build(root: FlowLayout) {
         val accessor = (MC.currentScreen as? HandledScreenAccessor) ?: return //TODO: throw error
 
-        refreshFiles()
+        refreshFiles(true)
 
         root.apply {
             sizing(Sizing.fixed(accessor.getGuiLeft()), Sizing.expand())
