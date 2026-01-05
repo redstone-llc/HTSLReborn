@@ -7,26 +7,12 @@ import io.wispforest.owo.ui.core.OwoUIDrawContext
 import io.wispforest.owo.ui.core.Sizing
 import llc.redstone.htslreborn.ui.FileBrowser
 import llc.redstone.htslreborn.ui.FileBrowserHandler
-import llc.redstone.htslreborn.ui.FileHandler
-import llc.redstone.htslreborn.ui.FileHandler.htslExtensions
-import llc.redstone.htslreborn.ui.FileHandler.itemExtensions
 import net.minecraft.client.gui.Click
 import net.minecraft.util.Identifier
-import java.io.File
 
-class FileEntryComponent(
+abstract class FileExplorerEntryComponent(
     horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int
 ): FlowLayout(horizontalSizing, verticalSizing, Algorithm.HORIZONTAL) {
-    var isFocused = false
-
-    var file: File? = FileHandler.filteredFiles.getOrNull(index)?.let {
-        FileHandler.getFile(it)
-    }
-
-    private val folderIdent = Identifier.of("htslreborn", "textures/ui/file_browser/placeholder.png")
-    private val itemIdent = Identifier.of("htslreborn", "textures/ui/file_browser/placeholder.png")
-    private val scriptIdent = Identifier.of("htslreborn", "textures/ui/file_browser/placeholder.png")
-    private val unknownIdent = Identifier.of("htslreborn", "textures/ui/file_browser/placeholder.png")
 
     init {
         mouseEnter().subscribe {
@@ -34,28 +20,10 @@ class FileEntryComponent(
         }
     }
 
-    fun spriteId(): Identifier {
-        return when {
-            isFolder() -> folderIdent
-            isItem() -> itemIdent
-            isHTSLScript() -> scriptIdent
-            else -> unknownIdent
-        }
-    }
+    abstract val icon: Identifier
+    abstract fun buildContextButtons(): List<Component>
 
-    fun isFolder(): Boolean {
-        return file?.isDirectory == true
-    }
-
-    fun isItem(): Boolean {
-        val fileName = file?.name?.lowercase() ?: return false
-        return itemExtensions.any { fileName.endsWith(it) }
-    }
-
-    fun isHTSLScript(): Boolean {
-        val fileName = file?.name?.lowercase() ?: return false
-        return htslExtensions.any { fileName.endsWith(it) }
-    }
+    var isFocused = false
 
     override fun child(child: Component?): FlowLayout? {
         mouseEnter().subscribe {
@@ -85,7 +53,7 @@ class FileEntryComponent(
 
         isFocused = !isFocused
 
-        parent?.children()?.filterIsInstance<FileEntryComponent>()?.forEach {
+        parent?.children()?.filterIsInstance<FileExplorerEntryComponent>()?.forEach {
             if (it != this) {
                 it.isFocused = false
             }
@@ -98,11 +66,5 @@ class FileEntryComponent(
         }
 
         return super.onMouseDown(click, doubled)
-    }
-
-    companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int): FileEntryComponent {
-            return FileEntryComponent(horizontalSizing, verticalSizing, index)
-        }
     }
 }

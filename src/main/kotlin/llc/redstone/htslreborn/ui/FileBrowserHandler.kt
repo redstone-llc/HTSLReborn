@@ -1,13 +1,13 @@
 package llc.redstone.htslreborn.ui
 
 import llc.redstone.htslreborn.ui.FileHandler.search
-import llc.redstone.htslreborn.ui.components.FileEntryComponent
+import llc.redstone.htslreborn.ui.components.FileExplorerEntryComponent
 
 object FileBrowserHandler {
-    fun getSelectedEntry(): FileEntryComponent {
+    fun getSelectedEntry(): FileExplorerEntryComponent {
         val explorerContent = FileBrowser.INSTANCE.content
         return explorerContent.children()
-            .filterIsInstance<FileEntryComponent>()
+            .filterIsInstance<FileExplorerEntryComponent>()
             .first { it.isFocused }
     }
 
