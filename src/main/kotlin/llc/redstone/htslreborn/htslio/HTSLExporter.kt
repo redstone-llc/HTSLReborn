@@ -3,6 +3,7 @@ package llc.redstone.htslreborn.htslio
 import llc.redstone.htslreborn.parser.ActionParser
 import llc.redstone.htslreborn.parser.ActionParser.handleSwaps
 import llc.redstone.htslreborn.parser.ConditionParser
+import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.Comparison
 import llc.redstone.systemsapi.data.Condition
@@ -14,6 +15,7 @@ import llc.redstone.systemsapi.data.Location
 import llc.redstone.systemsapi.data.PropertyHolder
 import llc.redstone.systemsapi.data.StatOp
 import llc.redstone.systemsapi.data.StatValue
+import java.io.File
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
@@ -21,6 +23,19 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
 
 object HTSLExporter {
+    fun exportFile(file: File) {
+        SystemsAPI.launch {
+            val actions = SystemsAPI.getHousingImporter().getOpenActionContainer()?.getActions() ?: return@launch
+            val lines = export(actions)
+            file.parentFile?.let {
+                if (!it.exists()) {
+                    it.mkdirs()
+                }
+            }
+            file.writeText(lines.joinToString("\n"))
+        }
+    }
+
     //This class is a little gross :)
     fun handleProperty(property: KProperty1<PropertyHolder, *>, value: Any?): List<String> {
         val properties = mutableListOf<String>()
@@ -101,9 +116,6 @@ object HTSLExporter {
     }
 
     fun export(actions: List<Action>): List<String> {
-        for (action in actions) {
-            println("$action")
-        }
         val lines = mutableListOf<String>()
         for (action in actions) {
             if (action is Action.Conditional) {

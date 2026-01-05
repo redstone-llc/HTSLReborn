@@ -27,7 +27,7 @@ object HTSLCommand {
 
         val file = File(fileArg)
 
-        HTSLImporter.importFile(file, false)
+        HTSLImporter.importFile(file, supportsBase = false)
 
         return 1
     }

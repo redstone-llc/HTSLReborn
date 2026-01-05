@@ -18,14 +18,24 @@ object FileHandler {
     val itemExtensions = listOf(".json", ".nbt")
     val htslExtensions = listOf(".htsl")
 
+    fun currentDir(): File {
+        return if (subDir.isEmpty()) {
+            importDir
+        } else {
+            File(importDir, subDir)
+        }
+    }
+
     fun refreshFiles(live: Boolean = false) {
+        var live = live
         if (!importDir.exists()) {
             importDir.mkdirs()
         }
-        var baseDir = File(importDir, subDir)
+        var baseDir = currentDir()
         if (!baseDir.exists()) {
             subDir = ""
             baseDir = importDir
+            live = true
         }
 
         files = baseDir.listFiles().filter {
@@ -59,8 +69,8 @@ object FileHandler {
         return File(baseDir, fileName)
     }
 
-    fun getItemForFile(fileDir: String, file: File): ItemStack? {
-        return cachedItems.getOrPut(fileDir) {
+    fun getItemForFile(file: File): ItemStack? {
+        return cachedItems.getOrPut(file.name) {
             try {
                 return@getOrPut ItemConvertUtils.fileToItemStack(file)
             } catch (e: Exception) {

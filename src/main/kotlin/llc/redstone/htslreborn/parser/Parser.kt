@@ -84,7 +84,6 @@ object Parser {
                     if (conditional != null) {
                         val index = tokens.indexOf(token)
                         if (index > 0 && tokens[index - 1].tokenType == Tokens.INVERTED) {
-                            println("Found inverted condition")
                             conditions.add(ConditionParser.createCondition(token.string, iterator, file, true) ?: error("Did not expect null condition"))
                             continue
                         }

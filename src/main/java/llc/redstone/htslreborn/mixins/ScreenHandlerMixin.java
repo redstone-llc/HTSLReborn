@@ -31,43 +31,47 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
         super(title);
     }
 
-
-
     @Inject(method = "render", at = @At("HEAD"))
     public void htslreborn$render(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-        FileBrowser.Companion.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
+        if (!FileBrowser.inActionGui()) return;
+        FileBrowser.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
     }
 
     @Inject(method="mouseClicked" , at=@At("HEAD"), cancellable = true)
     public void htslreborn$mouseClicked(Click click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
-        if (FileBrowser.Companion.getINSTANCE().mouseClicked(click, doubled)) {
+        if (!FileBrowser.inActionGui()) return;
+        if (FileBrowser.getINSTANCE().mouseClicked(click, doubled)) {
             cir.setReturnValue(true);
         }
     }
 
     @Inject(method = "init", at = @At("TAIL"))
     public void htslreborn$init(CallbackInfo ci) {
-        FileBrowser.Companion.setINSTANCE(new FileBrowser());
-        FileBrowser.Companion.getINSTANCE().init(HTSLReborn.INSTANCE.getMC(), this.width, this.height);
+        if (!FileBrowser.inActionGui()) return;
+        FileBrowser.setINSTANCE(new FileBrowser());
+        FileBrowser.getINSTANCE().init(HTSLReborn.INSTANCE.getMC(), this.width, this.height);
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     public void htslreborn$keyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
-        if (FileBrowser.Companion.getINSTANCE().keyPressed(input)) {
+        if (!FileBrowser.inActionGui()) return;
+        if (FileBrowser.getINSTANCE().keyPressed(input)) {
             cir.setReturnValue(true);
         }
     }
 
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
     public void htslreborn$mouseDragged(Click click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
-        if (FileBrowser.Companion.getINSTANCE().mouseDragged(click, offsetX, offsetY)) {
+        if (!FileBrowser.inActionGui()) return;
+        if (FileBrowser.getINSTANCE().mouseDragged(click, offsetX, offsetY)) {
             cir.setReturnValue(true);
         }
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
     public void htslreborn$mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount, CallbackInfoReturnable<Boolean> cir) {
-        if (FileBrowser.Companion.getINSTANCE().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
+        if (!FileBrowser.inActionGui()) return;
+        if (FileBrowser.getINSTANCE().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
             cir.setReturnValue(true);
         }
     }
