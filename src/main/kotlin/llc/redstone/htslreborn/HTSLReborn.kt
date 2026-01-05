@@ -26,6 +26,7 @@ object HTSLReborn : ClientModInitializer {
         get() = MinecraftClient.getInstance()
 
     var importing = false
+    var importingFile = ""
 
     val fileEditCooldown = mutableMapOf<String, Long>()
 
