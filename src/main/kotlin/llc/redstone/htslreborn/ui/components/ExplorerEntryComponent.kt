@@ -11,7 +11,7 @@ import net.minecraft.client.gui.Click
 import net.minecraft.util.Identifier
 
 abstract class ExplorerEntryComponent(
-    horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int
+    horizontalSizing: Sizing, verticalSizing: Sizing, open val index: Int
 ): FlowLayout(horizontalSizing, verticalSizing, Algorithm.HORIZONTAL) {
 
     init {

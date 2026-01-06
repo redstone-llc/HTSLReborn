@@ -6,14 +6,13 @@ import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.core.OwoUIDrawContext
 import io.wispforest.owo.ui.core.Positioning
 import io.wispforest.owo.ui.core.Sizing
-import llc.redstone.htslreborn.ui.FileBrowserHandler
+import llc.redstone.htslreborn.ui.FileExplorerHandler
 import net.minecraft.client.gui.Click
 
 class DropdownComponent(
     horizontalSizing: Sizing, verticalSizing: Sizing
 ) : FlowLayout(horizontalSizing, verticalSizing, Algorithm.VERTICAL) {
     var isVisible = false
-    var actionComponent: ButtonComponent? = null
     var x = 0
     var y = 0
 
@@ -22,11 +21,6 @@ class DropdownComponent(
         x = buttonComponent!!.x() - 5
         y = buttonComponent.y() - 5 - this.height()
         positioning(Positioning.absolute(x, y))
-    }
-
-    fun actionComponent(buttonComponent: ButtonComponent): DropdownComponent {
-        this.actionComponent = buttonComponent
-        return this
     }
 
     override fun draw(context: OwoUIDrawContext?, mouseX: Int, mouseY: Int, partialTicks: Float, delta: Float) {
@@ -40,7 +34,7 @@ class DropdownComponent(
         val accessor = component as? ClickableWidgetAccessor
         if (component != null && accessor != null) {
             println("Clicked dropdown component: ${component.id()}")
-            FileBrowserHandler.onActionClicked(component)
+            FileExplorerHandler.onActionClicked(component)
             isVisible = false
             return true
         }

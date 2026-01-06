@@ -291,7 +291,6 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
                     },
                 )
             )
-            actionComponent(importButton)
         }
     }
 

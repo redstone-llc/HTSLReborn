@@ -32,8 +32,17 @@ object FileExplorerHandler {
         }
 
         when (val focused = FileExplorer.INSTANCE.focus) {
-            is FolderEntryComponent -> {
+            is ItemEntryComponent -> {
                 when (buttonComponent.id()) {
+                    "giveItem" -> {
+                        val item = FileHandler.getItemForFile(focused.file) ?: return
+                        val slot = convertSlot(MC.player?.inventory?.emptySlot ?: -1)
+                        item.giveItem(slot)
+                    }
+                    "saveItem" -> {
+                        val item = MC.player?.inventory?.selectedStack ?: return
+
+                    }
                     "open" -> {
                         Util.getOperatingSystem().open(focused.file)
                     }
@@ -44,17 +53,12 @@ object FileExplorerHandler {
                     }
                 }
             }
-            is ItemEntryComponent -> {
+            is FolderEntryComponent -> {
                 when (buttonComponent.id()) {
-                    "giveItem" -> {
-                        val item = FileHandler.getItemForFile(focused.file) ?: return
-                        val slot = convertSlot(MC.player?.inventory?.emptySlot ?: -1)
-                        item.giveItem(slot)
-                    }
-                    "saveItem" -> {
-                        TODO()
-                    }
                     "open" -> {
+                        handleDirectoryClick(focused.index)
+                    }
+                    "openext" -> {
                         Util.getOperatingSystem().open(focused.file)
                     }
                     "delete" -> {
@@ -87,6 +91,14 @@ object FileExplorerHandler {
                     }
                     "export" -> {
                         HTSLExporter.exportFile(focused.file)
+                    }
+                    "open" -> {
+                        Util.getOperatingSystem().open(focused.file)
+                    }
+                    "delete" -> {
+                        focused.file.delete()
+                        FileHandler.refreshFiles()
+                        FileExplorer.INSTANCE.refreshExplorer()
                     }
                 }
             }
