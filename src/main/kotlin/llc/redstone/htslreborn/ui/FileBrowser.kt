@@ -263,7 +263,7 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
                 listOf(
                     Components.button(
                         Text.translatable("htslreborn.explorer.button.script.import.add"),
-                        FileBrowserHandler::onActionClicked
+                        { }
                     ).apply {
                         id("import")
                         horizontalSizing(Sizing.fill())
@@ -272,7 +272,7 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
                     },
                     Components.button(
                         Text.translatable("htslreborn.explorer.button.script.import.replace"),
-                        FileBrowserHandler::onActionClicked
+                        { }
                     ).apply {
                         id("replace")
                         horizontalSizing(Sizing.fill())
@@ -281,7 +281,7 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
                     },
                     Components.button(
                         Text.translatable("htslreborn.explorer.button.script.import.update"),
-                        FileBrowserHandler::onActionClicked
+                        { }
                     ).apply {
                         id("update")
                         horizontalSizing(Sizing.fill())

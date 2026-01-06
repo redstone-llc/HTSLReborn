@@ -6,6 +6,7 @@ import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.core.OwoUIDrawContext
 import io.wispforest.owo.ui.core.Positioning
 import io.wispforest.owo.ui.core.Sizing
+import llc.redstone.htslreborn.ui.FileBrowserHandler
 import net.minecraft.client.gui.Click
 
 class DropdownComponent(
@@ -38,7 +39,8 @@ class DropdownComponent(
         val component = this.childAt(click.x.toInt() + x, click.y.toInt() + y) as? ButtonComponent
         val accessor = component as? ClickableWidgetAccessor
         if (component != null && accessor != null) {
-            component.onMouseDown(click, doubled)
+            println("Clicked dropdown component: ${component.id()}")
+            FileBrowserHandler.onActionClicked(component)
             isVisible = false
             return true
         }

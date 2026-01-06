@@ -26,6 +26,8 @@ object FileBrowserHandler {
     }
 
     fun onActionClicked(buttonComponent: ButtonComponent) {
+        println("Clicked script action: ${buttonComponent.id()}")
+
         if (buttonComponent.id() == "openFolder") {
             val dir = FileHandler.currentDir()
             Util.getOperatingSystem().open(dir)
