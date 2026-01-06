@@ -10,12 +10,18 @@ import java.io.File
 
 class ItemEntryComponent(
     horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int, val file: File
-) : FileExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
-    override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_browser/item_icon.png")
+) : ExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
+    override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_explorer/item_icon.png")
 
     override fun buildContextButtons(): List<Component> {
-        val give = Components.button(Text.of("Give")) { /*...*/ }
-        val save = Components.button(Text.of("Save")) { /*...*/ }
+        val give = Components.button(Text.translatable("htslreborn.explorer.button.item.give")) { /*...*/ }.apply {
+            sizing(Sizing.content(), Sizing.fill())
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.give.description")))
+        }
+        val save = Components.button(Text.translatable("htslreborn.explorer.button.item.save")) { /*...*/ }.apply {
+            sizing(Sizing.content(), Sizing.fill())
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.save.description")))
+        }
         val spacer = Components.spacer()
         val open = Components.button(Text.of("✎")) { /*...*/ }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
@@ -36,7 +42,7 @@ class ItemEntryComponent(
     }
 
     companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): FileExplorerEntryComponent {
+        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): ExplorerEntryComponent {
             return ItemEntryComponent(horizontalSizing, verticalSizing, index, file)
         }
     }

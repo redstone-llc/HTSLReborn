@@ -4,7 +4,7 @@ import io.wispforest.owo.ui.component.Components
 import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.core.Sizing
-import llc.redstone.htslreborn.ui.FileBrowser
+import llc.redstone.htslreborn.ui.FileExplorer
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
@@ -12,8 +12,8 @@ import java.io.File
 
 class ScriptEntryComponent(
     horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int, val file: File
-) : FileExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
-    override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_browser/script_icon.png")
+) : ExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
+    override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_explorer/script_icon.png")
 
     override fun buildContextButtons(): List<Component> {
         val import = Containers.horizontalFlow(Sizing.content(), Sizing.fill()).apply {
@@ -21,7 +21,7 @@ class ScriptEntryComponent(
                 Components.button(Text.translatable("htslreborn.explorer.button.script.import")) { /*...*/ }.apply {
                     setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
                 },
-                Components.button(Text.of("↓")) { FileBrowser.INSTANCE.dropdown.handleDropdownButton(it) }
+                Components.button(Text.of("↓")) { FileExplorer.INSTANCE.dropdown.handleDropdownButton(it) }
             ))
         }
         val export = Components.button(Text.translatable("htslreborn.explorer.button.script.export")) { /*...*/ }.apply {
@@ -47,7 +47,7 @@ class ScriptEntryComponent(
     }
 
     companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): FileExplorerEntryComponent {
+        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): ExplorerEntryComponent {
             return ScriptEntryComponent(horizontalSizing, verticalSizing, index, file)
         }
     }

@@ -60,7 +60,8 @@ object FileHandler {
         }
 
         if (!live) {
-            FileBrowser.INSTANCE.updateButtons(null)
+            FileExplorer.INSTANCE.focus = null
+            FileExplorer.INSTANCE.updateButtons()
         }
     }
 
