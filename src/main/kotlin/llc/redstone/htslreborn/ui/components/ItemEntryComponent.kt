@@ -6,6 +6,7 @@ import io.wispforest.owo.ui.core.Sizing
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.htslreborn.ui.FileHandler
+import llc.redstone.htslreborn.utils.ItemConvertUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
@@ -30,7 +31,7 @@ class ItemEntryComponent(
 
         val save = Components.button(Text.translatable("htslreborn.explorer.button.item.save"), {
             val item = MC.player?.inventory?.selectedStack ?: return@button
-            // TODO
+            ItemConvertUtils.itemStackToFile(item, file)
         }).apply {
             sizing(Sizing.content(), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.save.description")))
