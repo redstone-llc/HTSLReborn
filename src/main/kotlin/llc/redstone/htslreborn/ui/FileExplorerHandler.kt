@@ -10,6 +10,7 @@ import llc.redstone.htslreborn.ui.components.ExplorerEntryComponent
 import llc.redstone.htslreborn.ui.components.FolderEntryComponent
 import llc.redstone.htslreborn.ui.components.ItemEntryComponent
 import llc.redstone.htslreborn.ui.components.ScriptEntryComponent
+import llc.redstone.htslreborn.utils.ItemConvertUtils
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.importer.ActionContainer
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
@@ -41,7 +42,7 @@ object FileExplorerHandler {
                     }
                     "saveItem" -> {
                         val item = MC.player?.inventory?.selectedStack ?: return
-
+                        ItemConvertUtils.itemStackToFile(item, focused.file)
                     }
                     "open" -> {
                         Util.getOperatingSystem().open(focused.file)
