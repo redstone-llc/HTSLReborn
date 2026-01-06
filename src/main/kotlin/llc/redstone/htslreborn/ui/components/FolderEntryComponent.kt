@@ -6,33 +6,39 @@ import io.wispforest.owo.ui.core.Sizing
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
+import java.io.File
 
 class FolderEntryComponent(
-    horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int
+    horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int, val file: File
 ) : FileExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
-    override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_browser/script_icon.png")
+    override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_browser/folder_icon.png")
 
     override fun buildContextButtons(): List<Component> {
+        val open = Components.button(Text.translatable("htslreborn.explorer.button.folder.open")) { /*...*/}.apply {
+            sizing(Sizing.content(), Sizing.fill())
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.folder.open.description")))
+        }
         val spacer = Components.spacer()
         val delete = Components.button(Text.of("\uD83D\uDDD1")) { /*...*/ }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.folder.delete.description")))
         }
-        val open = Components.button(Text.of("✎")) { /*...*/ }.apply {
+        val openext = Components.button(Text.of("✎")) { /*...*/ }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
-            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.folder.open.description")))
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.folder.openext.description")))
         }
 
         return listOf(
-            spacer,
             open,
+            spacer,
+            openext,
             delete
         )
     }
 
     companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int): FileExplorerEntryComponent {
-            return FolderEntryComponent(horizontalSizing, verticalSizing, index)
+        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): FileExplorerEntryComponent {
+            return FolderEntryComponent(horizontalSizing, verticalSizing, index, file)
         }
     }
 

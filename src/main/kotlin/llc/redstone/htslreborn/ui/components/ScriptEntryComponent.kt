@@ -8,32 +8,33 @@ import llc.redstone.htslreborn.ui.FileBrowser
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
+import java.io.File
 
 class ScriptEntryComponent(
-    horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int,
+    horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int, val file: File
 ) : FileExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
     override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_browser/script_icon.png")
 
     override fun buildContextButtons(): List<Component> {
         val import = Containers.horizontalFlow(Sizing.content(), Sizing.fill()).apply {
             children(listOf(
-                Components.button(Text.translatable("htslreborn.explorer.button.file.import")) { /*...*/ }.apply {
-                    setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.add.description")))
+                Components.button(Text.translatable("htslreborn.explorer.button.script.import")) { /*...*/ }.apply {
+                    setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
                 },
                 Components.button(Text.of("↓")) { FileBrowser.INSTANCE.dropdown.handleDropdownButton(it) }
             ))
         }
-        val export = Components.button(Text.translatable("htslreborn.explorer.button.file.export")) { /*...*/ }.apply {
-            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.export.description")))
+        val export = Components.button(Text.translatable("htslreborn.explorer.button.script.export")) { /*...*/ }.apply {
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.export.description")))
         }
         val spacer = Components.spacer()
         val open = Components.button(Text.of("✎")) { /*...*/ }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
-            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.open.description")))
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.open.description")))
         }
         val delete = Components.button(Text.of("\uD83D\uDDD1")) { /*...*/ }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
-            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.delete.description")))
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.delete.description")))
         }
 
         return listOf(
@@ -46,8 +47,8 @@ class ScriptEntryComponent(
     }
 
     companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int): FileExplorerEntryComponent {
-            return ScriptEntryComponent(horizontalSizing, verticalSizing, index)
+        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): FileExplorerEntryComponent {
+            return ScriptEntryComponent(horizontalSizing, verticalSizing, index, file)
         }
     }
 

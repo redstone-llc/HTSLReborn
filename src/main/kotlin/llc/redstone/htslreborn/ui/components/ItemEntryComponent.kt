@@ -6,11 +6,12 @@ import io.wispforest.owo.ui.core.Sizing
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
+import java.io.File
 
 class ItemEntryComponent(
-    horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int
+    horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int, val file: File
 ) : FileExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
-    override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_browser/script_icon.png")
+    override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_browser/item_icon.png")
 
     override fun buildContextButtons(): List<Component> {
         val give = Components.button(Text.of("Give")) { /*...*/ }
@@ -35,8 +36,8 @@ class ItemEntryComponent(
     }
 
     companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int): FileExplorerEntryComponent {
-            return ItemEntryComponent(horizontalSizing, verticalSizing, index)
+        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): FileExplorerEntryComponent {
+            return ItemEntryComponent(horizontalSizing, verticalSizing, index, file)
         }
     }
 

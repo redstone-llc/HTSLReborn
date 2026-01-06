@@ -9,7 +9,6 @@ base.archivesName = property("mod.id") as String
 
 repositories {
     mavenLocal()
-    maven("https://repo.redstone.llc/releases")
 
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
@@ -21,12 +20,12 @@ repositories {
     }
 
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
-    strictMaven("https://maven.terraformersmc.com/", "Terraformers")
-    strictMaven("https://maven.isxander.dev/releases", "xanderRepoReleases")
-    strictMaven("https://maven.wispforest.io/releases", "wispForestReleases")
-    strictMaven("https://repo.redstone.llc/releases", "redstoneReleases")
+    strictMaven("https://maven.terraformersmc.com/", "Terraformers", "com.terraformersmc")
+    strictMaven("https://maven.isxander.dev/releases", "xanderRepoReleases", "dev.isxander", "org.quiltmc.parsers")
+    strictMaven("https://maven.wispforest.io/releases", "wispForestReleases", "io.wispforest", "io.wispforest.endec")
+    strictMaven("https://repo.redstone.llc/releases", "redstoneReleases", "llc.redstone")
 
-    strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth")
+    strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth", "me.djtheredstoner")
 }
 
 dependencies {
@@ -34,6 +33,7 @@ dependencies {
     mappings("net.fabricmc:yarn:${property("deps.yarn")}:v2")
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
     modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
     modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
@@ -41,8 +41,6 @@ dependencies {
     modImplementation("llc.redstone:SystemsAPI:${property("deps.systemsapi")}")
 
     implementation(tegralLibs.niwen.lexer)
-
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
 
 }

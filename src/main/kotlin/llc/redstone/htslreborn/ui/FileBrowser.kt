@@ -36,8 +36,7 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
             if (importing) return true
             val screen = MC.currentScreen as? GenericContainerScreen ?: return false
             val title = screen.title.string
-            if (!title.contains(Regex("Edit Actions|Actions: "))) return false
-            return true
+            return title.contains(Regex("Edit Actions|Actions: "))
         }
     }
 
@@ -106,15 +105,29 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         val file: File? = filteredFiles.getOrNull(index)?.let { FileHandler.getFile(it) }
 
         val entry = when {
-            (file?.isDirectory == true) -> FolderEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index)
-            (itemExtensions.any { file?.name?.lowercase()?.endsWith(it) == true }) -> ItemEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index)
-            (htslExtensions.any { file?.name?.lowercase()?.endsWith(it) == true }) -> ScriptEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index)
+            (file?.isDirectory == true) ->
+                FolderEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file)
+
+            (itemExtensions.any { file?.name?.lowercase()?.endsWith(it) == true }) ->
+                ItemEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file!!)
+
+            (htslExtensions.any { file?.name?.lowercase()?.endsWith(it) == true }) ->
+                ScriptEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file!!)
+
             else -> throw IllegalStateException("Unknown file type.")
         }
 
         return entry.apply {
             val icon = Components.texture(this.icon, 0, 0, 16, 16, 16, 16)
-            val label = Components.label(Text.of(name))
+            val label = Components.label(
+                name.lastIndexOf('.').let { dot ->
+                    if (dot > 0) {
+                        val base = name.substring(0, dot)
+                        val extension = name.substring(dot)
+                        Text.literal(base).append(Text.literal(extension).withColor(0x808080))
+                    } else Text.literal(name)
+                }
+            )
 
             surface(Surface.DARK_PANEL)
             gap(4)
@@ -156,9 +169,7 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
 
     fun refreshExplorer(queue: Boolean = false) {
         if (queue) {
-            content.queue {
-                refreshExplorer(false)
-            }
+            content.queue { refreshExplorer(false) }
             return
         }
         content.clearChildren()
@@ -180,15 +191,13 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    var fileButtons = mutableListOf<ButtonComponent>()
-
     private var importButton =
         Components.button(
-            Text.translatable("htslreborn.explorer.button.file.import"),
+            Text.translatable("htslreborn.explorer.button.script.import"),
             FileBrowserHandler::onActionClicked
         ).apply {
             id("import")
-            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.add.description")))
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
         }
     val dropdown: DropdownComponent = buildDropdown()
 
@@ -237,9 +246,11 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
         return Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
             gap(4)
             alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
-            children(listOf(
-                breadcrumb("imports", -1),
-            ))
+            children(
+                listOf(
+                    breadcrumb("imports", -1),
+                )
+            )
         }
     }
 
@@ -251,31 +262,31 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
             children(
                 listOf(
                     Components.button(
-                        Text.translatable("htslreborn.explorer.button.file.import.add"),
+                        Text.translatable("htslreborn.explorer.button.script.import.add"),
                         FileBrowserHandler::onActionClicked
                     ).apply {
                         id("import")
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.add.description")))
+                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
                     },
                     Components.button(
-                        Text.translatable("htslreborn.explorer.button.file.import.replace"),
+                        Text.translatable("htslreborn.explorer.button.script.import.replace"),
                         FileBrowserHandler::onActionClicked
                     ).apply {
                         id("replace")
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.replace.description")))
+                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.replace.description")))
                     },
                     Components.button(
-                        Text.translatable("htslreborn.explorer.button.file.import.update"),
+                        Text.translatable("htslreborn.explorer.button.script.import.update"),
                         FileBrowserHandler::onActionClicked
                     ).apply {
                         id("update")
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.file.import.update.description")))
+                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.update.description")))
                     },
                 )
             )
@@ -321,7 +332,8 @@ class FileBrowser() : BaseOwoScreen<FlowLayout>() {
     }
 
     public override fun build(root: FlowLayout) {
-        val accessor = (MC.currentScreen as? HandledScreenAccessor) ?: throw IllegalStateException("Could not get accessor")
+        val accessor =
+            (MC.currentScreen as? HandledScreenAccessor) ?: throw IllegalStateException("Could not get accessor")
 
         refreshFiles(true)
 

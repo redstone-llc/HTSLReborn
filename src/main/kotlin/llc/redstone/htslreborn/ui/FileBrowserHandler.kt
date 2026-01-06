@@ -1,19 +1,21 @@
 package llc.redstone.htslreborn.ui
 
 import io.wispforest.owo.ui.component.ButtonComponent
+import kotlinx.coroutines.selects.select
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.htslio.HTSLExporter
 import llc.redstone.htslreborn.htslio.HTSLImporter
 import llc.redstone.htslreborn.ui.FileHandler.search
 import llc.redstone.htslreborn.ui.components.FileExplorerEntryComponent
-import llc.redstone.htslreborn.ui.components.FileEntryComponent
+import llc.redstone.htslreborn.ui.components.FolderEntryComponent
+import llc.redstone.htslreborn.ui.components.ItemEntryComponent
+import llc.redstone.htslreborn.ui.components.ScriptEntryComponent
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.importer.ActionContainer
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import net.minecraft.text.Text
 import net.minecraft.util.Util
-import java.awt.Desktop
 
 object FileBrowserHandler {
     fun getSelectedEntry(): FileExplorerEntryComponent {
@@ -35,48 +37,64 @@ object FileBrowserHandler {
             return
         }
 
-        val selectedEntry = getSelectedEntry()
-        val file = selectedEntry.file ?: return
-        when (buttonComponent.id()) {
-            "giveItem" -> {
-                val item = FileHandler.getItemForFile(file) ?: return
-                val slot = convertSlot(MC.player?.inventory?.emptySlot ?: -1)
-                item.giveItem(slot)
-            }
-
-            "open" -> {
-                Util.getOperatingSystem().open(file)
-            }
-
-            "delete" -> {
-                file.delete()
-                FileHandler.refreshFiles()
-                FileBrowser.INSTANCE.refreshExplorer()
-            }
-
-            "export" -> {
-                HTSLExporter.exportFile(file)
-            }
-
-            "import", "replace" -> {
-                val method = when (buttonComponent.id()) {
-                    "import" -> ActionContainer::addActions
-                    "replace" -> ActionContainer::setActions
-                    "update" -> ActionContainer::updateActions
-                    else -> return
-                }
-                FileBrowser.INSTANCE.showImportScreen(file.name)
-                importingFile = file.name
-                HTSLImporter.importFile(file, method) {
-                    FileBrowser.INSTANCE.hideImportScreen()
+        when (val selectedEntry = getSelectedEntry()) {
+            is FolderEntryComponent -> {
+                when (buttonComponent.id()) {
+                    "open" -> {
+                        Util.getOperatingSystem().open(selectedEntry.file)
+                    }
+                    "delete" -> {
+                        selectedEntry.file.delete()
+                        FileHandler.refreshFiles()
+                        FileBrowser.INSTANCE.refreshExplorer()
+                    }
                 }
             }
-
-            "update" -> {
-                MC.player?.sendMessage(
-                    Text.literal("[HTSL Reborn] Updating actions currently isnt supported.")
-                        .withColor(0xFF0000), false
-                )
+            is ItemEntryComponent -> {
+                when (buttonComponent.id()) {
+                    "giveItem" -> {
+                        val item = FileHandler.getItemForFile(selectedEntry.file) ?: return
+                        val slot = convertSlot(MC.player?.inventory?.emptySlot ?: -1)
+                        item.giveItem(slot)
+                    }
+                    "saveItem" -> {
+                        TODO()
+                    }
+                    "open" -> {
+                        Util.getOperatingSystem().open(selectedEntry.file)
+                    }
+                    "delete" -> {
+                        selectedEntry.file.delete()
+                        FileHandler.refreshFiles()
+                        FileBrowser.INSTANCE.refreshExplorer()
+                    }
+                }
+            }
+            is ScriptEntryComponent -> {
+                when (buttonComponent.id()) {
+                    "import", "replace" -> {
+                        val method = when (buttonComponent.id()) {
+                            "import" -> ActionContainer::addActions
+                            "replace" -> ActionContainer::setActions
+                            "update" -> ActionContainer::updateActions
+                            else -> return
+                        }
+                        FileBrowser.INSTANCE.showImportScreen(selectedEntry.file.name)
+                        importingFile = selectedEntry.file.name
+                        HTSLImporter.importFile(selectedEntry.file, method) {
+                            FileBrowser.INSTANCE.hideImportScreen()
+                        }
+                    }
+                    "update" -> {
+                        MC.player?.sendMessage(
+                            Text.literal("[HTSL Reborn] Updating actions currently isnt supported.")
+                                .withColor(0xFF0000), false
+                        )
+                    }
+                    "export" -> {
+                        HTSLExporter.exportFile(selectedEntry.file)
+                    }
+                }
             }
         }
     }
