@@ -1,13 +1,12 @@
 package llc.redstone.htslreborn.ui
 
 import io.wispforest.owo.ui.component.ButtonComponent
-import kotlinx.coroutines.selects.select
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.htslio.HTSLExporter
 import llc.redstone.htslreborn.htslio.HTSLImporter
 import llc.redstone.htslreborn.ui.FileHandler.search
-import llc.redstone.htslreborn.ui.components.FileExplorerEntryComponent
+import llc.redstone.htslreborn.ui.components.ExplorerEntryComponent
 import llc.redstone.htslreborn.ui.components.FolderEntryComponent
 import llc.redstone.htslreborn.ui.components.ItemEntryComponent
 import llc.redstone.htslreborn.ui.components.ScriptEntryComponent
@@ -17,14 +16,7 @@ import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import net.minecraft.text.Text
 import net.minecraft.util.Util
 
-object FileBrowserHandler {
-    fun getSelectedEntry(): FileExplorerEntryComponent {
-        val explorerContent = FileBrowser.INSTANCE.content
-        return explorerContent.children()
-            .filterIsInstance<FileExplorerEntryComponent>()
-            .first { it.isFocused }
-    }
-
+object FileExplorerHandler {
     fun onActionClicked(buttonComponent: ButtonComponent) {
         if (buttonComponent.id() == "openFolder") {
             val dir = FileHandler.currentDir()
@@ -37,23 +29,23 @@ object FileBrowserHandler {
             return
         }
 
-        when (val selectedEntry = getSelectedEntry()) {
+        when (val focused = FileExplorer.INSTANCE.focus) {
             is FolderEntryComponent -> {
                 when (buttonComponent.id()) {
                     "open" -> {
-                        Util.getOperatingSystem().open(selectedEntry.file)
+                        Util.getOperatingSystem().open(focused.file)
                     }
                     "delete" -> {
-                        selectedEntry.file.delete()
+                        focused.file.delete()
                         FileHandler.refreshFiles()
-                        FileBrowser.INSTANCE.refreshExplorer()
+                        FileExplorer.INSTANCE.refreshExplorer()
                     }
                 }
             }
             is ItemEntryComponent -> {
                 when (buttonComponent.id()) {
                     "giveItem" -> {
-                        val item = FileHandler.getItemForFile(selectedEntry.file) ?: return
+                        val item = FileHandler.getItemForFile(focused.file) ?: return
                         val slot = convertSlot(MC.player?.inventory?.emptySlot ?: -1)
                         item.giveItem(slot)
                     }
@@ -61,12 +53,12 @@ object FileBrowserHandler {
                         TODO()
                     }
                     "open" -> {
-                        Util.getOperatingSystem().open(selectedEntry.file)
+                        Util.getOperatingSystem().open(focused.file)
                     }
                     "delete" -> {
-                        selectedEntry.file.delete()
+                        focused.file.delete()
                         FileHandler.refreshFiles()
-                        FileBrowser.INSTANCE.refreshExplorer()
+                        FileExplorer.INSTANCE.refreshExplorer()
                     }
                 }
             }
@@ -79,10 +71,10 @@ object FileBrowserHandler {
                             "update" -> ActionContainer::updateActions
                             else -> return
                         }
-                        FileBrowser.INSTANCE.showImportScreen(selectedEntry.file.name)
-                        importingFile = selectedEntry.file.name
-                        HTSLImporter.importFile(selectedEntry.file, method) {
-                            FileBrowser.INSTANCE.hideImportScreen()
+                        FileExplorer.INSTANCE.showImportScreen(focused.file.name)
+                        importingFile = focused.file.name
+                        HTSLImporter.importFile(focused.file, method) {
+                            FileExplorer.INSTANCE.hideImportScreen()
                         }
                     }
                     "update" -> {
@@ -92,7 +84,7 @@ object FileBrowserHandler {
                         )
                     }
                     "export" -> {
-                        HTSLExporter.exportFile(selectedEntry.file)
+                        HTSLExporter.exportFile(focused.file)
                     }
                 }
             }
@@ -109,7 +101,7 @@ object FileBrowserHandler {
         if (newSearch != search) {
             search = newSearch
             FileHandler.refreshFiles()
-            FileBrowser.INSTANCE.refreshExplorer()
+            FileExplorer.INSTANCE.refreshExplorer()
         }
     }
 
@@ -125,8 +117,8 @@ object FileBrowserHandler {
                 FileHandler.subDir = dir
             }
             FileHandler.refreshFiles()
-            FileBrowser.INSTANCE.refreshExplorer()
-            FileBrowser.INSTANCE.refreshBreadcrumbs()
+            FileExplorer.INSTANCE.refreshExplorer()
+            FileExplorer.INSTANCE.refreshBreadcrumbs()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -141,8 +133,8 @@ object FileBrowserHandler {
             FileHandler.subDir = FileHandler.subDir
                 .let { if (it.isEmpty()) file.name else "$it/${file.name}" }
             FileHandler.refreshFiles()
-            FileBrowser.INSTANCE.refreshExplorer()
-            FileBrowser.INSTANCE.refreshBreadcrumbs()
+            FileExplorer.INSTANCE.refreshExplorer()
+            FileExplorer.INSTANCE.refreshBreadcrumbs()
             return true
         }
         return false

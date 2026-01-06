@@ -1,7 +1,7 @@
 package llc.redstone.htslreborn
 
 import llc.redstone.htslreborn.commands.HTSLCommand
-import llc.redstone.htslreborn.ui.FileBrowser
+import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.htslreborn.ui.FileHandler
 import llc.redstone.htslreborn.utils.RenderUtils.isInitialized
 import net.fabricmc.api.ClientModInitializer
@@ -14,7 +14,6 @@ import java.nio.file.Paths
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
-import java.nio.file.WatchService
 import kotlin.io.path.name
 
 object HTSLReborn : ClientModInitializer {
@@ -58,9 +57,9 @@ object HTSLReborn : ClientModInitializer {
                         }
                     }
                     fileEditCooldown[filename.name] = System.currentTimeMillis()
-                    if (FileBrowser.INSTANCE.isInitialized()) {
+                    if (FileExplorer.INSTANCE.isInitialized()) {
                         FileHandler.refreshFiles(true)
-                        FileBrowser.INSTANCE.refreshExplorer(true)
+                        FileExplorer.INSTANCE.refreshExplorer(true)
                     }
                 }
                 val valid = key.reset()

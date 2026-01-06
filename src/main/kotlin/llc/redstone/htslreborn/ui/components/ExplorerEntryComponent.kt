@@ -5,12 +5,12 @@ import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.core.CursorStyle
 import io.wispforest.owo.ui.core.OwoUIDrawContext
 import io.wispforest.owo.ui.core.Sizing
-import llc.redstone.htslreborn.ui.FileBrowser
-import llc.redstone.htslreborn.ui.FileBrowserHandler
+import llc.redstone.htslreborn.ui.FileExplorer
+import llc.redstone.htslreborn.ui.FileExplorerHandler
 import net.minecraft.client.gui.Click
 import net.minecraft.util.Identifier
 
-abstract class FileExplorerEntryComponent(
+abstract class ExplorerEntryComponent(
     horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int
 ): FlowLayout(horizontalSizing, verticalSizing, Algorithm.HORIZONTAL) {
 
@@ -20,10 +20,10 @@ abstract class FileExplorerEntryComponent(
         }
     }
 
+    var isFocused = false
+
     abstract val icon: Identifier
     abstract fun buildContextButtons(): List<Component>
-
-    var isFocused = false
 
     override fun child(child: Component?): FlowLayout? {
         mouseEnter().subscribe {
@@ -43,27 +43,19 @@ abstract class FileExplorerEntryComponent(
 
     override fun draw(context: OwoUIDrawContext?, mouseX: Int, mouseY: Int, partialTicks: Float, delta: Float) {
         super.draw(context, mouseX, mouseY, partialTicks, delta)
-        if (isFocused) this.drawFocusHighlight(context, mouseX, mouseY, partialTicks, delta)
+        if (FileExplorer.INSTANCE.focus == this) this.drawFocusHighlight(context, mouseX, mouseY, partialTicks, delta)
     }
 
     override fun onMouseDown(click: Click, doubled: Boolean): Boolean {
-        if (doubled && FileBrowserHandler.handleDirectoryClick(index)) {
-            return true
-        }
+        if (doubled && FileExplorerHandler.handleDirectoryClick(index)) return true
 
-        isFocused = !isFocused
-
-        parent?.children()?.filterIsInstance<FileExplorerEntryComponent>()?.forEach {
-            if (it != this) {
-                it.isFocused = false
-            }
-        }
-
-        if (isFocused) {
-            FileBrowser.INSTANCE.updateButtons(this)
+        if (FileExplorer.INSTANCE.focus == this) {
+            FileExplorer.INSTANCE.focus = null
         } else {
-            FileBrowser.INSTANCE.updateButtons(null)
+            FileExplorer.INSTANCE.focus = this
         }
+
+        FileExplorer.INSTANCE.updateButtons()
 
         return super.onMouseDown(click, doubled)
     }

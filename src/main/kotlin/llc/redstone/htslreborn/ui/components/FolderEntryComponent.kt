@@ -10,8 +10,8 @@ import java.io.File
 
 class FolderEntryComponent(
     horizontalSizing: Sizing, verticalSizing: Sizing, private val index: Int, val file: File
-) : FileExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
-    override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_browser/folder_icon.png")
+) : ExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
+    override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_explorer/folder_icon.png")
 
     override fun buildContextButtons(): List<Component> {
         val open = Components.button(Text.translatable("htslreborn.explorer.button.folder.open")) { /*...*/}.apply {
@@ -37,7 +37,7 @@ class FolderEntryComponent(
     }
 
     companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): FileExplorerEntryComponent {
+        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): ExplorerEntryComponent {
             return FolderEntryComponent(horizontalSizing, verticalSizing, index, file)
         }
     }
