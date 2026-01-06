@@ -79,7 +79,7 @@ object FileExplorerHandler {
                     }
                     "update" -> {
                         MC.player?.sendMessage(
-                            Text.literal("[HTSL Reborn] Updating actions currently isnt supported.")
+                            Text.literal("[HTSL Reborn] Updating actions currently isn't supported.")
                                 .withColor(0xFF0000), false
                         )
                     }
