@@ -19,11 +19,13 @@ import llc.redstone.htslreborn.ui.FileHandler.itemExtensions
 import llc.redstone.htslreborn.ui.FileHandler.refreshFiles
 import llc.redstone.htslreborn.ui.components.*
 import llc.redstone.htslreborn.ui.components.TimeRemainingComponent
+import llc.redstone.systemsapi.SystemsAPI
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.input.CharInput
 import net.minecraft.client.input.KeyInput
 import net.minecraft.text.Text
+import net.minecraft.util.Util
 import java.io.File
 
 class FileExplorer() : BaseOwoScreen<FlowLayout>() {
@@ -85,8 +87,10 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     }
 
     private fun buildHeader(): FlowLayout {
-        val openFolderButton = Components.button(Text.of("\uD83D\uDDC0"), FileExplorerHandler::onActionClicked).apply {
-            id("openFolder")
+        val openFolderButton = Components.button(Text.of("\uD83D\uDDC0")) {
+            val dir = FileHandler.currentDir()
+            Util.getOperatingSystem().open(dir)
+        }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.openfolder.description")))
         }
@@ -192,14 +196,6 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    private var importButton =
-        Components.button(
-            Text.translatable("htslreborn.explorer.button.script.import"),
-            FileExplorerHandler::onActionClicked
-        ).apply {
-            id("import")
-            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
-        }
     val dropdown: DropdownComponent = buildDropdown()
 
     private fun buildContextButtons(): FlowLayout {
@@ -263,27 +259,24 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             children(
                 listOf(
                     Components.button(
-                        Text.translatable("htslreborn.explorer.button.script.import.add"),
-                        { }
-                    ).apply {
-                        id("import")
+                        Text.translatable("htslreborn.explorer.button.script.import.add")
+                    ) { }.apply {
+                        id("add")
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
                         setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
                     },
                     Components.button(
-                        Text.translatable("htslreborn.explorer.button.script.import.replace"),
-                        { }
-                    ).apply {
+                        Text.translatable("htslreborn.explorer.button.script.import.replace")
+                    ) { }.apply {
                         id("replace")
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
                         setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.replace.description")))
                     },
                     Components.button(
-                        Text.translatable("htslreborn.explorer.button.script.import.update"),
-                        { }
-                    ).apply {
+                        Text.translatable("htslreborn.explorer.button.script.import.update")
+                    ) { }.apply {
                         id("update")
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
@@ -296,8 +289,9 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
 
     fun buildImportScreen(fileName: String): FlowLayout {
         val label = Components.label(Text.literal(fileName))
-        val cancelButton = Components.button(Text.of("Cancel"), FileExplorerHandler::onActionClicked).apply {
-            id("cancel")
+        val cancelButton = Components.button(Text.translatable("htslreborn.importing.button.cancel")) {
+            SystemsAPI.getHousingImporter().cancelImport()
+            hideImportScreen()
         }
         val timeRemaining = TimeRemainingComponent()
         return Containers.verticalFlow(Sizing.fill(), Sizing.fill()).apply {

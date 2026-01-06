@@ -1,5 +1,6 @@
 package llc.redstone.htslreborn.ui.components
 
+import io.wispforest.owo.ui.component.ButtonComponent
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.core.CursorStyle
@@ -19,8 +20,6 @@ abstract class ExplorerEntryComponent(
             cursorStyle(CursorStyle.HAND)
         }
     }
-
-    var isFocused = false
 
     abstract val icon: Identifier
     abstract fun buildContextButtons(): List<Component>

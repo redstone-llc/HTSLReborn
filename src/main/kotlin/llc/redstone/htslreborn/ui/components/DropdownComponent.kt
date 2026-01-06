@@ -6,7 +6,9 @@ import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.core.OwoUIDrawContext
 import io.wispforest.owo.ui.core.Positioning
 import io.wispforest.owo.ui.core.Sizing
-import llc.redstone.htslreborn.ui.FileExplorerHandler
+import llc.redstone.htslreborn.htslio.HTSLImporter
+import llc.redstone.htslreborn.ui.FileExplorer
+import llc.redstone.systemsapi.importer.ActionContainer
 import net.minecraft.client.gui.Click
 
 class DropdownComponent(
@@ -33,8 +35,19 @@ class DropdownComponent(
         val component = this.childAt(click.x.toInt() + x, click.y.toInt() + y) as? ButtonComponent
         val accessor = component as? ClickableWidgetAccessor
         if (component != null && accessor != null) {
-            println("Clicked dropdown component: ${component.id()}")
-            FileExplorerHandler.onActionClicked(component)
+            val method = when (component.id()) {
+                "add" -> ActionContainer::addActions
+                "replace" -> ActionContainer::setActions
+                "update" -> ActionContainer::updateActions
+                else -> throw IllegalStateException("Unknown import type: ${component.id()}")
+            }
+            val file = (FileExplorer.INSTANCE.focus as ScriptEntryComponent).file
+
+            FileExplorer.INSTANCE.showImportScreen(file.name)
+            HTSLImporter.importFile(file, method) {
+                FileExplorer.INSTANCE.hideImportScreen()
+            }
+
             isVisible = false
             return true
         }

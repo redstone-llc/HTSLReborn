@@ -4,11 +4,13 @@ import io.wispforest.owo.ui.component.Components
 import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.core.Sizing
+import llc.redstone.htslreborn.htslio.HTSLExporter
 import llc.redstone.htslreborn.ui.FileExplorer
-import llc.redstone.htslreborn.ui.FileExplorerHandler
+import llc.redstone.htslreborn.ui.FileHandler
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
+import net.minecraft.util.Util
 import java.io.File
 
 class ScriptEntryComponent(
@@ -21,28 +23,45 @@ class ScriptEntryComponent(
             children(
                 listOf(
                     Components.button(
-                        Text.translatable("htslreborn.explorer.button.script.import"),
-                        FileExplorerHandler::onActionClicked
-                    ).apply {
-                        id("import")
+                        Text.translatable("htslreborn.explorer.button.script.import")
+                    ) {
+//                        val method = when (CONFIG.defaultImportStrategy) {
+//                            HtslConfigModel.ImportStrategy.APPEND -> ActionContainer::addActions
+//                            HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
+//                            HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
+//                        }
+//                        FileExplorer.INSTANCE.showImportScreen(file.name)
+//                        importingFile = file.name
+//                        HTSLImporter.importFile(file, method) {
+//                            FileExplorer.INSTANCE.hideImportScreen()
+//                        }
+                    }.apply {
                         setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
                     },
                     Components.button(Text.of("↓")) { FileExplorer.INSTANCE.dropdown.handleDropdownButton(it) }
                 ))
         }
-        val export = Components.button(
-                Text.translatable("htslreborn.explorer.button.script.export"),
-                FileExplorerHandler::onActionClicked
-            ).apply {
-                id("export")
+
+        val export = Components.button(Text.translatable("htslreborn.explorer.button.script.export")) {
+            HTSLExporter.exportFile(file)
+        }.apply {
                 setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.export.description")))
             }
+
         val spacer = Components.spacer()
-        val open = Components.button(Text.of("✎")) { /*...*/ }.apply {
+
+        val open = Components.button(Text.of("✎")) {
+            Util.getOperatingSystem().open(file)
+        }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.open.description")))
         }
-        val delete = Components.button(Text.of("\uD83D\uDDD1")) { /*...*/ }.apply {
+
+        val delete = Components.button(Text.of("\uD83D\uDDD1")) {
+            file.delete()
+            FileHandler.refreshFiles()
+            FileExplorer.INSTANCE.refreshExplorer()
+        }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.delete.description")))
         }
