@@ -10,7 +10,6 @@ object FileHandler {
     internal var filteredFiles = mutableListOf<String>()
     internal var page = 0
     internal val cachedItems = mutableMapOf<String, ItemStack?>()
-    internal var selectedIndex = -1
     internal var subDir = ""
     internal var search = ""
 
