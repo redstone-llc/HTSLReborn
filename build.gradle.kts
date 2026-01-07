@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.2.10"
     id("fabric-loom")
+    id("com.google.devtools.ksp") version "2.3.4"
     `maven-publish`
 }
 
@@ -9,6 +10,7 @@ base.archivesName = property("mod.id") as String
 
 repositories {
     mavenLocal()
+    maven("https://maven.kosmx.dev") //IDK why I couldnt make this a strict maven :shrug:
 
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
@@ -24,7 +26,6 @@ repositories {
     strictMaven("https://maven.isxander.dev/releases", "xanderRepoReleases", "dev.isxander", "org.quiltmc.parsers")
     strictMaven("https://maven.wispforest.io/releases", "wispForestReleases", "io.wispforest", "io.wispforest.endec")
     strictMaven("https://repo.redstone.llc/releases", "redstoneReleases", "llc.redstone")
-
     strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth", "me.djtheredstoner")
 }
 
@@ -36,8 +37,8 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
     modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
-    modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
     modImplementation("io.wispforest:owo-lib:${property("deps.owo")}")
+    ksp("dev.kosmx.kowoconfig:ksp-owo-config:0.2.0")
     modImplementation("llc.redstone:SystemsAPI:${property("deps.systemsapi")}")
 
     implementation(tegralLibs.niwen.lexer)

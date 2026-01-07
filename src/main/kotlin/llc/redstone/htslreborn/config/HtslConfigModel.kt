@@ -7,6 +7,7 @@ import io.wispforest.owo.config.annotation.Modmenu
 @Modmenu(modId = "htslreborn")
 @Config(name = "htslreborn", wrapperName = "HtslConfig")
 class HtslConfigModel {
+    @JvmField
     var defaultImportStrategy: ImportStrategy = ImportStrategy.APPEND
     enum class ImportStrategy {
         APPEND, REPLACE, UPDATE

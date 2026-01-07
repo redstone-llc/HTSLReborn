@@ -1,6 +1,8 @@
 package llc.redstone.htslreborn
 
 import llc.redstone.htslreborn.commands.HTSLCommand
+import llc.redstone.htslreborn.config.HtslConfig
+import llc.redstone.htslreborn.config.HtslConfigModel
 import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.htslreborn.ui.FileHandler
 import llc.redstone.htslreborn.utils.RenderUtils.isInitialized
@@ -21,7 +23,7 @@ object HTSLReborn : ClientModInitializer {
     val LOGGER: Logger = LoggerFactory.getLogger("HTSL Reborn")
     val VERSION = /*$ mod_version*/ "0.0.1"
     val MINECRAFT = /*$ minecraft*/ "1.21.9"
-//    val CONFIG = HtslConfig.createAndLoad()
+    val CONFIG: HtslConfig = HtslConfig.createAndLoad()
     val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
 
