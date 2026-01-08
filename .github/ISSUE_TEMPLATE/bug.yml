@@ -1,5 +1,5 @@
 name: Issue
-description: Report an issue with the dots
+description: Report an issue with the mod
 labels: ["bug"]
 type: "Bug"
 title: "[BUG] "
