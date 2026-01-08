@@ -188,7 +188,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     private fun buildExplorer(): ScrollContainer<FlowLayout> {
         refreshExplorer()
         return Containers.verticalScroll(Sizing.expand(), Sizing.expand(), content).apply {
-            surface(Surface.VANILLA_TRANSLUCENT)
+            surface(Surface.PANEL_INSET)
             margins(Insets.vertical(5))
             padding(Insets.of(2))
             scrollbar(ScrollContainer.Scrollbar.vanillaFlat())
