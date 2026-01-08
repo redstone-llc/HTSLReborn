@@ -287,11 +287,11 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    fun buildImportScreen(fileName: String): FlowLayout {
-        val label = Components.label(Text.literal(fileName))
-        val cancelButton = Components.button(Text.translatable("htslreborn.importing.button.cancel")) {
+    fun buildWorkingScreen(display: Text): FlowLayout {
+        val label = Components.label(display)
+        val cancelButton = Components.button(Text.translatable("htslreborn.importing.working.cancel")) {
             SystemsAPI.getHousingImporter().cancelImport()
-            hideImportScreen()
+            hideWorkingScreen()
         }
         val timeRemaining = TimeRemainingComponent()
         return Containers.verticalFlow(Sizing.fill(), Sizing.fill()).apply {
@@ -312,17 +312,23 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    fun showImportScreen(fileName: String) {
-        val importScreen = buildImportScreen(fileName)
-        this.uiAdapter.rootComponent.childById(FlowLayout::class.java, "base").child(importScreen)
+    enum class WorkingScreenType {
+        IMPORT, EXPORT
+    }
+    fun showWorkingScreen(type: WorkingScreenType, fileName: String) {
+        val action = Text.translatable(when (type) {
+            WorkingScreenType.IMPORT -> "htslreborn.importing.working.type.import"
+            WorkingScreenType.EXPORT -> "htslreborn.importing.working.type.export"
+        })
+        val display = action.append(Text.literal(" '$fileName'..."))
+        val workingScreen = buildWorkingScreen(display)
+        this.uiAdapter.rootComponent.childById(FlowLayout::class.java, "base").child(workingScreen)
     }
 
-    fun hideImportScreen() {
+    fun hideWorkingScreen() {
         val base = this.uiAdapter.rootComponent.childById(FlowLayout::class.java, "base")
         val importScreen = base.childById(FlowLayout::class.java, "importScreen")
-        if (importScreen != null) {
-            base.removeChild(importScreen)
-        }
+        if (importScreen != null) base.removeChild(importScreen)
     }
 
     public override fun build(root: FlowLayout) {
@@ -355,7 +361,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
                     )
 
                     if (importing) {
-                        child(buildImportScreen(importingFile))
+                        showWorkingScreen(WorkingScreenType.IMPORT, importingFile)
                     }
                 }
             )

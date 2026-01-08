@@ -43,9 +43,9 @@ class DropdownComponent(
             }
             val file = (FileExplorer.INSTANCE.focus as ScriptEntryComponent).file
 
-            FileExplorer.INSTANCE.showImportScreen(file.name)
+            FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, file.name)
             HTSLImporter.importFile(file, method) {
-                FileExplorer.INSTANCE.hideImportScreen()
+                FileExplorer.INSTANCE.hideWorkingScreen()
             }
 
             isVisible = false

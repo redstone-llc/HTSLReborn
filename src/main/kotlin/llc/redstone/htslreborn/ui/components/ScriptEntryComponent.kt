@@ -2,7 +2,6 @@ package llc.redstone.htslreborn.ui.components
 
 import io.wispforest.owo.ui.component.Components
 import io.wispforest.owo.ui.container.Containers
-import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.core.Sizing
 import llc.redstone.htslreborn.HTSLReborn.CONFIG
@@ -35,10 +34,10 @@ class ScriptEntryComponent(
                             HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
                             HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
                         }
-                        FileExplorer.INSTANCE.showImportScreen(file.name)
+                        FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, file.name)
                         importingFile = file.name
                         HTSLImporter.importFile(file, method) {
-                            FileExplorer.INSTANCE.hideImportScreen()
+                            FileExplorer.INSTANCE.hideWorkingScreen()
                         }
                     }.apply {
                         val tooltipKey = when (CONFIG.defaultImportStrategy) {
