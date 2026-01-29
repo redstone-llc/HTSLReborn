@@ -61,7 +61,7 @@ object ConditionParser {
         "inRegion" to InRegion::class,
     )
 
-    fun createCondition(keyword: String, iterator: Iterator<TokenWithPosition>, file: File, inverted: Boolean = false): Condition? {
+    fun createCondition(keyword: String, iterator: Iterator<TokenWithPosition>, file: File?, inverted: Boolean = false): Condition? {
         val clazz = keywords[keyword] ?: return null
 
         val constructor = clazz.primaryConstructor ?: return null
@@ -91,6 +91,9 @@ object ConditionParser {
                 }
 
                 ItemStack::class -> {
+                    if (file == null) {
+                        htslCompileError("Cannot load ItemStack from file when file is null", token)
+                    }
                     val relativeFileLocation = token.string
                     val parent = if (file.isDirectory) file else file.parentFile
                     val nbtString = File(parent, relativeFileLocation).readText()

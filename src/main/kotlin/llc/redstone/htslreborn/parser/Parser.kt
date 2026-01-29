@@ -11,7 +11,7 @@ import llc.redstone.htslreborn.tokenizer.Tokens
 import java.io.File
 
 object Parser {
-    fun parse(tokens: List<TokenWithPosition>, file: File): MutableMap<String, List<Action>> {
+    fun parse(tokens: List<TokenWithPosition>, file: File?): MutableMap<String, List<Action>> {
         val compiledActions = mutableListOf<Action>()
         val gotoCompiled = mutableMapOf<String, List<Action>?>()
 
@@ -84,7 +84,6 @@ object Parser {
                     if (conditional != null) {
                         val index = tokens.indexOf(token)
                         if (index > 0 && tokens[index - 1].tokenType == Tokens.INVERTED) {
-                            println("Found inverted condition")
                             conditions.add(ConditionParser.createCondition(token.string, iterator, file, true) ?: error("Did not expect null condition"))
                             continue
                         }

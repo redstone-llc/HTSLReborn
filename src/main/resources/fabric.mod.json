@@ -22,12 +22,6 @@
         "adapter": "kotlin",
         "value": "llc.redstone.htslreborn.HTSLReborn"
       }
-    ],
-    "modmenu": [
-      {
-        "adapter": "kotlin",
-        "value": "llc.redstone.htslreborn.integration.ModMenuIntegration"
-      }
     ]
   },
   "mixins": [

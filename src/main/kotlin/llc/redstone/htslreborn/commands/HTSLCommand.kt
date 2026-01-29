@@ -4,8 +4,6 @@ import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.htslreborn.htslio.HTSLImporter
-import llc.redstone.htslreborn.parser.Parser
-import llc.redstone.htslreborn.tokenizer.Tokenizer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import java.io.File
@@ -29,7 +27,7 @@ object HTSLCommand {
 
         val file = File(fileArg)
 
-        HTSLImporter.importFile(file, false)
+        HTSLImporter.importFile(file, supportsBase = false)
 
         return 1
     }

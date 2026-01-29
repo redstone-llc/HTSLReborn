@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.2.10"
     id("fabric-loom")
+    id("com.google.devtools.ksp") version "2.3.4"
     `maven-publish`
 }
 
@@ -9,7 +10,7 @@ base.archivesName = property("mod.id") as String
 
 repositories {
     mavenLocal()
-    maven("https://repo.redstone.llc/releases")
+    maven("https://maven.kosmx.dev") //IDK why I couldnt make this a strict maven :shrug:
 
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
@@ -21,35 +22,28 @@ repositories {
     }
 
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
-    strictMaven("https://maven.terraformersmc.com/", "Terraformers")
-    strictMaven("https://maven.isxander.dev/releases", "Xander Maven")
-    strictMaven("https://repo.redstone.llc/releases", "redstoneReleases")
-
-    strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth")
+    strictMaven("https://maven.terraformersmc.com/", "Terraformers", "com.terraformersmc")
+    strictMaven("https://maven.isxander.dev/releases", "xanderRepoReleases", "dev.isxander", "org.quiltmc.parsers")
+    strictMaven("https://maven.wispforest.io/releases", "wispForestReleases", "io.wispforest", "io.wispforest.endec")
+    strictMaven("https://repo.redstone.llc/releases", "redstoneReleases", "llc.redstone")
+    strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth", "me.djtheredstoner")
 }
 
 dependencies {
-    /**
-     * Fetches only the required Fabric API modules to not waste time downloading all of them for each version.
-     * @see <a href="https://github.com/FabricMC/fabric">List of Fabric API modules</a>
-     */
-    fun fapi(vararg modules: String) {
-        for (it in modules) modImplementation(fabricApi.module(it, property("deps.fabric_api") as String))
-    }
-
     minecraft("com.mojang:minecraft:${stonecutter.current.version}")
     mappings("net.fabricmc:yarn:${property("deps.yarn")}:v2")
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
-
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
-    modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
+
     modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
+    modImplementation("io.wispforest:owo-lib:${property("deps.owo")}")
+    ksp("dev.kosmx.kowoconfig:ksp-owo-config:0.2.0")
     modImplementation("llc.redstone:SystemsAPI:${property("deps.systemsapi")}")
 
+    implementation("org.mozilla:rhino:1.9.0")
+
     implementation(tegralLibs.niwen.lexer)
-
-    fapi("fabric-lifecycle-events-v1", "fabric-resource-loader-v0", "fabric-content-registries-v0", "fabric-command-api-v2")
-
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
 
 }
@@ -82,8 +76,8 @@ tasks {
             "minecraft" to project.property("mod.mc_dep"),
             "fabric_loader" to project.property("deps.fabric_loader"),
             "fabric_language_kotlin" to project.property("deps.fabric_language_kotlin"),
-            "yacl" to project.property("deps.yacl"),
-            "systemsapi" to project.property("deps.systemsapi")
+            "systemsapi" to project.property("deps.systemsapi"),
+            "owo_lib" to project.property("deps.owo")
         )
 
         filesMatching("fabric.mod.json") { expand(props) }
