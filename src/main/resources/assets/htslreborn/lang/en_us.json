@@ -26,7 +26,7 @@
   "htslreborn.explorer.button.item.open.description": "Open item file in external text editor",
   "htslreborn.explorer.button.item.delete.description": "Delete Item",
   "htslreborn.importing.button.cancel": "Cancel",
-  "htslreborn.importing.timeremaining": "Time Remaining: %ss"
+  "htslreborn.importing.timeremaining": "Time Remaining: %ss",
   "htslreborn.importing.working.type.import": "Importing",
   "htslreborn.importing.working.type.export": "Exporting",
   "htslreborn.importing.working.cancel": "Cancel",

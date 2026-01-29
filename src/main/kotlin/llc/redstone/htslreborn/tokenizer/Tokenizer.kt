@@ -45,9 +45,11 @@ object Tokenizer {
 
                 '\"' isToken Tokens.QUOTE thenState IN_STRING
 
+                matches("""define """) isToken Tokens.DEFINE_KEYWORD thenState DEFINE
+                '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER
+
                 matches("\\w+") isToken Tokens.STRING
 
-                '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER
             }
 
             IF_CONDITION state {
@@ -77,7 +79,11 @@ object Tokenizer {
             JS_INTERPRETER state {
                 matches(".+(?=})") isToken Tokens.JS_CODE
                 '}' isToken Tokens.BRACE_CLOSE thenState default
+            }
 
+            DEFINE state {
+                matches(".+(?=\\n)") isToken Tokens.DEFINE_VALUE
+                '\n' isToken Tokens.NEWLINE thenState default
             }
 
             fun stringState(state: StateLabel, nextState: StateLabel?) {
@@ -93,6 +99,7 @@ object Tokenizer {
 
             stringState(IN_STRING, null)
             stringState(IN_CONDITION_STRING, IF_CONDITION)
+            stringState(IN_DEFINE_STRING, DEFINE)
         }
         return lexer.tokenize(text)
             .filter {

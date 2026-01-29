@@ -1,17 +1,26 @@
 package llc.redstone.htslreborn.parser
 
+import guru.zoroark.tegral.niwen.lexer.Token
 import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
+import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import org.mozilla.javascript.Context
-import kotlin.toString
+import org.mozilla.javascript.ScriptableObject
 
 object PreProcess {
-    fun preProcess(tokens: List<TokenWithPosition>, loopVarName: String? = null, loopIndex: Int? = null): List<TokenWithPosition> {
+    fun preProcess(
+        tokens: List<TokenWithPosition>,
+        loopVarName: String? = null,
+        loopIndex: Int? = null,
+        defineList: MutableMap<String, String> = mutableMapOf(),
+        reusedContext: Context? = null,
+        reusedScope: ScriptableObject? = null
+    ): List<TokenWithPosition> {
         val processedTokens = mutableListOf<TokenWithPosition>()
 
-        val context = Context.enter();
-        val scope = context.initStandardObjects()
+        val context = reusedContext ?: Context.enter()
+        val scope = reusedScope ?: context.initStandardObjects()
         if (loopVarName != null) {
             val index = loopIndex ?: 0
             scope.put(loopVarName, scope, index)
@@ -19,13 +28,20 @@ object PreProcess {
 
         val iterator = tokens.iterator()
 
-        var loopAmount = 0
-        var loopVarName: String? = null
+        var loopAmount: Int = 0
+        var loopVarName: String? = loopVarName
         while (iterator.hasNext()) {
             val token = iterator.next()
             when (token.tokenType) {
                 Tokens.JS_CODE -> {
-                    val result = context.evaluateString(scope, token.string, "HTSL_JS_EVAL", 1, null)
+                    // Replace defined variables
+                    var processedString = token.string
+                    for ((key, value) in defineList) {
+                        val regex = Regex("(?<!\")\\b$key\\b(?!\")") // Match whole words not inside quotes
+                        processedString = processedString.replace(regex, value)
+                    }
+
+                    val result = context.evaluateString(scope, processedString, "HTSL_JS_EVAL", 1, null)
                     val resultString = when (result) {
                         is String -> "\"$result\"" // Wrap strings in quotes
                         else -> result.toString()
@@ -34,16 +50,40 @@ object PreProcess {
                     processedTokens.addAll(Tokenizer.tokenize(resultString))
                 }
 
+                Tokens.DEFINE_KEYWORD -> {
+                    val valueToken = iterator.takeIf { it.hasNext() }?.next()
+                    if (valueToken?.tokenType != Tokens.DEFINE_VALUE) htslCompileError(
+                        "Expected value after variable name",
+                        valueToken ?: token
+                    )
+                    val varName = valueToken.string.split(" ")[0]
+                    if (listOf("goto", "//", "/*", "*/", "loop").contains(varName)) {
+                        htslCompileError("Invalid variable name '$varName'", token)
+                    }
+                    val value = valueToken.string.substringAfter(" ")
+
+                    defineList[varName] = value
+                }
+
                 Tokens.LOOP_KEYWORD -> {
                     var nextToken = iterator.takeIf { it.hasNext() }?.next()
-                    if (nextToken?.tokenType != Tokens.INT) continue
+                    if (nextToken?.tokenType != Tokens.INT) htslCompileError(
+                        "Expected integer after 'loop' keyword",
+                        nextToken ?: token
+                    )
                     loopAmount = nextToken.string.toIntOrNull() ?: 1
 
                     nextToken = iterator.takeIf { it.hasNext() }?.next()
-                    if (nextToken?.tokenType != Tokens.STRING) continue
+                    if (nextToken?.tokenType != Tokens.STRING) htslCompileError(
+                        "Expected loop variable name after loop amount",
+                        nextToken ?: token
+                    )
                     loopVarName = nextToken.string
                     nextToken = iterator.takeIf { it.hasNext() }?.next()
-                    if (nextToken?.tokenType != Tokens.DEPTH_ADD) continue
+                    if (nextToken?.tokenType != Tokens.DEPTH_ADD) htslCompileError(
+                        "Expected '{' after loop variable name",
+                        nextToken ?: token
+                    )
                     if (loopAmount <= 0) continue
 
                     var depth = 1
@@ -59,11 +99,26 @@ object PreProcess {
                     }
 
                     repeat(loopAmount) {
-                        processedTokens.addAll(preProcess(tokens, loopVarName, it))
+                        processedTokens.addAll(preProcess(tokens, loopVarName, it, defineList, context, scope))
                     }
                 }
 
-                else -> processedTokens.add(token)
+                Tokens.STRING -> {
+                    var processedString = token.string
+                    for ((key, value) in defineList) {
+                        val regex = Regex("(?<!\")\\b$key\\b(?!\")") // Match whole words not inside quotes
+                        processedString = processedString.replace(regex, value)
+                    }
+                    val loopVarNameRegex = loopVarName?.let { Regex("(?<!\")\\b$it\\b(?!\")") }
+                    if (loopVarNameRegex != null) {
+                        processedString = processedString.replace(loopVarNameRegex, loopIndex.toString())
+                    }
+                    processedTokens.addAll(Tokenizer.tokenize(processedString))
+                }
+
+                else -> {
+                    processedTokens.add(token)
+                }
             }
         }
 

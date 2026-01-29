@@ -6,12 +6,11 @@ import llc.redstone.htslreborn.tokenizer.Tokenizer
 // Used primarily for testing the tokenizer, preprocessor, and parser
 fun main(args: Array<String>) {
     val input = """
+define MACRO stat Kills
+MACRO inc 10
 loop 2 index {
-    if () {
-        loop 2 messageNum {
-            chat {"This is message #" + messageNum}
-        }
-    }
+    MACRO mult 10
+    MACRO inc index
 }
 
 """.trimIndent()

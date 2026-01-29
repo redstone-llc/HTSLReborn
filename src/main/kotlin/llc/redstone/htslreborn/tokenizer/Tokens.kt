@@ -29,8 +29,9 @@ enum class Tokens: TokenType {
     BRACE_OPEN,
     BRACE_CLOSE,
     JS_CODE,
-    LOOP_KEYWORD
-
+    LOOP_KEYWORD,
+    DEFINE_KEYWORD,
+    DEFINE_VALUE
     ;
 }
 
@@ -87,6 +88,8 @@ fun StateBuilder.comparatorTokens() {
 enum class States: StateLabel {
     IN_STRING,
     IN_CONDITION_STRING,
+    IN_DEFINE_STRING,
     IF_CONDITION,
-    JS_INTERPRETER
+    JS_INTERPRETER,
+    DEFINE
 }
