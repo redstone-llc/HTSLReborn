@@ -316,6 +316,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     enum class WorkingScreenType {
         IMPORT, EXPORT
     }
+
     fun showWorkingScreen(type: WorkingScreenType, fileName: String) {
         val action = Text.translatable(when (type) {
             WorkingScreenType.IMPORT -> "htslreborn.importing.working.type.import"
@@ -323,14 +324,15 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         })
         val display = action.append(Text.literal(" '$fileName'..."))
         val workingScreen = buildWorkingScreen(display)
-        this.uiAdapter.rootComponent.childById(FlowLayout::class.java, "base").child(workingScreen)
+        base.child(workingScreen)
     }
 
     fun hideWorkingScreen() {
-        val base = this.uiAdapter.rootComponent.childById(FlowLayout::class.java, "base")
         val importScreen = base.childById(FlowLayout::class.java, "importScreen")
         if (importScreen != null) base.removeChild(importScreen)
     }
+
+    val base: FlowLayout = Containers.verticalFlow(Sizing.fill(), Sizing.fill())
 
     public override fun build(root: FlowLayout) {
         val accessor =
@@ -342,30 +344,28 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             sizing(Sizing.fixed(accessor.getGuiLeft()), Sizing.expand())
             padding(Insets.of(5))
 
-            child(
-                Containers.verticalFlow(Sizing.fill(), Sizing.fill()).apply {
-                    id("base")
-                    surface(Surface.DARK_PANEL)
-                    padding(Insets.of(5))
+            child(base.also {
+                it.id("base")
+                it.surface(Surface.DARK_PANEL)
+                it.padding(Insets.of(5))
 
-                    children(
-                        listOf(
-                            buildTitle(),
-                            buildHeader(),
-                            buildExplorer(),
-                            buildContextButtons(),
-                            breadcrumbs,
+                it.children(
+                    listOf(
+                        buildTitle(),
+                        buildHeader(),
+                        buildExplorer(),
+                        buildContextButtons(),
+                        breadcrumbs,
 
-                            // Below is things that go on top of the screen generally an absolute positioning
-                            dropdown
-                        )
+                        // Below is things that go on top of the screen generally an absolute positioning
+                        dropdown
                     )
+                )
 
-                    if (importing) {
-                        showWorkingScreen(WorkingScreenType.IMPORT, importingFile)
-                    }
+                if (importing) {
+                    showWorkingScreen(WorkingScreenType.IMPORT, importingFile)
                 }
-            )
+            })
         }
     }
 }

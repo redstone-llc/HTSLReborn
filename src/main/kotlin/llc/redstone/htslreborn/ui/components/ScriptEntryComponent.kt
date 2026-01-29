@@ -52,7 +52,10 @@ class ScriptEntryComponent(
         }
 
         val export = Components.button(Text.translatable("htslreborn.explorer.button.script.export")) {
-            HTSLExporter.exportFile(file)
+            FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.EXPORT, file.name)
+            HTSLExporter.exportFile(file) {
+                FileExplorer.INSTANCE.hideWorkingScreen()
+            }
         }.apply {
                 setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.export.description")))
             }

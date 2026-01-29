@@ -113,6 +113,12 @@ object PreProcess {
                     if (loopVarNameRegex != null) {
                         processedString = processedString.replace(loopVarNameRegex, loopIndex.toString())
                     }
+
+                    if (processedString == token.string) {
+                        processedTokens.add(token)
+                        continue
+                    }
+
                     processedTokens.addAll(Tokenizer.tokenize(processedString))
                 }
 

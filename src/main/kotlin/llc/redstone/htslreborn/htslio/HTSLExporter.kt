@@ -23,7 +23,7 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
 
 object HTSLExporter {
-    fun exportFile(file: File) {
+    fun exportFile(file: File, onComplete: () -> Unit = {}) {
         SystemsAPI.launch {
             val actions = SystemsAPI.getHousingImporter().getOpenActionContainer()?.getActions() ?: return@launch
             val lines = export(actions)

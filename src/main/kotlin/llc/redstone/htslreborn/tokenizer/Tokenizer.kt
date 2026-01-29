@@ -38,18 +38,24 @@ object Tokenizer {
                 '\n' isToken Tokens.NEWLINE
 
                 matches("//.*") isToken Tokens.COMMENT
+                "/*" isToken Tokens.COMMENT thenState IN_MULTI_LINE_COMMENT
                 matches("\\d+\\.\\d+") isToken Tokens.DOUBLE
                 matches("\\d+?L") isToken Tokens.LONG
                 matches("\\d+") isToken Tokens.INT
                 matches("\\s+").ignore
 
+                '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER
                 '\"' isToken Tokens.QUOTE thenState IN_STRING
 
                 matches("""define """) isToken Tokens.DEFINE_KEYWORD thenState DEFINE
-                '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER
 
                 matches("\\w+") isToken Tokens.STRING
 
+            }
+
+            IN_MULTI_LINE_COMMENT state {
+                matches("([^*]|(\\*+[^*/]))+") isToken Tokens.COMMENT
+                "*/" isToken Tokens.COMMENT thenState default
             }
 
             IF_CONDITION state {
@@ -70,6 +76,7 @@ object Tokenizer {
                 '!' isToken Tokens.INVERTED
 
                 '\"' isToken Tokens.QUOTE thenState IN_CONDITION_STRING
+                '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER_CONDITION
 
                 matches("\\w+") isToken Tokens.STRING
 
@@ -81,6 +88,11 @@ object Tokenizer {
                 '}' isToken Tokens.BRACE_CLOSE thenState default
             }
 
+            JS_INTERPRETER_CONDITION state {
+                matches(".+(?=})") isToken Tokens.JS_CODE
+                '}' isToken Tokens.BRACE_CLOSE thenState IF_CONDITION
+            }
+
             DEFINE state {
                 matches(".+(?=\\n)") isToken Tokens.DEFINE_VALUE
                 '\n' isToken Tokens.NEWLINE thenState default
@@ -88,7 +100,7 @@ object Tokenizer {
 
             fun stringState(state: StateLabel, nextState: StateLabel?) {
                 state state {
-                    matches("""(\\"|[^"])+""") isToken Tokens.STRING
+                    matches("""(\\"|[^\\"])+""") isToken Tokens.STRING
                     if (nextState != null) {
                         '\"' isToken Tokens.QUOTE thenState nextState
                     } else {
@@ -105,7 +117,8 @@ object Tokenizer {
             .filter {
                 it.tokenType != Tokens.QUOTE &&
                         it.tokenType != Tokens.BRACE_OPEN &&
-                        it.tokenType != Tokens.BRACE_CLOSE
+                        it.tokenType != Tokens.BRACE_CLOSE &&
+                        it.tokenType != Tokens.COMMENT
             } //Filter out unused and wasted tokens
 //            .filter { it.tokenType != Tokens.NEWLINE }
             .map { token ->
@@ -119,7 +132,8 @@ object Tokenizer {
 
 
     fun tokenize(file: File): List<TokenWithPosition> {
-        return tokenize(file.readLines().joinToString("\n"))
+        val input = file.readLines().joinToString("\n")
+        return tokenize(input)
     }
 
     class TokenWithPosition(

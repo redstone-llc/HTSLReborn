@@ -91,5 +91,7 @@ enum class States: StateLabel {
     IN_DEFINE_STRING,
     IF_CONDITION,
     JS_INTERPRETER,
-    DEFINE
+    JS_INTERPRETER_CONDITION,
+    DEFINE,
+    IN_MULTI_LINE_COMMENT
 }
