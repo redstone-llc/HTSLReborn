@@ -5,6 +5,8 @@ import llc.redstone.htslreborn.HTSLReborn.importing
 import llc.redstone.htslreborn.parser.Parser
 import llc.redstone.htslreborn.parser.PreProcess
 import llc.redstone.htslreborn.tokenizer.Tokenizer
+import llc.redstone.htslreborn.utils.UIErrorToast
+import llc.redstone.htslreborn.utils.UISuccessToast
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.api.Event
 import llc.redstone.systemsapi.data.Action
@@ -26,14 +28,13 @@ object HTSLImporter {
             tokens = PreProcess.preProcess(tokens)
             compiledCode = Parser.parse(tokens, file)
         }  catch (e: Exception) {
-            MinecraftClient.getInstance().player?.sendMessage(
-                Text.of("An error occurred while importing HTSL code: ${e.message}").copy().withColor(Colors.RED), false
-            )
+            UIErrorToast.report(e)
             e.printStackTrace()
             return
         }
 
         import(compiledCode, method, supportsBase, onComplete)
+        UISuccessToast.report("Successfully imported HTSL code from ${file.name}")
     }
 
     fun import(compiledCode: MutableMap<String, List<Action>>, method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions, supportsBase: Boolean = true, onComplete: () -> Unit = {}) {
@@ -93,9 +94,7 @@ object HTSLImporter {
 
                 }
             } catch (e: Exception) {
-                MinecraftClient.getInstance().player?.sendMessage(
-                    Text.of("An error occurred while importing HTSL code: ${e.message}").copy().withColor(Colors.RED), false
-                )
+                UIErrorToast.report(e)
                 e.printStackTrace()
             }
             onComplete()

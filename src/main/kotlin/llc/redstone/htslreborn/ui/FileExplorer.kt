@@ -9,6 +9,8 @@ import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.ScrollContainer
 import io.wispforest.owo.ui.core.*
 import llc.redstone.htslreborn.HTSLReborn.MC
+import llc.redstone.htslreborn.HTSLReborn.exporting
+import llc.redstone.htslreborn.HTSLReborn.exportingFile
 import llc.redstone.htslreborn.HTSLReborn.importing
 import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.accessors.HandledScreenAccessor
@@ -37,6 +39,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         @JvmStatic
         fun inActionGui(): Boolean {
             if (importing) return true
+            if (exporting) return true
             val screen = MC.currentScreen as? GenericContainerScreen ?: return false
             val title = screen.title.string
             return title.contains(Regex(I18n.translate("htslreborn.action.container.title")))
@@ -288,13 +291,12 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    fun buildWorkingScreen(display: Text): FlowLayout {
+    fun buildWorkingScreen(display: Text, type: WorkingScreenType): FlowLayout {
         val label = Components.label(display)
         val cancelButton = Components.button(Text.translatable("htslreborn.importing.working.cancel")) {
             SystemsAPI.getHousingImporter().cancelImport()
             hideWorkingScreen()
         }
-        val timeRemaining = TimeRemainingComponent()
         return Containers.verticalFlow(Sizing.fill(), Sizing.fill()).apply {
             id("importScreen")
             surface(Surface.flat(0xcc000000.toInt()).and(Surface.blur(6f, 6f)))
@@ -304,11 +306,18 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             gap(5)
 
             children(
-                listOf(
-                    label,
-                    timeRemaining,
-                    cancelButton
-                )
+                if (type == WorkingScreenType.IMPORT) {
+                    listOf(
+                        label,
+                        TimeRemainingComponent(),
+                        cancelButton
+                    )
+                } else {
+                    listOf(
+                        label,
+                        cancelButton
+                    )
+                }
             )
         }
     }
@@ -323,7 +332,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             WorkingScreenType.EXPORT -> "htslreborn.importing.working.type.export"
         })
         val display = action.append(Text.literal(" '$fileName'..."))
-        val workingScreen = buildWorkingScreen(display)
+        val workingScreen = buildWorkingScreen(display, type)
         base.child(workingScreen)
     }
 
@@ -364,6 +373,9 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
 
                 if (importing) {
                     showWorkingScreen(WorkingScreenType.IMPORT, importingFile)
+                }
+                if (exporting) {
+                    showWorkingScreen(WorkingScreenType.EXPORT, exportingFile)
                 }
             })
         }

@@ -5,6 +5,7 @@ import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.core.Sizing
 import llc.redstone.htslreborn.HTSLReborn.CONFIG
+import llc.redstone.htslreborn.HTSLReborn.exportingFile
 import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.config.HtslConfigModel
 import llc.redstone.htslreborn.htslio.HTSLExporter
@@ -53,6 +54,7 @@ class ScriptEntryComponent(
 
         val export = Components.button(Text.translatable("htslreborn.explorer.button.script.export")) {
             FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.EXPORT, file.name)
+            exportingFile = file.name
             HTSLExporter.exportFile(file) {
                 FileExplorer.INSTANCE.hideWorkingScreen()
             }

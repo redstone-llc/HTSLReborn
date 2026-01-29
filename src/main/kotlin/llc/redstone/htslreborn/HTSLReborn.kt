@@ -29,6 +29,8 @@ object HTSLReborn : ClientModInitializer {
 
     var importing = false
     var importingFile = ""
+    var exporting = false
+    var exportingFile = ""
 
     val fileEditCooldown = mutableMapOf<String, Long>()
 

@@ -47,6 +47,7 @@ abstract class ExplorerEntryComponent(
 
     override fun onMouseDown(click: Click, doubled: Boolean): Boolean {
         if (doubled && FileExplorerHandler.handleDirectoryClick(index)) return true
+        if (doubled && FileExplorerHandler.handleScriptClick(index)) return true
 
         if (FileExplorer.INSTANCE.focus == this) {
             FileExplorer.INSTANCE.focus = null
