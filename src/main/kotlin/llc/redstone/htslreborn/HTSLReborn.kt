@@ -19,10 +19,10 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import kotlin.io.path.name
 
 object HTSLReborn : ClientModInitializer {
-    val MOD_ID = "htslreborn"
+    const val MOD_ID = "htslreborn"
     val LOGGER: Logger = LoggerFactory.getLogger("HTSL Reborn")
-    val VERSION = /*$ mod_version*/ "0.0.1"
-    val MINECRAFT = /*$ minecraft*/ "1.21.9"
+    const val VERSION = /*$ mod_version*/ "0.0.1"
+    const val MINECRAFT = /*$ minecraft*/ "1.21.9"
     val CONFIG: HtslConfig = HtslConfig.createAndLoad()
     val MC: MinecraftClient
         get() = MinecraftClient.getInstance()

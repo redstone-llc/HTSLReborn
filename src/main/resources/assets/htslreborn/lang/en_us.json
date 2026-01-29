@@ -1,5 +1,4 @@
 {
-  "htslreborn.action.container.title": "Edit Actions|Actions: ",
   "htslreborn.explorer.title": "HTSL Reborn",
   "htslreborn.explorer.search": "Search",
   "htslreborn.explorer.openfolder": "Open Folder",
@@ -28,4 +27,22 @@
   "htslreborn.explorer.button.item.delete.description": "Delete Item",
   "htslreborn.importing.button.cancel": "Cancel",
   "htslreborn.importing.timeremaining": "Time Remaining: %ss"
+  "htslreborn.importing.working.type.import": "Importing",
+  "htslreborn.importing.working.type.export": "Exporting",
+  "htslreborn.importing.working.cancel": "Cancel",
+
+  "text.config.htslreborn.title": "HTSL Reborn",
+  "text.config.htslreborn.option.defaultImportStrategy": "Default Import Strategy",
+  "text.config.htslreborn.option.defaultImportStrategy.tooltip": "Which import strategy to use when\nyou click the main \"Import\" button.",
+  "text.config.htslreborn.option.defaultImportStrategy.value.append": "Append",
+  "text.config.htslreborn.option.defaultImportStrategy.value.append.tooltip": "Test",
+  "text.config.htslreborn.option.defaultImportStrategy.value.replace": "Replace",
+  "text.config.htslreborn.option.defaultImportStrategy.value.update": "Update",
+  "text.config.htslreborn.option.showFileExplorer": "Show File Explorer",
+  "text.config.htslreborn.option.showFileExplorer.tooltip": "Shows the file explorer when\nin an action container.",
+
+  "text.config.htslreborn.section.import": "Importing/Exporting",
+  "text.config.htslreborn.option.playCompleteSound": "Play Complete Sound",
+  "text.config.htslreborn.option.playCompleteSound.tooltip": "Plays a chime when an import/export\nis completed."
+
 }
