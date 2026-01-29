@@ -11,7 +11,7 @@ import llc.redstone.htslreborn.tokenizer.Tokens
 import java.io.File
 
 object Parser {
-    fun parse(tokens: List<TokenWithPosition>, file: File): MutableMap<String, List<Action>> {
+    fun parse(tokens: List<TokenWithPosition>, file: File?): MutableMap<String, List<Action>> {
         val compiledActions = mutableListOf<Action>()
         val gotoCompiled = mutableMapOf<String, List<Action>?>()
 

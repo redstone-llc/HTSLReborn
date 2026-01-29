@@ -8,9 +8,8 @@ import net.minecraft.text.Text
 class TimeRemainingComponent() : LabelComponent(
     Text.of("")
 ) {
-    var ticks = 0
     override fun draw(context: OwoUIDrawContext?, mouseX: Int, mouseY: Int, partialTicks: Float, delta: Float) {
-        text(Text.literal("Time Remaining: ${SystemsAPI.getHousingImporter().getTimeRemaining()}"))
+        text(Text.translatable("htslreborn.importing.timeremaining", SystemsAPI.getHousingImporter().getTimeRemaining()?.toInt()))
 
         super.draw(context, mouseX, mouseY, partialTicks, delta)
     }

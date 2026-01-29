@@ -84,7 +84,7 @@ object ActionParser {
         if (clazz == TeamVariable::class) swapParams("teamName", "variable")
     }
 
-    fun createAction(keyword: String, iterator: Iterator<TokenWithPosition>, file: File): Action? {
+    fun createAction(keyword: String, iterator: Iterator<TokenWithPosition>, file: File?): Action? {
         //Get the action class
         val clazz = keywords[keyword] ?: return null
 
@@ -124,6 +124,9 @@ object ActionParser {
                     Location::class -> LocationParser.parse(token.string, iterator)
 
                     ItemStack::class -> {
+                        if (file == null) {
+                            htslCompileError("Cannot load ItemStack from file when file is null", token)
+                        }
                         val relativeFileLocation = token.string
                         val parent = if (file.isDirectory) file else file.parentFile
                         val file = File(parent, relativeFileLocation)

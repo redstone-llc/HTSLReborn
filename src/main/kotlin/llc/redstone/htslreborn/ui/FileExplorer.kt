@@ -24,6 +24,7 @@ import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.input.CharInput
 import net.minecraft.client.input.KeyInput
+import net.minecraft.client.resource.language.I18n
 import net.minecraft.text.Text
 import net.minecraft.util.Util
 import java.io.File
@@ -38,7 +39,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             if (importing) return true
             val screen = MC.currentScreen as? GenericContainerScreen ?: return false
             val title = screen.title.string
-            return title.contains(Regex("Edit Actions|Actions: "))
+            return title.contains(Regex(I18n.translate("htslreborn.action.container.title")))
         }
     }
 

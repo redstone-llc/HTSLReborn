@@ -3,6 +3,7 @@ package llc.redstone.htslreborn.htslio
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.importing
 import llc.redstone.htslreborn.parser.Parser
+import llc.redstone.htslreborn.parser.PreProcess
 import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.api.Event
@@ -21,7 +22,8 @@ object HTSLImporter {
     fun importFile(file: File, method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions, supportsBase: Boolean = true, onComplete: () -> Unit = {}) {
         val compiledCode: MutableMap<String, List<Action>>
         try {
-            val tokens = Tokenizer.tokenize(file)
+            var tokens = Tokenizer.tokenize(file)
+            tokens = PreProcess.preProcess(tokens)
             compiledCode = Parser.parse(tokens, file)
         }  catch (e: Exception) {
             MinecraftClient.getInstance().player?.sendMessage(

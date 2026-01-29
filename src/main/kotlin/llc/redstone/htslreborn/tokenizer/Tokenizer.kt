@@ -11,7 +11,7 @@ import llc.redstone.htslreborn.parser.ConditionParser
 import java.io.File
 
 object Tokenizer {
-    fun tokenize(file: File): List<TokenWithPosition> {
+    fun tokenize(text: String): List<TokenWithPosition> {
         val actionKeywords = ActionParser.keywords.keys
         val conditionKeywords = ConditionParser.keywords.keys
 
@@ -22,7 +22,8 @@ object Tokenizer {
                 "{\n" isToken Tokens.DEPTH_ADD
 
                 anyOf("} else {", "}else{", "}else {", "} else{") isToken Tokens.ELSE_KEYWORD
-                '}' isToken Tokens.DEPTH_SUBTRACT
+                "loop" isToken Tokens.LOOP_KEYWORD
+                "}" isToken Tokens.DEPTH_SUBTRACT
                 "random" isToken Tokens.RANDOM_KEYWORD
                 "goto" isToken Tokens.GOTO_KEYWORD
 
@@ -45,6 +46,8 @@ object Tokenizer {
                 '\"' isToken Tokens.QUOTE thenState IN_STRING
 
                 matches("\\w+") isToken Tokens.STRING
+
+                '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER
             }
 
             IF_CONDITION state {
@@ -71,6 +74,12 @@ object Tokenizer {
                 ')' isToken Tokens.IF_CONDITION_END thenState default
             }
 
+            JS_INTERPRETER state {
+                matches(".+(?=})") isToken Tokens.JS_CODE
+                '}' isToken Tokens.BRACE_CLOSE thenState default
+
+            }
+
             fun stringState(state: StateLabel, nextState: StateLabel?) {
                 state state {
                     matches("""(\\"|[^"])+""") isToken Tokens.STRING
@@ -85,19 +94,25 @@ object Tokenizer {
             stringState(IN_STRING, null)
             stringState(IN_CONDITION_STRING, IF_CONDITION)
         }
-
-        val fileStr = file.readLines().joinToString("\n")
-
-        return lexer.tokenize(fileStr)
-            .filter { it.tokenType != Tokens.QUOTE } //Filter out unused and wasted tokens
+        return lexer.tokenize(text)
+            .filter {
+                it.tokenType != Tokens.QUOTE &&
+                        it.tokenType != Tokens.BRACE_OPEN &&
+                        it.tokenType != Tokens.BRACE_CLOSE
+            } //Filter out unused and wasted tokens
 //            .filter { it.tokenType != Tokens.NEWLINE }
             .map { token ->
                 TokenWithPosition(
                     token,
-                    fileStr.take(token.startsAt).count { it == '\n' } + 1,
-                    token.startsAt - fileStr.lastIndexOf('\n', token.startsAt - 1)
+                    text.take(token.startsAt).count { it == '\n' } + 1,
+                    token.startsAt - text.lastIndexOf('\n', token.startsAt - 1)
                 )
             }
+    }
+
+
+    fun tokenize(file: File): List<TokenWithPosition> {
+        return tokenize(file.readLines().joinToString("\n"))
     }
 
     class TokenWithPosition(

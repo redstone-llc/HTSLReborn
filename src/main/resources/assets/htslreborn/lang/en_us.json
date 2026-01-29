@@ -1,9 +1,11 @@
 {
+  "htslreborn.action.container.title": "Edit Actions|Actions: ",
   "htslreborn.explorer.title": "HTSL Reborn",
   "htslreborn.explorer.search": "Search",
   "htslreborn.explorer.openfolder": "Open Folder",
   "htslreborn.explorer.openfolder.description": "Open current folder in external file explorer",
   "htslreborn.explorer.button.script.import": "Import",
+  "htslreborn.explorer.button.script.import.append.description": "Import, adding actions to the end of this container",
   "htslreborn.explorer.button.script.import.add": "Add",
   "htslreborn.explorer.button.script.import.add.description": "Import, adding actions to the end of this container",
   "htslreborn.explorer.button.script.import.replace": "Replace",
@@ -24,5 +26,6 @@
   "htslreborn.explorer.button.item.save.description": "Save currently held item to this item file",
   "htslreborn.explorer.button.item.open.description": "Open item file in external text editor",
   "htslreborn.explorer.button.item.delete.description": "Delete Item",
-  "htslreborn.importing.button.cancel": "Cancel"
+  "htslreborn.importing.button.cancel": "Cancel",
+  "htslreborn.importing.timeremaining": "Time Remaining: %ss"
 }

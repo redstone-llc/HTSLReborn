@@ -41,6 +41,8 @@ dependencies {
     ksp("dev.kosmx.kowoconfig:ksp-owo-config:0.2.0")
     modImplementation("llc.redstone:SystemsAPI:${property("deps.systemsapi")}")
 
+    implementation("org.mozilla:rhino:1.9.0")
+
     implementation(tegralLibs.niwen.lexer)
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
 
