@@ -11,7 +11,6 @@
     </a>
     <br>
     <img alt="Static Badge" src="https://img.shields.io/badge/-Modrinth-green?style=for-the-badge&logo=modrinth&logoColor=%23c6d0f5&labelColor=%23363A4F&color=%2340a02b">
-    <img alt="Static Badge" src="https://img.shields.io/badge/-CurseForge-orange?style=for-the-badge&logo=curseforge&logoColor=%23c6d0f5&labelColor=%23363A4F&color=%23fe640b">
 
 </h1>
 
