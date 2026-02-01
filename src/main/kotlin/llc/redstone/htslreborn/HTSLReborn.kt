@@ -48,11 +48,11 @@ object HTSLReborn : ClientModInitializer {
 
         val watcher = FileSystems.getDefault().newWatchService()
 
-        if (!File("./HTSL/imports").exists()) {
-            File("./HTSL/imports").mkdirs()
+        if (!File("./htsl/imports").exists()) {
+            File("./htsl/imports").mkdirs()
         }
 
-        val dir = Paths.get("./HTSL/imports")
+        val dir = Paths.get("./htsl/imports")
         dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
         Thread {
             while (true) {

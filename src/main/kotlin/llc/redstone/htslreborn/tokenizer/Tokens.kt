@@ -14,6 +14,7 @@ enum class Tokens: TokenType {
     DOUBLE,
     STRING,
     QUOTE,
+    PLACEHOLDER,
     COMMENT,
     NEWLINE,
     BOOLEAN,
@@ -88,7 +89,8 @@ fun StateBuilder.comparatorTokens() {
 enum class States: StateLabel {
     IN_STRING,
     IN_CONDITION_STRING,
-    IN_DEFINE_STRING,
+    PLACEHOLDER,
+    PLACEHOLDER_CONDITION,
     IF_CONDITION,
     JS_INTERPRETER,
     JS_INTERPRETER_CONDITION,

@@ -39,13 +39,14 @@ object Tokenizer {
 
                 matches("//.*") isToken Tokens.COMMENT
                 "/*" isToken Tokens.COMMENT thenState IN_MULTI_LINE_COMMENT
-                matches("\\d+\\.\\d+") isToken Tokens.DOUBLE
-                matches("\\d+?L") isToken Tokens.LONG
-                matches("\\d+") isToken Tokens.INT
+                matches("-?\\d+\\.\\d+") isToken Tokens.DOUBLE
+                matches("-?\\d+?L") isToken Tokens.LONG
+                matches("-?\\d+") isToken Tokens.INT
                 matches("\\s+").ignore
 
                 '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER
                 '\"' isToken Tokens.QUOTE thenState IN_STRING
+                '%' isToken Tokens.PLACEHOLDER thenState PLACEHOLDER
 
                 matches("""define """) isToken Tokens.DEFINE_KEYWORD thenState DEFINE
 
@@ -68,14 +69,15 @@ object Tokenizer {
                 anyOf(",", ", ") isToken Tokens.COMMA
 
                 matches("//.*") isToken Tokens.COMMENT
-                matches("\\d+\\.\\d+") isToken Tokens.DOUBLE
-                matches("\\d+?L") isToken Tokens.LONG
-                matches("\\d+") isToken Tokens.INT
+                matches("-?\\d+\\.\\d+") isToken Tokens.DOUBLE
+                matches("-?\\d+?L") isToken Tokens.LONG
+                matches("-?\\d+") isToken Tokens.INT
                 matches("\\s+").ignore
 
                 '!' isToken Tokens.INVERTED
 
                 '\"' isToken Tokens.QUOTE thenState IN_CONDITION_STRING
+                '%' isToken Tokens.PLACEHOLDER thenState PLACEHOLDER_CONDITION
                 '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER_CONDITION
 
                 matches("\\w+") isToken Tokens.STRING
@@ -109,9 +111,22 @@ object Tokenizer {
                 }
             }
 
+            fun placeholderStringState(state: StateLabel, nextState: StateLabel?) {
+                state state {
+                    matches("""[\w./ ]+""") isToken Tokens.STRING
+                    if (nextState != null) {
+                        "%" isToken Tokens.PLACEHOLDER thenState nextState
+                    } else {
+                        "%" isToken Tokens.PLACEHOLDER thenState default
+                    }
+                }
+            }
+
             stringState(IN_STRING, null)
             stringState(IN_CONDITION_STRING, IF_CONDITION)
-            stringState(IN_DEFINE_STRING, DEFINE)
+
+            placeholderStringState(PLACEHOLDER, null)
+            placeholderStringState(PLACEHOLDER_CONDITION, IF_CONDITION)
         }
         return lexer.tokenize(text)
             .filter {
