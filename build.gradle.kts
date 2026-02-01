@@ -11,6 +11,7 @@ base.archivesName = property("mod.id") as String
 repositories {
     mavenLocal()
     maven("https://maven.kosmx.dev") //IDK why I couldnt make this a strict maven :shrug:
+    maven { url = uri("https://jitpack.io") }
 
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
@@ -36,15 +37,15 @@ dependencies {
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
-    modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
     modImplementation("io.wispforest:owo-lib:${property("deps.owo")}")
     ksp("dev.kosmx.kowoconfig:ksp-owo-config:0.2.0")
     modImplementation("llc.redstone:SystemsAPI:${property("deps.systemsapi")}")
 
-    implementation("org.mozilla:rhino:1.9.0")
+    implementation(include("org.mozilla:rhino:1.9.0")!!)
+    implementation(include("guru.zoroark.tegral:tegral-niwen-lexer:0.0.4")!!)
+    implementation(include("guru.zoroark.tegral:tegral-core:0.0.4")!!)
 
-    implementation(tegralLibs.niwen.lexer)
-    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
+    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 
 }
 

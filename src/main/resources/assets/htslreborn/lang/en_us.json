@@ -1,5 +1,6 @@
 {
   "htslreborn.explorer.title": "HTSL Reborn",
+  "htslreborn.action.container.title": "Edit Actions|Actions: ",
   "htslreborn.explorer.search": "Search",
   "htslreborn.explorer.openfolder": "Open Folder",
   "htslreborn.explorer.openfolder.description": "Open current folder in external file explorer",

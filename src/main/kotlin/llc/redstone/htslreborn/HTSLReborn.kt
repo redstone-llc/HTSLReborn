@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Paths
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
@@ -46,6 +47,10 @@ object HTSLReborn : ClientModInitializer {
         }
 
         val watcher = FileSystems.getDefault().newWatchService()
+
+        if (!File("./HTSL/imports").exists()) {
+            File("./HTSL/imports").mkdirs()
+        }
 
         val dir = Paths.get("./HTSL/imports")
         dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);

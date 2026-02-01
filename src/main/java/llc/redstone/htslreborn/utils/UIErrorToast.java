@@ -2,7 +2,7 @@ package llc.redstone.htslreborn.utils;
 
 import io.wispforest.owo.Owo;
 import io.wispforest.owo.ops.TextOps;
-import io.wispforest.owo.ui.core.OwoUIDrawContext;
+import io.wispforest.owo.ui.core.OwoUIGraphics;
 import io.wispforest.owo.ui.parsing.UIModelLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -85,7 +85,7 @@ public class UIErrorToast implements Toast {
 
     @Override
     public void draw(DrawContext context, TextRenderer textRenderer, long startTime) {
-        var owoContext = OwoUIDrawContext.of(context);
+        var owoContext = OwoUIGraphics.of(context);
 
         owoContext.fill(0, 0, this.getWidth(), this.getHeight(), 0x77000000);
         owoContext.drawRectOutline(0, 0, this.getWidth(), this.getHeight(), 0xA7FF0000);

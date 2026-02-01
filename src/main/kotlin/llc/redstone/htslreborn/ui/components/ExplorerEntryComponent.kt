@@ -1,11 +1,10 @@
 package llc.redstone.htslreborn.ui.components
 
-import io.wispforest.owo.ui.component.ButtonComponent
 import io.wispforest.owo.ui.container.FlowLayout
-import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.core.CursorStyle
-import io.wispforest.owo.ui.core.OwoUIDrawContext
+import io.wispforest.owo.ui.core.OwoUIGraphics
 import io.wispforest.owo.ui.core.Sizing
+import io.wispforest.owo.ui.core.UIComponent
 import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.htslreborn.ui.FileExplorerHandler
 import net.minecraft.client.gui.Click
@@ -22,16 +21,16 @@ abstract class ExplorerEntryComponent(
     }
 
     abstract val icon: Identifier
-    abstract fun buildContextButtons(): List<Component>
+    abstract fun buildContextButtons(): List<UIComponent>
 
-    override fun child(child: Component?): FlowLayout? {
+    override fun child(child: UIComponent?): FlowLayout? {
         mouseEnter().subscribe {
             cursorStyle(CursorStyle.HAND)
         }
         return super.child(child)
     }
 
-    override fun children(children: Collection<Component?>?): FlowLayout? {
+    override fun children(children: Collection<UIComponent?>?): FlowLayout? {
         children?.forEach {
             it?.mouseEnter()?.subscribe {
                 it.cursorStyle(CursorStyle.HAND)
@@ -40,9 +39,9 @@ abstract class ExplorerEntryComponent(
         return super.children(children)
     }
 
-    override fun draw(context: OwoUIDrawContext?, mouseX: Int, mouseY: Int, partialTicks: Float, delta: Float) {
-        super.draw(context, mouseX, mouseY, partialTicks, delta)
-        if (FileExplorer.INSTANCE.focus == this) this.drawFocusHighlight(context, mouseX, mouseY, partialTicks, delta)
+    override fun draw(graphics: OwoUIGraphics, mouseX: Int, mouseY: Int, partialTicks: Float, delta: Float) {
+        super.draw(graphics, mouseX, mouseY, partialTicks, delta)
+        if (FileExplorer.INSTANCE.focus == this) this.drawFocusHighlight(graphics, mouseX, mouseY, partialTicks, delta)
     }
 
     override fun onMouseDown(click: Click, doubled: Boolean): Boolean {

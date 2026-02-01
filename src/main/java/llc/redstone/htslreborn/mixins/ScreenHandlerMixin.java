@@ -1,6 +1,5 @@
 package llc.redstone.htslreborn.mixins;
 
-import llc.redstone.htslreborn.HTSLReborn;
 import llc.redstone.htslreborn.accessors.HandledScreenAccessor;
 import llc.redstone.htslreborn.ui.FileExplorer;
 import net.minecraft.client.gui.Click;
@@ -33,13 +32,13 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
 
     @Inject(method = "render", at = @At("HEAD"))
     public void htslreborn$render(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-//        if (!FileBrowser.inActionGui()) return;
+        if (!FileExplorer.inActionGui()) return;
         FileExplorer.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
     }
 
     @Inject(method="mouseClicked" , at=@At("HEAD"), cancellable = true)
     public void htslreborn$mouseClicked(Click click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
-//        if (!FileBrowser.inActionGui()) return;
+        if (!FileExplorer.inActionGui()) return;
         if (FileExplorer.getINSTANCE().mouseClicked(click, doubled)) {
             cir.setReturnValue(true);
         }
@@ -47,14 +46,14 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
 
     @Inject(method = "init", at = @At("TAIL"))
     public void htslreborn$init(CallbackInfo ci) {
-//        if (!FileBrowser.inActionGui()) return;
+        if (!FileExplorer.inActionGui()) return;
         FileExplorer.setINSTANCE(new FileExplorer());
-        FileExplorer.getINSTANCE().init(HTSLReborn.INSTANCE.getMC(), this.width, this.height);
+        FileExplorer.getINSTANCE().init(this.width, this.height);
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     public void htslreborn$keyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
-//        if (!FileBrowser.inActionGui()) return;
+        if (!FileExplorer.inActionGui()) return;
         if (FileExplorer.getINSTANCE().keyPressed(input)) {
             cir.setReturnValue(true);
         }
@@ -62,7 +61,7 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
 
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
     public void htslreborn$mouseDragged(Click click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
-//        if (!FileBrowser.inActionGui()) return;
+        if (!FileExplorer.inActionGui()) return;
         if (FileExplorer.getINSTANCE().mouseDragged(click, offsetX, offsetY)) {
             cir.setReturnValue(true);
         }
@@ -70,7 +69,7 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
     public void htslreborn$mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount, CallbackInfoReturnable<Boolean> cir) {
-//        if (!FileBrowser.inActionGui()) return;
+        if (!FileExplorer.inActionGui()) return;
         if (FileExplorer.getINSTANCE().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
             cir.setReturnValue(true);
         }
