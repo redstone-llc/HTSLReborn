@@ -2,11 +2,11 @@ package llc.redstone.htslreborn.ui
 
 import io.wispforest.owo.ui.base.BaseOwoScreen
 import io.wispforest.owo.ui.component.ButtonComponent
-import io.wispforest.owo.ui.component.Components
 import io.wispforest.owo.ui.component.LabelComponent
-import io.wispforest.owo.ui.container.Containers
+import io.wispforest.owo.ui.component.UIComponents
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.ScrollContainer
+import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.*
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.exporting
@@ -49,11 +49,11 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     var focus: ExplorerEntryComponent? = null
 
     override fun createAdapter(): OwoUIAdapter<FlowLayout?> {
-        return OwoUIAdapter.create(this, Containers::verticalFlow)
+        return OwoUIAdapter.create(this, UIContainers::verticalFlow)
     }
 
-    private fun buildTitle(): Component {
-        return Components.label(Text.translatable("htslreborn.explorer.title")).apply {
+    private fun buildTitle(): UIComponent {
+        return UIComponents.label(Text.translatable("htslreborn.explorer.title")).apply {
             sizing(Sizing.fill(), Sizing.content())
             horizontalTextAlignment(HorizontalAlignment.CENTER)
             verticalTextAlignment(VerticalAlignment.CENTER)
@@ -61,7 +61,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    private val searchBox = Components.textBox(Sizing.expand()).apply {
+    private val searchBox = UIComponents.textBox(Sizing.expand()).apply {
         verticalSizing(Sizing.fill())
         setPlaceholder(Text.translatable("htslreborn.explorer.search"))
     }
@@ -91,7 +91,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     }
 
     private fun buildHeader(): FlowLayout {
-        val openFolderButton = Components.button(Text.of("\uD83D\uDDC0")) {
+        val openFolderButton = UIComponents.button(Text.of("\uD83D\uDDC0")) {
             val dir = FileHandler.currentDir()
             Util.getOperatingSystem().open(dir)
         }.apply {
@@ -99,7 +99,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.openfolder.description")))
         }
 
-        return Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
+        return UIContainers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
             gap(2)
             children(
                 listOf(
@@ -127,8 +127,8 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
 
         return entry.apply {
-            val icon = Components.texture(this.icon, 0, 0, 16, 16, 16, 16)
-            val label = Components.label(
+            val icon = UIComponents.texture(this.icon, 0, 0, 16, 16, 16, 16)
+            val label = UIComponents.label(
                 name.lastIndexOf('.').let { dot ->
                     if (dot > 0) {
                         val base = name.substring(0, dot)
@@ -152,7 +152,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    val content: FlowLayout = Containers.verticalFlow(Sizing.fill(), Sizing.content()).apply {
+    val content: FlowLayout = UIContainers.verticalFlow(Sizing.fill(), Sizing.content()).apply {
         gap(1)
         margins(Insets.right(6))
 
@@ -191,7 +191,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
 
     private fun buildExplorer(): ScrollContainer<FlowLayout> {
         refreshExplorer()
-        return Containers.verticalScroll(Sizing.expand(), Sizing.expand(), content).apply {
+        return UIContainers.verticalScroll(Sizing.expand(), Sizing.expand(), content).apply {
             surface(Surface.PANEL_INSET)
             margins(Insets.vertical(5))
             padding(Insets.of(2))
@@ -203,14 +203,14 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     val dropdown: DropdownComponent = buildDropdown()
 
     private fun buildContextButtons(): FlowLayout {
-        return Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(0)).apply {
+        return UIContainers.horizontalFlow(Sizing.fill(), Sizing.fixed(0)).apply {
             id("buttons")
             gap(2)
         }
     }
 
     fun breadcrumb(name: String, index: Int): LabelComponent {
-        return Components.label(Text.literal(name)).apply {
+        return UIComponents.label(Text.literal(name)).apply {
             mouseEnter().subscribe {
                 text(Text.literal(name).withColor(0x808080))
                 cursorStyle(CursorStyle.HAND)
@@ -237,14 +237,14 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             val split = subDir.split("/")
             for (i in split.indices) {
                 val name = split[i]
-                breadcrumbs.child(Components.label(Text.literal(">").withColor(0x505050)))
+                breadcrumbs.child(UIComponents.label(Text.literal(">").withColor(0x505050)))
                 breadcrumbs.child(breadcrumb(name, i))
             }
         }
     }
 
     private fun buildBreadcrumbs(): FlowLayout {
-        return Containers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
+        return UIContainers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
             gap(4)
             alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
             children(
@@ -262,7 +262,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             positioning(Positioning.absolute(0, 0))
             children(
                 listOf(
-                    Components.button(
+                    UIComponents.button(
                         Text.translatable("htslreborn.explorer.button.script.import.add")
                     ) { }.apply {
                         id("add")
@@ -270,7 +270,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
                         setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
                     },
-                    Components.button(
+                    UIComponents.button(
                         Text.translatable("htslreborn.explorer.button.script.import.replace")
                     ) { }.apply {
                         id("replace")
@@ -278,7 +278,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
                         setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.replace.description")))
                     },
-                    Components.button(
+                    UIComponents.button(
                         Text.translatable("htslreborn.explorer.button.script.import.update")
                     ) { }.apply {
                         id("update")
@@ -292,12 +292,12 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     }
 
     fun buildWorkingScreen(display: Text, type: WorkingScreenType): FlowLayout {
-        val label = Components.label(display)
-        val cancelButton = Components.button(Text.translatable("htslreborn.importing.working.cancel")) {
+        val label = UIComponents.label(display)
+        val cancelButton = UIComponents.button(Text.translatable("htslreborn.importing.working.cancel")) {
             SystemsAPI.getHousingImporter().cancelImport()
             hideWorkingScreen()
         }
-        return Containers.verticalFlow(Sizing.fill(), Sizing.fill()).apply {
+        return UIContainers.verticalFlow(Sizing.fill(), Sizing.fill()).apply {
             id("importScreen")
             surface(Surface.flat(0xcc000000.toInt()).and(Surface.blur(6f, 6f)))
             positioning(Positioning.absolute(0, 0))
@@ -341,7 +341,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         if (importScreen != null) base.removeChild(importScreen)
     }
 
-    val base: FlowLayout = Containers.verticalFlow(Sizing.fill(), Sizing.fill())
+    val base: FlowLayout = UIContainers.verticalFlow(Sizing.fill(), Sizing.fill())
 
     public override fun build(root: FlowLayout) {
         val accessor =

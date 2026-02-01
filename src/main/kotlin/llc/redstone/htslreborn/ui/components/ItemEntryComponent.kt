@@ -1,8 +1,8 @@
 package llc.redstone.htslreborn.ui.components
 
-import io.wispforest.owo.ui.component.Components
-import io.wispforest.owo.ui.core.Component
+import io.wispforest.owo.ui.component.UIComponents
 import io.wispforest.owo.ui.core.Sizing
+import io.wispforest.owo.ui.core.UIComponent
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.htslreborn.ui.FileHandler
@@ -19,8 +19,8 @@ class ItemEntryComponent(
 ) : ExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
     override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_explorer/item_icon.png")
 
-    override fun buildContextButtons(): List<Component> {
-        val give = Components.button(Text.translatable("htslreborn.explorer.button.item.give"), {
+    override fun buildContextButtons(): List<UIComponent> {
+        val give = UIComponents.button(Text.translatable("htslreborn.explorer.button.item.give"), {
             val item = FileHandler.getItemForFile(file) ?: return@button
             val slot = convertSlot(MC.player?.inventory?.emptySlot ?: -1)
             item.giveItem(slot)
@@ -29,7 +29,7 @@ class ItemEntryComponent(
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.give.description")))
         }
 
-        val save = Components.button(Text.translatable("htslreborn.explorer.button.item.save"), {
+        val save = UIComponents.button(Text.translatable("htslreborn.explorer.button.item.save"), {
             val item = MC.player?.inventory?.selectedStack ?: return@button
             ItemConvertUtils.itemStackToFile(item, file)
         }).apply {
@@ -37,16 +37,16 @@ class ItemEntryComponent(
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.save.description")))
         }
 
-        val spacer = Components.spacer()
+        val spacer = UIComponents.spacer()
 
-        val open = Components.button(Text.of("✎"), {
+        val open = UIComponents.button(Text.of("✎"), {
             Util.getOperatingSystem().open(file)
         }).apply {
             sizing(Sizing.fixed(20), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.open.description")))
         }
 
-        val delete = Components.button(Text.of("\uD83D\uDDD1"), {
+        val delete = UIComponents.button(Text.of("\uD83D\uDDD1"), {
             file.delete()
             FileHandler.refreshFiles()
             FileExplorer.INSTANCE.refreshExplorer()

@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class KeyboardMixin {
     @Inject(method = "onChar", at = @At("HEAD"))
     public void htslreborn$charTyped(long window, CharInput input, CallbackInfo ci) {
+        if (!FileExplorer.inActionGui()) return;
         FileExplorer.Companion.getINSTANCE().charTyped(input);
     }
 }

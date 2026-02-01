@@ -33,11 +33,10 @@ object HTSLImporter {
             return
         }
 
-        import(compiledCode, method, supportsBase, onComplete)
-        UISuccessToast.report("Successfully imported HTSL code from ${file.name}")
+        import(file, compiledCode, method, supportsBase, onComplete)
     }
 
-    fun import(compiledCode: MutableMap<String, List<Action>>, method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions, supportsBase: Boolean = true, onComplete: () -> Unit = {}) {
+    fun import(file: File, compiledCode: MutableMap<String, List<Action>>, method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions, supportsBase: Boolean = true, onComplete: () -> Unit = {}) {
         if (compiledCode.contains("base") && compiledCode["base"]?.isNotEmpty() == true && !supportsBase) {
             MinecraftClient.getInstance().player?.sendMessage(
                 Text.of("Couldn't use actions before a goto call.").copy().withColor(Colors.RED), false
@@ -97,6 +96,7 @@ object HTSLImporter {
                 UIErrorToast.report(e)
                 e.printStackTrace()
             }
+            UISuccessToast.report("Successfully imported HTSL code from ${file.name}")
             onComplete()
             importing = false
         }

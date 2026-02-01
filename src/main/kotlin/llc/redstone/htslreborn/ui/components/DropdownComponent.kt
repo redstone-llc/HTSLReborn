@@ -1,9 +1,8 @@
 package llc.redstone.htslreborn.ui.components
 
-import io.wispforest.owo.mixin.ui.access.ClickableWidgetAccessor
 import io.wispforest.owo.ui.component.ButtonComponent
 import io.wispforest.owo.ui.container.FlowLayout
-import io.wispforest.owo.ui.core.OwoUIDrawContext
+import io.wispforest.owo.ui.core.OwoUIGraphics
 import io.wispforest.owo.ui.core.Positioning
 import io.wispforest.owo.ui.core.Sizing
 import llc.redstone.htslreborn.htslio.HTSLImporter
@@ -25,16 +24,15 @@ class DropdownComponent(
         positioning(Positioning.absolute(x, y))
     }
 
-    override fun draw(context: OwoUIDrawContext?, mouseX: Int, mouseY: Int, partialTicks: Float, delta: Float) {
+    override fun draw(graphics: OwoUIGraphics, mouseX: Int, mouseY: Int, partialTicks: Float, delta: Float) {
         if (!isVisible) return
-        super.draw(context, mouseX, mouseY, partialTicks, delta)
+        super.draw(graphics, mouseX, mouseY, partialTicks, delta)
     }
 
     override fun onMouseDown(click: Click, doubled: Boolean): Boolean {
         if (!isVisible) return false
         val component = this.childAt(click.x.toInt() + x, click.y.toInt() + y) as? ButtonComponent
-        val accessor = component as? ClickableWidgetAccessor
-        if (component != null && accessor != null) {
+        if (component != null) {
             val method = when (component.id()) {
                 "add" -> ActionContainer::addActions
                 "replace" -> ActionContainer::setActions

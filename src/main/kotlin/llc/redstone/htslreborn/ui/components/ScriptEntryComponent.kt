@@ -1,9 +1,9 @@
 package llc.redstone.htslreborn.ui.components
 
-import io.wispforest.owo.ui.component.Components
-import io.wispforest.owo.ui.container.Containers
-import io.wispforest.owo.ui.core.Component
+import io.wispforest.owo.ui.component.UIComponents
+import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.Sizing
+import io.wispforest.owo.ui.core.UIComponent
 import llc.redstone.htslreborn.HTSLReborn.CONFIG
 import llc.redstone.htslreborn.HTSLReborn.exportingFile
 import llc.redstone.htslreborn.HTSLReborn.importingFile
@@ -23,11 +23,11 @@ class ScriptEntryComponent(
     horizontalSizing: Sizing, verticalSizing: Sizing, override val index: Int, val file: File
 ) : ExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
     override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_explorer/script_icon.png")
-    override fun buildContextButtons(): List<Component> {
-        val import = Containers.horizontalFlow(Sizing.content(), Sizing.fill()).apply {
+    override fun buildContextButtons(): List<UIComponent> {
+        val import = UIContainers.horizontalFlow(Sizing.content(), Sizing.fill()).apply {
             children(
                 listOf(
-                    Components.button(
+                    UIComponents.button(
                         Text.translatable("htslreborn.explorer.button.script.import")
                     ) {
                         val method = when (CONFIG.defaultImportStrategy) {
@@ -48,11 +48,11 @@ class ScriptEntryComponent(
                         }
                         setTooltip(Tooltip.of(Text.translatable(tooltipKey)))
                     },
-                    Components.button(Text.of("↓")) { FileExplorer.INSTANCE.dropdown.handleDropdownButton(it) }
+                    UIComponents.button(Text.of("↓")) { FileExplorer.INSTANCE.dropdown.handleDropdownButton(it) }
                 ))
         }
 
-        val export = Components.button(Text.translatable("htslreborn.explorer.button.script.export")) {
+        val export = UIComponents.button(Text.translatable("htslreborn.explorer.button.script.export")) {
             FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.EXPORT, file.name)
             exportingFile = file.name
             HTSLExporter.exportFile(file) {
@@ -62,16 +62,16 @@ class ScriptEntryComponent(
                 setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.export.description")))
             }
 
-        val spacer = Components.spacer()
+        val spacer = UIComponents.spacer()
 
-        val open = Components.button(Text.of("✎")) {
+        val open = UIComponents.button(Text.of("✎")) {
             Util.getOperatingSystem().open(file)
         }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.open.description")))
         }
 
-        val delete = Components.button(Text.of("\uD83D\uDDD1")) {
+        val delete = UIComponents.button(Text.of("\uD83D\uDDD1")) {
             file.delete()
             FileHandler.refreshFiles()
             FileExplorer.INSTANCE.refreshExplorer()
