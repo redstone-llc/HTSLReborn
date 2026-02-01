@@ -20,7 +20,7 @@ object PreProcess {
         val processedTokens = mutableListOf<TokenWithPosition>()
 
         val context = reusedContext ?: Context.enter()
-        val scope = reusedScope ?: context.initStandardObjects()
+        val scope = reusedScope ?: context.initSafeStandardObjects()
         if (loopVarName != null) {
             val index = loopIndex ?: 0
             scope.put(loopVarName, scope, index)
@@ -33,6 +33,33 @@ object PreProcess {
         while (iterator.hasNext()) {
             val token = iterator.next()
             when (token.tokenType) {
+                Tokens.PLACEHOLDER -> {
+                    val valueToken = iterator.takeIf { it.hasNext() }?.next()
+                    if (valueToken?.tokenType != Tokens.STRING) htslCompileError(
+                        "Expected placeholder name after '%'",
+                        valueToken ?: token
+                    )
+                    val placeholder = valueToken.string
+
+                    val closingToken = iterator.takeIf { it.hasNext() }?.next()
+                    if (closingToken?.tokenType != Tokens.PLACEHOLDER) htslCompileError(
+                        "Expected closing '%' for placeholder '$placeholder'",
+                        closingToken ?: token
+                    )
+
+                    processedTokens.add(
+                        TokenWithPosition(
+                            Token(
+                                "%$placeholder%",
+                                token.startsAt,
+                                token.endsAt,
+                                Tokens.STRING,
+                            ),
+                            token.line,
+                            token.column
+                        )
+                    )
+                }
                 Tokens.JS_CODE -> {
                     // Replace defined variables
                     var processedString = token.string

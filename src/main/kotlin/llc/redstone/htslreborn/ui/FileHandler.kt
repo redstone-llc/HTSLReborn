@@ -13,7 +13,7 @@ object FileHandler {
     internal var subDir = ""
     internal var search = ""
 
-    private val importDir = File("HTSL/imports")
+    private val importDir = File("htsl/imports")
     val itemExtensions = listOf(".json", ".nbt")
     val htslExtensions = listOf(".htsl")
 
@@ -65,7 +65,7 @@ object FileHandler {
     }
 
     fun getFile(fileName: String): File {
-        val baseDir = File("HTSL/imports", subDir)
+        val baseDir = File("htsl/imports", subDir)
         return File(baseDir, fileName)
     }
 
