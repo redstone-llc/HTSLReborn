@@ -6,6 +6,7 @@ import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import org.mozilla.javascript.Context
+import org.mozilla.javascript.Parser
 import org.mozilla.javascript.ScriptableObject
 
 object PreProcess {
@@ -68,7 +69,7 @@ object PreProcess {
                         processedString = processedString.replace(regex, value)
                     }
 
-                    val result = context.evaluateString(scope, processedString, "HTSL_JS_EVAL", 1, null)
+                    val result = context.evaluateString(scope, processedString, "HTSL_JS_EVAL", token.line, null)
                     val resultString = when (result) {
                         is String -> "\"$result\"" // Wrap strings in quotes
                         else -> result.toString()
