@@ -42,9 +42,9 @@ object HTSLExporter {
                 UISuccessToast.report("Successfully exported HTSL code to ${file.name}")
                 onComplete(true)
             } catch (e: Exception) {
+                onComplete(false)
                 UIErrorToast.report(e)
                 e.printStackTrace()
-                onComplete(false)
             } finally {
                 exporting = false
             }

@@ -53,7 +53,7 @@ object HTSLImporter {
         if (MC.player?.gameMode != GameMode.CREATIVE) CommandUtils.runCommand("gmc")
 
         //TODO: go through the compiled code and look for anything that doesnt exist yet and prompt the user to create it first
-
+        var errored = false
         SystemsAPI.launch {
             try {
                 importing = true
@@ -90,12 +90,15 @@ object HTSLImporter {
                                 ?.let { method(it, actions) }
                         }
                     }
-
                 }
             } catch (e: Exception) {
+                errored = true
+                onComplete()
                 UIErrorToast.report(e)
                 e.printStackTrace()
+                importing = false
             }
+            if (errored) return@launch
             UISuccessToast.report("Successfully imported HTSL code from ${file.name}")
             onComplete()
             importing = false
