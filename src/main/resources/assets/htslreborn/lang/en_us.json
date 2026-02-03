@@ -44,6 +44,9 @@
 
   "text.config.htslreborn.section.import": "Importing/Exporting",
   "text.config.htslreborn.option.playCompleteSound": "Play Complete Sound",
-  "text.config.htslreborn.option.playCompleteSound.tooltip": "Plays a chime when an import/export\nis completed."
+  "text.config.htslreborn.option.playCompleteSound.tooltip": "Plays a chime when an import/export\nis completed.",
 
+  "text.config.htslreborn.section.advanced": "Advanced",
+  "text.config.htslreborn.option.disablesJSSandboxing": "Disable JS Sandboxing",
+  "text.config.htslreborn.option.disablesJSSandboxing.tooltip": "DO NOT ENABLE UNLESS YOU KNOW WHAT YOU ARE DOING!\nDisables JavaScript sandboxing allowing direct access\nto your computer's file system and other sensitive resources."
 }

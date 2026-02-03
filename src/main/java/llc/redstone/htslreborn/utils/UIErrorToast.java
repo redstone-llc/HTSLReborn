@@ -28,13 +28,17 @@ public class UIErrorToast implements Toast {
     public UIErrorToast(Throwable error) {
         this.textRenderer = MinecraftClient.getInstance().textRenderer;
         var texts = this.initText(String.valueOf(error.getMessage()), (consumer) -> {
-            var stackTop = error.getStackTrace()[0];
-            var errorLocation = stackTop.getClassName().split("\\.");
+            try {
+                var stackTop = error.getStackTrace()[0];
+                var errorLocation = stackTop.getClassName().split("\\.");
 
-            consumer.accept(Text.literal("Type: ").formatted(Formatting.RED)
-                    .append(Text.literal(error.getClass().getSimpleName()).formatted(Formatting.GRAY)));
-            consumer.accept(Text.literal("Thrown by: ").formatted(Formatting.RED)
-                    .append(Text.literal(errorLocation[errorLocation.length - 1] + ":" + stackTop.getLineNumber()).formatted(Formatting.GRAY)));
+                consumer.accept(Text.literal("Type: ").formatted(Formatting.RED)
+                        .append(Text.literal(error.getClass().getSimpleName()).formatted(Formatting.GRAY)));
+                consumer.accept(Text.literal("Thrown by: ").formatted(Formatting.RED)
+                        .append(Text.literal(errorLocation[errorLocation.length - 1] + ":" + stackTop.getLineNumber()).formatted(Formatting.GRAY)));
+            } catch (Exception e) {
+                consumer.accept(Text.literal("No context available").formatted(Formatting.GRAY));
+            }
         });
 
         this.width = Math.min(240, TextOps.width(textRenderer, texts) + 8);

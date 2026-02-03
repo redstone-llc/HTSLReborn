@@ -27,8 +27,8 @@ object Tokenizer {
                 "random" isToken Tokens.RANDOM_KEYWORD
                 "goto" isToken Tokens.GOTO_KEYWORD
 
-                matches("if\\(|if \\(|if and\\(|if and \\(") isToken Tokens.IF_AND_CONDITION_START thenState IF_CONDITION
-                matches("if or\\(|if or \\(") isToken Tokens.IF_OR_CONDITION_START thenState IF_CONDITION
+                matches("if( (and|false))?\\s*\\(") isToken Tokens.IF_AND_CONDITION_START thenState IF_CONDITION
+                matches("if (or|true)\\s*\\(") isToken Tokens.IF_OR_CONDITION_START thenState IF_CONDITION
 
                 comparatorTokens()
                 operatorTokens()
@@ -50,7 +50,7 @@ object Tokenizer {
 
                 matches("""define """) isToken Tokens.DEFINE_KEYWORD thenState DEFINE
 
-                matches("\\w+") isToken Tokens.STRING
+                matches("[^\\s(){}%\",]+") isToken Tokens.STRING
 
             }
 
@@ -80,18 +80,18 @@ object Tokenizer {
                 '%' isToken Tokens.PLACEHOLDER thenState PLACEHOLDER_CONDITION
                 '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER_CONDITION
 
-                matches("\\w+") isToken Tokens.STRING
+                matches("[^\\s(){}%\",]+") isToken Tokens.STRING
 
                 ')' isToken Tokens.IF_CONDITION_END thenState default
             }
 
             JS_INTERPRETER state {
-                matches(".+(?=})") isToken Tokens.JS_CODE
+                matches("[^}]+") isToken Tokens.JS_CODE
                 '}' isToken Tokens.BRACE_CLOSE thenState default
             }
 
             JS_INTERPRETER_CONDITION state {
-                matches(".+(?=})") isToken Tokens.JS_CODE
+                matches("[^}]+") isToken Tokens.JS_CODE
                 '}' isToken Tokens.BRACE_CLOSE thenState IF_CONDITION
             }
 

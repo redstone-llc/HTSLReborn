@@ -304,6 +304,10 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             horizontalAlignment(HorizontalAlignment.CENTER)
             verticalAlignment(VerticalAlignment.CENTER)
             gap(5)
+            
+            mouseDown().subscribe { click, bool ->
+                true
+            }
 
             children(
                 if (type == WorkingScreenType.IMPORT) {

@@ -21,4 +21,8 @@ class HtslConfigModel {
     @SectionHeader("import")
     @JvmField
     var playCompleteSound: Boolean = true
+
+    @SectionHeader("advanced")
+    @JvmField
+    var disablesJSSandboxing: Boolean = false
 }
