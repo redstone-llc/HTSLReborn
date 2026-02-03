@@ -36,6 +36,6 @@ body:
     attributes:
       label: "Step 4: Relevant logs"
       description: "Paste any relevant logs you've found in here. This will be formatted automatically, so no need to include backticks."
-      render: shell
+      render: java
     validations:
       required: false
