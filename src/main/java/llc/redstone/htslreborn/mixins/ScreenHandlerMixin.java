@@ -15,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ConcurrentModificationException;
+
 @Mixin(HandledScreen.class)
 public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor {
     @Shadow
@@ -33,7 +35,9 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
     @Inject(method = "render", at = @At("HEAD"))
     public void htslreborn$render(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
         if (!FileExplorer.inActionGui()) return;
-        FileExplorer.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
+        try {
+            FileExplorer.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
+        } catch (ConcurrentModificationException ignored) {}
     }
 
     @Inject(method="mouseClicked" , at=@At("HEAD"), cancellable = true)
@@ -73,6 +77,12 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
         if (FileExplorer.getINSTANCE().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
             cir.setReturnValue(true);
         }
+    }
+
+    @Inject(method = "close", at = @At("HEAD"))
+    public void htslreborn$close(CallbackInfo ci) {
+        if (!FileExplorer.inActionGui()) return;
+        FileExplorer.getINSTANCE().close();
     }
 
     @Override

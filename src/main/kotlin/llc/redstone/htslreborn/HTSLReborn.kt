@@ -58,7 +58,6 @@ object HTSLReborn : ClientModInitializer {
             while (true) {
                 val key = watcher.take()
                 for (event in key.pollEvents()) {
-                    val kind = event.kind()
                     val filename = event.context() as java.nio.file.Path
                     if (fileEditCooldown.containsKey(filename.name)) {
                         val lastEdit = fileEditCooldown[filename.name]!!

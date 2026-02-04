@@ -22,6 +22,8 @@ import llc.redstone.htslreborn.ui.FileHandler.refreshFiles
 import llc.redstone.htslreborn.ui.components.*
 import llc.redstone.htslreborn.ui.components.TimeRemainingComponent
 import llc.redstone.systemsapi.SystemsAPI
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.cursor.Cursor
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.input.CharInput
@@ -29,6 +31,7 @@ import net.minecraft.client.input.KeyInput
 import net.minecraft.client.resource.language.I18n
 import net.minecraft.text.Text
 import net.minecraft.util.Util
+import org.lwjgl.glfw.GLFW
 import java.io.File
 
 class FileExplorer() : BaseOwoScreen<FlowLayout>() {
@@ -50,6 +53,11 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
 
     override fun createAdapter(): OwoUIAdapter<FlowLayout?> {
         return OwoUIAdapter.create(this, UIContainers::verticalFlow)
+    }
+
+    override fun close() {
+        Cursor.DEFAULT.applyTo(MC.window)
+        super.close()
     }
 
     private fun buildTitle(): UIComponent {
@@ -222,6 +230,10 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             mouseDown().subscribe { _, _ ->
                 FileExplorerHandler.onBreadcrumbClicked(name, index)
                 false
+            }
+            focusLost().subscribe {
+                text(Text.literal(name))
+                cursorStyle(CursorStyle.POINTER)
             }
         }
     }
