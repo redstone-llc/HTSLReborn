@@ -35,6 +35,7 @@ class DropdownComponent(
         }
 
         fun click(button: ButtonComponent) {
+            if (FileExplorer.INSTANCE.focus !is ScriptEntryComponent) return
             val method = when (button.id()) {
                 "add" -> ActionContainer::addActions
                 "replace" -> ActionContainer::setActions
