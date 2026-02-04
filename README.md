@@ -27,3 +27,33 @@ HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode
 - [x] Expressions (Javascript math, etc.)
 - [x] Compiler shortcuts (define statements)
 - [x] Loops
+
+## Questions
+
+<details>
+<summary><b>How do I migrate?</b></summary>
+
+To migrate from HTSL to HTSL Reborn, just copy all your imports into the new HTSL folder, located in the root of your minecraft instance. You should be good to go once things have been moved over.
+    
+</details>
+
+<details>
+<summary><b>What's better about this compared to the ChatTriggers module?</b></summary>
+
+There are a couple reasons why we abandoned HTSL to make this new mod.
+* We wanted to update to the latest version of Minecraft.
+* We wanted to leave the ChatTriggers ecosystem.
+* We wanted to start fresh with a clean codebase (the old one was starting to get out of hand.)
+
+What does that mean for you?
+* Fewer bugs (in the long term)
+* latest-version (and multi-version) support
+    
+</details>
+
+<details>
+<summary><b>I need help!</b></summary>
+
+If you think you may have found a bug, please [create an issue](https://github.com/redstone-llc/HTSLReborn/issues). Otherwise, feel free to join our [discord](https://discord.gg/pCcpqzU4He) or [create a discussion post](https://github.com/redstone-llc/HTSLReborn/discussions).
+    
+</details>

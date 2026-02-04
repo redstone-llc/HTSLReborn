@@ -1,8 +1,8 @@
 name: Feature request
-description: Suggest a new feature
+description: Suggest a new feature.
+title: "[FEATURE] "
 labels: ["enhancement"]
 type: "Feature"
-title: "[FEATURE] "
 body:
   - type: markdown
     attributes:
@@ -17,8 +17,3 @@ body:
     attributes:
       label: "How will it help?"
       description: "It's helpful to include examples (like in your use case). How will this improve the mod?"
-
-  - type: textarea
-    attributes:
-      label: "Extra info"
-      description: "Anything else you'd like to add."
