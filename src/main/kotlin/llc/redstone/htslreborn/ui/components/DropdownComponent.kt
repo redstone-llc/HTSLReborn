@@ -19,8 +19,8 @@ class DropdownComponent(
 
     fun handleDropdownButton(buttonComponent: ButtonComponent?) {
         isVisible = !isVisible
-        x = buttonComponent!!.x() - 5
-        y = buttonComponent.y() - 5 - this.height()
+        x = buttonComponent!!.x() + 5
+        y = buttonComponent.y() + 5 - this.height()
         positioning(Positioning.absolute(x, y))
     }
 
@@ -29,15 +29,17 @@ class DropdownComponent(
         super.draw(graphics, mouseX, mouseY, partialTicks, delta)
     }
 
-    override fun onMouseDown(click: Click, doubled: Boolean): Boolean {
-        if (!isVisible) return false
-        val component = this.childAt(click.x.toInt() + x, click.y.toInt() + y) as? ButtonComponent
-        if (component != null) {
-            val method = when (component.id()) {
+    companion object {
+        fun create(horizontalSizing: Sizing, verticalSizing: Sizing): DropdownComponent {
+            return DropdownComponent(horizontalSizing, verticalSizing)
+        }
+
+        fun click(button: ButtonComponent) {
+            val method = when (button.id()) {
                 "add" -> ActionContainer::addActions
                 "replace" -> ActionContainer::setActions
                 "update" -> ActionContainer::updateActions
-                else -> throw IllegalStateException("Unknown import type: ${component.id()}")
+                else -> throw IllegalStateException("Unknown import type: ${button.id()}")
             }
             val file = (FileExplorer.INSTANCE.focus as ScriptEntryComponent).file
 
@@ -45,16 +47,7 @@ class DropdownComponent(
             HTSLImporter.importFile(file, method) {
                 FileExplorer.INSTANCE.hideWorkingScreen()
             }
-
-            isVisible = false
-            return true
-        }
-        return super.onMouseDown(click, doubled)
-    }
-
-    companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing): DropdownComponent {
-            return DropdownComponent(horizontalSizing, verticalSizing)
+            FileExplorer.INSTANCE.dropdown.isVisible = false
         }
     }
 }

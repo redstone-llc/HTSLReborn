@@ -110,11 +110,16 @@ object ActionParser {
                     Long::class -> token.string.removeSuffix("L").toLong()
                     Double::class -> token.string.removeSuffix("D").toDouble()
                     Boolean::class -> token.string.toBoolean()
-                    //Stat Values
                     StatValue::class -> {
                         when (token.tokenType) {
                             Tokens.STRING -> StatValue.Str(token.string)
-                            Tokens.INT -> StatValue.I32(token.string.toInt())
+                            Tokens.INT -> {
+                                if (token.string.toIntOrNull() == null) {
+                                    StatValue.Lng(token.string.removeSuffix("L").toLong())
+                                } else {
+                                    StatValue.I32(token.string.toInt())
+                                }
+                            }
                             Tokens.LONG -> StatValue.Lng(token.string.removeSuffix("L").toLong())
                             Tokens.DOUBLE -> StatValue.Dbl(token.string.removeSuffix("D").toDouble())
                             else -> error("Unknown StatValue token: ${token.string}")
@@ -182,7 +187,8 @@ object ActionParser {
                 }
 
             } catch (e: Exception) {
-                htslCompileError("Failed to parse action parameter '${param.name}': ${e.message}", token)
+                e.printStackTrace()
+                htslCompileError("Failed to parse action parameter '${param.name}': ${e.message} in file ${file?.name}", token)
             }
         }
 

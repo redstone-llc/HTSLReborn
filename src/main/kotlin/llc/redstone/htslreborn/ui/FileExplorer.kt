@@ -264,7 +264,9 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
                 listOf(
                     UIComponents.button(
                         Text.translatable("htslreborn.explorer.button.script.import.add")
-                    ) { }.apply {
+                    ) {
+                        DropdownComponent.click(it)
+                    }.apply {
                         id("add")
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
@@ -272,7 +274,9 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
                     },
                     UIComponents.button(
                         Text.translatable("htslreborn.explorer.button.script.import.replace")
-                    ) { }.apply {
+                    ) {
+                        DropdownComponent.click(it)
+                    }.apply {
                         id("replace")
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
@@ -280,7 +284,9 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
                     },
                     UIComponents.button(
                         Text.translatable("htslreborn.explorer.button.script.import.update")
-                    ) { }.apply {
+                    ) {
+                        DropdownComponent.click(it)
+                    }.apply {
                         id("update")
                         horizontalSizing(Sizing.fill())
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
@@ -310,18 +316,10 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             }
 
             children(
-                if (type == WorkingScreenType.IMPORT) {
-                    listOf(
-                        label,
-                        TimeRemainingComponent(),
-                        cancelButton
-                    )
-                } else {
-                    listOf(
-                        label,
-                        cancelButton
-                    )
-                }
+                listOf(
+                    label,
+                    cancelButton
+                )
             )
         }
     }

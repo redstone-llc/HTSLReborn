@@ -83,7 +83,13 @@ object ConditionParser {
                 StatValue::class -> {
                     when (token.tokenType) {
                         Tokens.STRING -> StatValue.Str(token.string)
-                        Tokens.INT -> StatValue.I32(token.string.toInt())
+                        Tokens.INT -> {
+                            if (token.string.toIntOrNull() == null) {
+                                StatValue.Lng(token.string.removeSuffix("L").toLong())
+                            } else {
+                                StatValue.I32(token.string.toInt())
+                            }
+                        }
                         Tokens.LONG -> StatValue.Lng(token.string.removeSuffix("L").toLong())
                         Tokens.DOUBLE -> StatValue.Dbl(token.string.removeSuffix("D").toDouble())
                         else -> StatValue.Str(token.string)

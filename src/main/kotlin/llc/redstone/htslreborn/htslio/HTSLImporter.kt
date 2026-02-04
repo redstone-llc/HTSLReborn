@@ -30,6 +30,7 @@ object HTSLImporter {
         }  catch (e: Exception) {
             UIErrorToast.report(e)
             e.printStackTrace()
+            onComplete()
             return
         }
 
