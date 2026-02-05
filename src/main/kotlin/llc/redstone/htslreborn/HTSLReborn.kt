@@ -8,15 +8,19 @@ import llc.redstone.htslreborn.ui.FileHandler
 import llc.redstone.htslreborn.utils.RenderUtils.isInitialized
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.io.path.name
 
 object HTSLReborn : ClientModInitializer {
@@ -46,37 +50,58 @@ object HTSLReborn : ClientModInitializer {
             HTSLCommand.register(dispatcher)
         }
 
-        val watcher = FileSystems.getDefault().newWatchService()
+        val fileEventQueue = ConcurrentLinkedQueue<Path>()
 
-        if (!File("./htsl/imports").exists()) {
-            File("./htsl/imports").mkdirs()
+        val watcher = FileSystems.getDefault().newWatchService()
+        val baseDir = Paths.get("./htsl/imports")
+
+        if (!Files.exists(baseDir)) {
+            Files.createDirectories(baseDir)
         }
 
-        val dir = Paths.get("./htsl/imports")
-        dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+        Files.walk(baseDir).filter { Files.isDirectory(it) }.forEach { it.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY) }
+
         Thread {
             while (true) {
                 val key = watcher.take()
+                val watchable = key.watchable() as Path
                 for (event in key.pollEvents()) {
                     val kind = event.kind()
-                    val filename = event.context() as java.nio.file.Path
-                    if (fileEditCooldown.containsKey(filename.name)) {
-                        val lastEdit = fileEditCooldown[filename.name]!!
-                        if (System.currentTimeMillis() - lastEdit < 100) {
-                            continue
+                    val contextPath = event.context() as Path
+                    val child = watchable.resolve(contextPath)
+
+                    fileEventQueue.offer(child)
+
+                    if (kind == ENTRY_CREATE) {
+                        try {
+                            if (Files.isDirectory(child)) {
+                                child.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
+                            }
+                        } catch (_: Exception) {
+                            // deal with this later
                         }
                     }
-                    fileEditCooldown[filename.name] = System.currentTimeMillis()
-                    if (FileExplorer.INSTANCE.isInitialized()) {
-                        FileHandler.refreshFiles(true)
-                        FileExplorer.INSTANCE.refreshExplorer(true)
-                    }
                 }
-                val valid = key.reset()
-                if (!valid) {
+                if (!key.reset()) {
                     break
                 }
             }
         }.start()
+
+        ClientTickEvents.END_CLIENT_TICK.register {
+            while (true) {
+                val path = fileEventQueue.poll() ?: break
+                val name = path.fileName.toString()
+                val lastEdit = fileEditCooldown[name]
+                if (lastEdit != null && System.currentTimeMillis() - lastEdit < 100) {
+                    continue
+                }
+                fileEditCooldown[name] = System.currentTimeMillis()
+                if (FileExplorer.INSTANCE.isInitialized()) {
+                    FileHandler.refreshFiles(true)
+                    FileExplorer.INSTANCE.refreshExplorer(true)
+                }
+            }
+        }
     }
 }
