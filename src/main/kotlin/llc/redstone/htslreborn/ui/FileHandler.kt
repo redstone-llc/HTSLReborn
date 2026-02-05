@@ -6,7 +6,11 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.comparisons.compareBy
+import kotlin.io.path.createDirectory
 import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.text.lowercase
 
@@ -26,22 +30,23 @@ object FileHandler {
     fun refreshFiles(live: Boolean = false) {
         var live = live
         if (!currentDir.exists()) {
-            Files.createDirectory(currentDir)
+            currentDir.createDirectory()
             live = true
         }
 
-        files = Files.list(currentDir).filter {
-            if (Files.isDirectory(it)) {
+        files = currentDir.listDirectoryEntries().asSequence().filter {
+            if (it.isDirectory()) {
                 true
             } else {
                 val name = it.name.lowercase()
                 itemExtensions.any { ext -> name.endsWith(ext) } ||
                 htslExtensions.any { ext -> name.endsWith(ext) }
             }
-        }.sorted(compareBy(
-            { !Files.isDirectory(it) },
+        }.sortedWith(compareBy(
+            { !it.isDirectory() },
             { it.name.lowercase() }
-        )).map { it.name }.toList().toMutableList()
+        ),
+            ).map { it.name }.toList().toMutableList()
 
         filteredFiles = files.toMutableList()
         page = 0
@@ -64,10 +69,10 @@ object FileHandler {
         return currentDir.resolve(fileName)
     }
 
-    fun getItemForFile(file: File): ItemStack? {
-        return cachedItems.getOrPut(file.name) {
+    fun getItemForFile(path: Path): ItemStack? {
+        return cachedItems.getOrPut(path.name) {
             try {
-                return@getOrPut ItemConvertUtils.fileToItemStack(file)
+                return@getOrPut ItemConvertUtils.fileToItemStack(path)
             } catch (e: Exception) {
                 e.printStackTrace()
                 return null

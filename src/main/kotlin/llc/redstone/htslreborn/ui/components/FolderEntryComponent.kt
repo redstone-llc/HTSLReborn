@@ -11,12 +11,18 @@ import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.Util
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.deleteRecursively
 
 class FolderEntryComponent(
-    horizontalSizing: Sizing, verticalSizing: Sizing, override val index: Int, val file: File
+    horizontalSizing: Sizing, verticalSizing: Sizing, override val index: Int, val path: Path
 ) : ExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
     override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_explorer/folder_icon.png")
 
+    @OptIn(ExperimentalPathApi::class)
     override fun buildContextButtons(): List<UIComponent> {
         val open = UIComponents.button(Text.translatable("htslreborn.explorer.button.folder.open")
         ) {
@@ -29,14 +35,14 @@ class FolderEntryComponent(
         val spacer = UIComponents.spacer()
 
         val openExternal = UIComponents.button(Text.of("✎")) {
-            Util.getOperatingSystem().open(file)
+            Util.getOperatingSystem().open(path)
         }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.folder.openext.description")))
         }
 
         val delete = UIComponents.button(Text.of("\uD83D\uDDD1")) {
-            file.delete()
+            path.deleteRecursively()
             FileHandler.refreshFiles()
             FileExplorer.INSTANCE.refreshExplorer()
         }.apply {
@@ -53,8 +59,8 @@ class FolderEntryComponent(
     }
 
     companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): ExplorerEntryComponent {
-            return FolderEntryComponent(horizontalSizing, verticalSizing, index, file)
+        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, path: Path): ExplorerEntryComponent {
+            return FolderEntryComponent(horizontalSizing, verticalSizing, index, path)
         }
     }
 

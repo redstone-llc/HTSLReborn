@@ -19,6 +19,12 @@ import llc.redstone.systemsapi.data.PropertyHolder
 import llc.redstone.systemsapi.data.StatOp
 import llc.redstone.systemsapi.data.StatValue
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.createDirectory
+import kotlin.io.path.exists
+import kotlin.io.path.name
+import kotlin.io.path.writeText
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
@@ -26,20 +32,20 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
 
 object HTSLExporter {
-    fun exportFile(file: File, onComplete: (Boolean) -> Unit = {}) {
+    fun exportFile(path: Path, onComplete: (Boolean) -> Unit = {}) {
         SystemsAPI.launch {
             exporting = true
             try {
                 val actions = SystemsAPI.getHousingImporter().getOpenActionContainer()?.getActions() ?: return@launch
                 val lines = export(actions)
-                file.parentFile?.let {
+                path.parent?.let {
                     if (!it.exists()) {
-                        it.mkdirs()
+                        it.createDirectory()
                     }
                 }
-                file.writeText(lines.joinToString("\n"))
+                path.writeText(lines.joinToString("\n"))
 
-                UISuccessToast.report("Successfully exported HTSL code to ${file.name}")
+                UISuccessToast.report("Successfully exported HTSL code to ${path.name}")
                 onComplete(true)
             } catch (e: Exception) {
                 onComplete(false)

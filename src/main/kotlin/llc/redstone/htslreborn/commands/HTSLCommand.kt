@@ -10,6 +10,9 @@ import llc.redstone.htslreborn.tokenizer.Tokenizer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import java.io.File
+import kotlin.io.path.Path
+import kotlin.io.path.extension
+import kotlin.io.path.walk
 
 object HTSLCommand {
     fun register(dispatcher: CommandDispatcher<FabricClientCommandSource>) {
@@ -29,7 +32,7 @@ object HTSLCommand {
     fun import(context: CommandContext<FabricClientCommandSource>): Int {
         val fileArg = StringArgumentType.getString(context, "file") ?: return -1
 
-        val file = File(fileArg)
+        val file = Path(fileArg)
 
         HTSLImporter.importFile(file, supportsBase = false)
 
@@ -37,8 +40,8 @@ object HTSLCommand {
     }
 
     fun test(context: CommandContext<FabricClientCommandSource>): Int {
-        val imports = File("./htsl/imports")
-        imports.walkTopDown().flatMap { it.walkTopDown() }.filter { it.extension == "htsl" }.forEach {
+        val imports = Path("./htsl/imports")
+        imports.walk().flatMap { it.walk() }.filter { it.extension == "htsl" }.forEach {
             var tokens = Tokenizer.tokenize(it)
             tokens = PreProcess.preProcess(tokens)
             val compiledCode = Parser.parse(tokens, it)

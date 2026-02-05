@@ -9,6 +9,10 @@ import guru.zoroark.tegral.niwen.lexer.niwenLexer
 import llc.redstone.htslreborn.parser.ActionParser
 import llc.redstone.htslreborn.parser.ConditionParser
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.readLines
+import kotlin.io.path.readText
 
 object Tokenizer {
     fun tokenize(text: String): List<TokenWithPosition> {
@@ -146,8 +150,8 @@ object Tokenizer {
     }
 
 
-    fun tokenize(file: File): List<TokenWithPosition> {
-        val input = file.readLines().joinToString("\n")
+    fun tokenize(path: Path): List<TokenWithPosition> {
+        val input = path.readLines().joinToString("\n")
         return tokenize(input)
     }
 

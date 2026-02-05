@@ -6,27 +6,22 @@ import llc.redstone.systemsapi.data.Condition.*
 import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.data.Keyed
 import llc.redstone.systemsapi.data.StatValue
-import guru.zoroark.tegral.niwen.lexer.Token
 import llc.redstone.htslreborn.tokenizer.Comparators
-import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
-import net.minecraft.nbt.NbtIo
-import net.minecraft.nbt.NbtSizeTracker
 import net.minecraft.nbt.StringNbtReader
-import java.io.ByteArrayInputStream
-import java.io.DataInputStream
 import java.io.File
-import java.nio.charset.Charset
-import kotlin.jvm.optionals.getOrNull
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.isDirectory
+import kotlin.io.path.readText
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
-import kotlin.reflect.jvm.jvmErasure
 
 object ConditionParser {
     val keywords = mapOf(
@@ -61,7 +56,7 @@ object ConditionParser {
         "inRegion" to InRegion::class,
     )
 
-    fun createCondition(keyword: String, iterator: Iterator<TokenWithPosition>, file: File?, inverted: Boolean = false): Condition? {
+    fun createCondition(keyword: String, iterator: Iterator<TokenWithPosition>, path: Path?, inverted: Boolean = false): Condition? {
         val clazz = keywords[keyword] ?: return null
 
         val constructor = clazz.primaryConstructor ?: return null
@@ -97,12 +92,12 @@ object ConditionParser {
                 }
 
                 ItemStack::class -> {
-                    if (file == null) {
+                    if (path == null) {
                         htslCompileError("Cannot load ItemStack from file when file is null", token)
                     }
                     val relativeFileLocation = token.string
-                    val parent = if (file.isDirectory) file else file.parentFile
-                    val nbtString = File(parent, relativeFileLocation).readText()
+                    val parent = if (path.isDirectory()) path else path.parent
+                    val nbtString = parent.resolve(relativeFileLocation).readText()
 
                     ItemStack(
                         nbt = StringNbtReader.readCompound(nbtString),

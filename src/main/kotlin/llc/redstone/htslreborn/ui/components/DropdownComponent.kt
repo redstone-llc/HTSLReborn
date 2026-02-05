@@ -8,7 +8,7 @@ import io.wispforest.owo.ui.core.Sizing
 import llc.redstone.htslreborn.htslio.HTSLImporter
 import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.systemsapi.importer.ActionContainer
-import net.minecraft.client.gui.Click
+import kotlin.io.path.name
 
 class DropdownComponent(
     horizontalSizing: Sizing, verticalSizing: Sizing
@@ -42,8 +42,8 @@ class DropdownComponent(
                 "update" -> ActionContainer::updateActions
                 else -> throw IllegalStateException("Unknown import type: ${button.id()}")
             }
-            val file = (FileExplorer.INSTANCE.focus as ScriptEntryComponent).file
 
+            val file = (FileExplorer.INSTANCE.focus as ScriptEntryComponent).path
             FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, file.name)
             HTSLImporter.importFile(file, method) {
                 FileExplorer.INSTANCE.hideWorkingScreen()

@@ -19,6 +19,8 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.WatchKey
 import java.nio.file.WatchService
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
@@ -33,9 +35,7 @@ object FileExplorerHandler {
     private var watchedKey: WatchKey = registerWatchedDir(watchedDir)
 
     fun init() {
-        if (!Files.exists(watchedDir)) {
-            Files.createDirectories(watchedDir)
-        }
+        if (!watchedDir.exists()) watchedDir.createDirectories()
 
         Thread {
             while (true) {
@@ -43,26 +43,20 @@ object FileExplorerHandler {
                 val watchable = key.watchable() as Path
                 for (event in key.pollEvents()) {
                     val contextPath = event.context() as Path
-                    val child = watchable.resolve(contextPath)
-                    fileEventQueue.offer(child)
+                    fileEventQueue.offer(watchable.resolve(contextPath))
                 }
-                if (!key.reset()) {
-                    break
-                }
+                if (!key.reset()) break
             }
         }.start()
 
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick {
-            // If currentDir changed, cancel the old watch key and register the new one
-
             while (true) {
                 val path = fileEventQueue.poll() ?: break
                 val name = path.fileName.toString()
+                val now = System.currentTimeMillis()
                 val lastEdit = fileEditCooldown[name]
-                if (lastEdit != null && System.currentTimeMillis() - lastEdit < 100) {
-                    continue
-                }
-                fileEditCooldown[name] = System.currentTimeMillis()
+                if (lastEdit != null && now - lastEdit < 100) continue
+                fileEditCooldown[name] = now
 
                 if (FileExplorer.INSTANCE.isInitialized()) {
                     FileHandler.refreshFiles(true)
@@ -83,13 +77,10 @@ object FileExplorerHandler {
     fun setWatchedDir(path: Path) {
         require (path.isDirectory()) { "Path must be a directory" }
         watchedKey.cancel()
-        if (!Files.exists(path)) {
-            Files.createDirectories(path)
-        }
+        if (!path.exists()) path.createDirectories()
         watchedKey = registerWatchedDir(path)
         watchedDir = path
     }
-
 
 
     fun onSearchChanged(newSearch: String) {
@@ -125,7 +116,7 @@ object FileExplorerHandler {
         val filteredFiles = FileHandler.filteredFiles
         val fileName = filteredFiles[index]
         val file = FileHandler.getFile(fileName)
-        if (Files.isDirectory(file)) {
+        if (file.isDirectory()) {
             FileHandler.currentDir = FileHandler.currentDir.resolve(fileName)
             FileHandler.refreshFiles()
             FileExplorer.INSTANCE.refreshExplorer()
@@ -148,7 +139,7 @@ object FileExplorerHandler {
             }
             FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, file.name)
             importingFile = file.name
-            HTSLImporter.importFile(file.toFile(), method) {
+            HTSLImporter.importFile(file, method) {
                 FileExplorer.INSTANCE.hideWorkingScreen()
             }
             return true

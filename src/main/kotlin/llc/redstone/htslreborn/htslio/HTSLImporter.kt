@@ -16,17 +16,18 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.text.Text
 import net.minecraft.util.Colors
 import net.minecraft.world.GameMode
-import java.io.File
+import java.nio.file.Path
 import kotlin.collections.contains
 import kotlin.collections.isNotEmpty
+import kotlin.io.path.name
 
 object HTSLImporter {
-    fun importFile(file: File, method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions, supportsBase: Boolean = true, onComplete: () -> Unit = {}) {
+    fun importFile(path: Path, method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions, supportsBase: Boolean = true, onComplete: () -> Unit = {}) {
         val compiledCode: MutableMap<String, List<Action>>
         try {
-            var tokens = Tokenizer.tokenize(file)
+            var tokens = Tokenizer.tokenize(path)
             tokens = PreProcess.preProcess(tokens)
-            compiledCode = Parser.parse(tokens, file)
+            compiledCode = Parser.parse(tokens, path)
         }  catch (e: Exception) {
             UIErrorToast.report(e)
             e.printStackTrace()
@@ -34,10 +35,10 @@ object HTSLImporter {
             return
         }
 
-        import(file, compiledCode, method, supportsBase, onComplete)
+        import(path, compiledCode, method, supportsBase, onComplete)
     }
 
-    fun import(file: File, compiledCode: MutableMap<String, List<Action>>, method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions, supportsBase: Boolean = true, onComplete: () -> Unit = {}) {
+    fun import(path: Path, compiledCode: MutableMap<String, List<Action>>, method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions, supportsBase: Boolean = true, onComplete: () -> Unit = {}) {
         if (compiledCode.contains("base") && compiledCode["base"]?.isNotEmpty() == true && !supportsBase) {
             MinecraftClient.getInstance().player?.sendMessage(
                 Text.of("Couldn't use actions before a goto call.").copy().withColor(Colors.RED), false
@@ -100,7 +101,7 @@ object HTSLImporter {
                 importing = false
             }
             if (errored) return@launch
-            UISuccessToast.report("Successfully imported HTSL code from ${file.name}")
+            UISuccessToast.report("Successfully imported HTSL code from ${path.name}")
             onComplete()
             importing = false
         }

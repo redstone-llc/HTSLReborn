@@ -4,14 +4,19 @@ import llc.redstone.htslreborn.parser.PreProcess
 import llc.redstone.htslreborn.tokenizer.Tokenizer
 import org.mozilla.javascript.EvaluatorException
 import java.io.File
+import kotlin.io.path.Path
+import kotlin.io.path.extension
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.name
+import kotlin.io.path.walk
 
 // Used primarily for testing the tokenizer, preprocessor, and parser
 fun main(args: Array<String>) {
-    val files = File("./testfiles/").walkTopDown().filter { it.isFile && it.extension == "htsl" }.toList()
+    val files = Path("./testfiles/").walk().filter { it.isRegularFile() && it.extension == "htsl" }.toList()
     var errorCount = 0
     var fileCount = 0
     var successCount = 0
-    var errorTypes = mutableSetOf<String>()
+    val errorTypes = mutableSetOf<String>()
     for (file in files) {
         fileCount++
         try {

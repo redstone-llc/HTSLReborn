@@ -17,10 +17,13 @@ import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.Util
-import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.name
 
 class ScriptEntryComponent(
-    horizontalSizing: Sizing, verticalSizing: Sizing, override val index: Int, val file: File
+    horizontalSizing: Sizing, verticalSizing: Sizing, override val index: Int, val path: Path
 ) : ExplorerEntryComponent(horizontalSizing, verticalSizing, index) {
     override val icon: Identifier = Identifier.of("htslreborn", "textures/ui/file_explorer/script_icon.png")
     override fun buildContextButtons(): List<UIComponent> {
@@ -35,9 +38,9 @@ class ScriptEntryComponent(
                             HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
                             HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
                         }
-                        FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, file.name)
-                        importingFile = file.name
-                        HTSLImporter.importFile(file, method) {
+                        FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, path.name)
+                        importingFile = path.name
+                        HTSLImporter.importFile(path, method) {
                             FileExplorer.INSTANCE.hideWorkingScreen()
                         }
                     }.apply {
@@ -53,9 +56,9 @@ class ScriptEntryComponent(
         }
 
         val export = UIComponents.button(Text.translatable("htslreborn.explorer.button.script.export")) {
-            FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.EXPORT, file.name)
-            exportingFile = file.name
-            HTSLExporter.exportFile(file) {
+            FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.EXPORT, path.name)
+            exportingFile = path.name
+            HTSLExporter.exportFile(path) {
                 FileExplorer.INSTANCE.hideWorkingScreen()
             }
         }.apply {
@@ -65,14 +68,14 @@ class ScriptEntryComponent(
         val spacer = UIComponents.spacer()
 
         val open = UIComponents.button(Text.of("✎")) {
-            Util.getOperatingSystem().open(file)
+            Util.getOperatingSystem().open(path)
         }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.open.description")))
         }
 
         val delete = UIComponents.button(Text.of("\uD83D\uDDD1")) {
-            file.delete()
+            path.deleteExisting()
             FileHandler.refreshFiles()
             FileExplorer.INSTANCE.refreshExplorer()
         }.apply {
@@ -90,8 +93,8 @@ class ScriptEntryComponent(
     }
 
     companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, file: File): ExplorerEntryComponent {
-            return ScriptEntryComponent(horizontalSizing, verticalSizing, index, file)
+        fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, path: Path): ExplorerEntryComponent {
+            return ScriptEntryComponent(horizontalSizing, verticalSizing, index, path)
         }
     }
 

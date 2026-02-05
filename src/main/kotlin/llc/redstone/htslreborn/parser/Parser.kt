@@ -4,14 +4,13 @@ import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.Action.Conditional
 import llc.redstone.systemsapi.data.Action.RandomAction
 import llc.redstone.systemsapi.data.Condition
-import guru.zoroark.tegral.niwen.lexer.Token
-import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import java.io.File
+import java.nio.file.Path
 
 object Parser {
-    fun parse(tokens: List<TokenWithPosition>, file: File?): MutableMap<String, List<Action>> {
+    fun parse(tokens: List<TokenWithPosition>, path: Path?): MutableMap<String, List<Action>> {
         val compiledActions = mutableListOf<Action>()
         val gotoCompiled = mutableMapOf<String, List<Action>?>()
 
@@ -84,17 +83,17 @@ object Parser {
                     if (conditional != null) {
                         val index = tokens.indexOf(token)
                         if (index > 0 && tokens[index - 1].tokenType == Tokens.INVERTED) {
-                            conditions.add(ConditionParser.createCondition(token.string, iterator, file, true) ?: error("Did not expect null condition"))
+                            conditions.add(ConditionParser.createCondition(token.string, iterator, path, true) ?: error("Did not expect null condition"))
                             continue
                         }
 
-                        conditions.add(ConditionParser.createCondition(token.string, iterator, file) ?: error("Did not expect null condition"))
+                        conditions.add(ConditionParser.createCondition(token.string, iterator, path) ?: error("Did not expect null condition"))
                     }
                 }
 
                 Tokens.COMMA -> {
                     if (conditional != null && iterator.hasNext()) {
-                        conditions.add(ConditionParser.createCondition(iterator.next().string, iterator, file) ?: error("Did not expect null condition"))
+                        conditions.add(ConditionParser.createCondition(iterator.next().string, iterator, path) ?: error("Did not expect null condition"))
                     }
                 }
 
@@ -127,7 +126,7 @@ object Parser {
                 }
 
                 Tokens.ACTION_KEYWORD -> {
-                    val action = ActionParser.createAction(token.string, iterator, file) ?: error("Did not action to be null")
+                    val action = ActionParser.createAction(token.string, iterator, path) ?: error("Did not action to be null")
                     if (depth.size - 1 == 0) {
                         compiledActions.add(action)
                         continue

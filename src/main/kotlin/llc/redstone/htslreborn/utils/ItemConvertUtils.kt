@@ -10,12 +10,16 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.inputStream
+import kotlin.io.path.name
 
 object ItemConvertUtils {
-    fun fileToNbtCompound(file: File): NbtCompound {
-        val name = file.name
+    fun fileToNbtCompound(path: Path): NbtCompound {
+        val name = path.name
         if (name.endsWith(".nbt")) {
-            val dataInputStream = DataInputStream(FileInputStream(file))
+            val dataInputStream = DataInputStream(path.inputStream())
             return NbtIo.readCompound(dataInputStream).also {
                 dataInputStream.close()
             }
@@ -34,6 +38,6 @@ object ItemConvertUtils {
         return StringNbtReader.readCompound(nbtString)
     }
 
-    fun fileToItemStack(file: File) =
-        ItemUtils.createFromNBT(fileToNbtCompound(file))
+    fun fileToItemStack(path: Path) =
+        ItemUtils.createFromNBT(fileToNbtCompound(path))
 }

@@ -31,6 +31,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.Util
 import java.nio.file.Files
 import kotlin.io.path.extension
+import kotlin.io.path.isDirectory
 
 class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     companion object {
@@ -120,14 +121,14 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         val file = filteredFiles[index].let { FileHandler.getFile(it) }
 
         val entry = when {
-            (Files.isDirectory(file)) ->
-                FolderEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file.toFile())
+            (file.isDirectory()) ->
+                FolderEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file)
 
             (itemExtensions.contains(file.extension)) ->
-                ItemEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file.toFile())
+                ItemEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file)
 
             (htslExtensions.contains(file.extension)) ->
-                ScriptEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file.toFile())
+                ScriptEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file)
 
             else -> throw IllegalStateException("Unknown file type: $file")
         }

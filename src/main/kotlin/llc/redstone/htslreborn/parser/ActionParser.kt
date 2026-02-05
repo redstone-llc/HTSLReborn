@@ -2,21 +2,17 @@ package llc.redstone.htslreborn.parser
 
 import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.data.Action.*
-import guru.zoroark.tegral.niwen.lexer.Token
 import llc.redstone.htslreborn.tokenizer.Operators
-import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import llc.redstone.htslreborn.utils.ItemConvertUtils
-import net.minecraft.nbt.NbtIo
-import net.minecraft.nbt.NbtSizeTracker
-import net.minecraft.nbt.StringNbtReader
-import java.io.ByteArrayInputStream
-import java.io.DataInputStream
 import java.io.File
-import java.nio.charset.Charset
-import kotlin.jvm.optionals.getOrNull
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
+import kotlin.io.path.name
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.*
@@ -84,7 +80,7 @@ object ActionParser {
         if (clazz == TeamVariable::class) swapParams("teamName", "variable")
     }
 
-    fun createAction(keyword: String, iterator: Iterator<TokenWithPosition>, file: File?): Action? {
+    fun createAction(keyword: String, iterator: Iterator<TokenWithPosition>, path: Path?): Action? {
         //Get the action class
         val clazz = keywords[keyword] ?: return null
 
@@ -129,13 +125,13 @@ object ActionParser {
                     Location::class -> LocationParser.parse(token.string, iterator)
 
                     ItemStack::class -> {
-                        if (file == null) {
+                        if (path == null) {
                             htslCompileError("Cannot load ItemStack from file when file is null", token)
                         }
                         val relativeFileLocation = token.string
-                        val parent = if (file.isDirectory) file else file.parentFile
-                        val file = File(parent, relativeFileLocation)
-                        val nbt = if (!file.exists()) {
+                        val parent = if (path.isDirectory()) path else path.parent
+                        val file = parent.resolve(relativeFileLocation)
+                        val nbt = if (file.exists()) {
                             try {
                                 ItemConvertUtils.stringToNbtCompound(relativeFileLocation.replace("\\\"", "\""))
                             } catch (e: Exception) {
@@ -188,7 +184,7 @@ object ActionParser {
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                htslCompileError("Failed to parse action parameter '${param.name}': ${e.message} in file ${file?.name}", token)
+                htslCompileError("Failed to parse action parameter '${param.name}': ${e.message} in file ${path?.name}", token)
             }
         }
 
