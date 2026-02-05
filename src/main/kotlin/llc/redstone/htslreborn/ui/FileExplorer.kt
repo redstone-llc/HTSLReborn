@@ -20,7 +20,6 @@ import llc.redstone.htslreborn.ui.FileHandler.htslExtensions
 import llc.redstone.htslreborn.ui.FileHandler.itemExtensions
 import llc.redstone.htslreborn.ui.FileHandler.refreshFiles
 import llc.redstone.htslreborn.ui.components.*
-import llc.redstone.htslreborn.ui.components.TimeRemainingComponent
 import llc.redstone.systemsapi.SystemsAPI
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.cursor.Cursor
@@ -33,6 +32,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.Util
 import org.lwjgl.glfw.GLFW
 import java.io.File
+import kotlin.io.path.pathString
 
 class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     companion object {
@@ -100,7 +100,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
 
     private fun buildHeader(): FlowLayout {
         val openFolderButton = UIComponents.button(Text.of("\uD83D\uDDC0")) {
-            val dir = FileHandler.currentDir()
+            val dir = FileHandler.currentDir
             Util.getOperatingSystem().open(dir)
         }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
@@ -200,7 +200,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     private fun buildExplorer(): ScrollContainer<FlowLayout> {
         refreshExplorer()
         return UIContainers.verticalScroll(Sizing.expand(), Sizing.expand(), content).apply {
-            surface(Surface.PANEL_INSET)
+            surface(Surface.VANILLA_TRANSLUCENT)
             margins(Insets.vertical(5))
             padding(Insets.of(2))
             scrollbar(ScrollContainer.Scrollbar.vanillaFlat())
@@ -228,7 +228,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
                 cursorStyle(CursorStyle.POINTER)
             }
             mouseDown().subscribe { _, _ ->
-                FileExplorerHandler.onBreadcrumbClicked(name, index)
+                FileExplorerHandler.onBreadcrumbClicked(index)
                 false
             }
             focusLost().subscribe {
@@ -238,33 +238,25 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    val breadcrumbs: FlowLayout = buildBreadcrumbs()
-
-    fun refreshBreadcrumbs() {
-        val subDir = FileHandler.subDir
-        breadcrumbs.queue {
-            breadcrumbs.clearChildren()
-            breadcrumbs.child(breadcrumb("imports", -1))
-            if (subDir.isEmpty()) return@queue
-            val split = subDir.split("/")
-            for (i in split.indices) {
-                val name = split[i]
-                breadcrumbs.child(UIComponents.label(Text.literal(">").withColor(0x505050)))
-                breadcrumbs.child(breadcrumb(name, i))
-            }
-        }
+    val breadcrumbs: FlowLayout = UIContainers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
+        gap(4)
+        alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
     }
 
-    private fun buildBreadcrumbs(): FlowLayout {
-        return UIContainers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
-            gap(4)
-            alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
-            children(
-                listOf(
-                    breadcrumb("imports", -1),
-                )
-            )
+    fun refreshBreadcrumbs() {
+        val subDir = FileHandler.currentDir
+
+        val update = {
+            breadcrumbs.clearChildren()
+
+            val names = (2 until subDir.nameCount).map { subDir.getName(it).toString() }
+            names.forEachIndexed { index, name ->
+                if (index > 0) breadcrumbs.child(UIComponents.label(Text.literal(">").withColor(0x505050)))
+                breadcrumbs.child(breadcrumb(name, index))
+            }
         }
+
+        if (breadcrumbs.hasParent()) breadcrumbs.queue { update() } else update()
     }
 
     fun buildDropdown(): DropdownComponent {
@@ -362,6 +354,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             (MC.currentScreen as? HandledScreenAccessor) ?: throw IllegalStateException("Could not get accessor")
 
         refreshFiles(true)
+        refreshBreadcrumbs()
 
         root.apply {
             sizing(Sizing.fixed(accessor.getGuiLeft()), Sizing.expand())

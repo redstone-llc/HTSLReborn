@@ -3,6 +3,10 @@ package llc.redstone.htslreborn.ui
 import llc.redstone.htslreborn.utils.ItemConvertUtils
 import net.minecraft.item.ItemStack
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import kotlin.io.path.exists
+import kotlin.io.path.name
 import kotlin.text.lowercase
 
 object FileHandler {
@@ -10,43 +14,34 @@ object FileHandler {
     internal var filteredFiles = mutableListOf<String>()
     internal var page = 0
     internal val cachedItems = mutableMapOf<String, ItemStack?>()
-    internal var subDir = ""
     internal var search = ""
 
-    private val importDir = File("htsl/imports")
+    internal val baseDir = Paths.get("./htsl/imports")
+    internal var currentDir = baseDir
+
     val itemExtensions = listOf(".json", ".nbt")
     val htslExtensions = listOf(".htsl")
 
-    fun currentDir(): File {
-        return if (subDir.isEmpty()) {
-            importDir
-        } else {
-            File(importDir, subDir)
-        }
-    }
-
     fun refreshFiles(live: Boolean = false) {
         var live = live
-        if (!importDir.exists()) {
-            importDir.mkdirs()
-        }
-        var baseDir = currentDir()
-        if (!baseDir.exists()) {
-            subDir = ""
-            baseDir = importDir
+        if (!currentDir.exists()) {
+            Files.createDirectory(currentDir)
             live = true
         }
 
-        files = baseDir.listFiles().filter {
-            if (it.isDirectory) {
+        files = Files.list(currentDir).filter {
+            if (Files.isDirectory(it)) {
                 true
             } else {
                 val name = it.name.lowercase()
                 itemExtensions.any { ext -> name.endsWith(ext) } ||
-                        htslExtensions.any { ext -> name.endsWith(ext)  }
+                htslExtensions.any { ext -> name.endsWith(ext) }
             }
-        }.map { it.name }.toMutableList()
-        files.sortWith(compareBy({ !File(baseDir, it).isDirectory }, { it.lowercase() }))
+        }.sorted(compareBy(
+            { !Files.isDirectory(it) },
+            { it.name.lowercase() }
+        )).map { it.name }.toList().toMutableList()
+
         filteredFiles = files.toMutableList()
         page = 0
         cachedItems.clear()
@@ -65,8 +60,7 @@ object FileHandler {
     }
 
     fun getFile(fileName: String): File {
-        val baseDir = File("htsl/imports", subDir)
-        return File(baseDir, fileName)
+        return currentDir.resolve(fileName).toFile()
     }
 
     fun getItemForFile(file: File): ItemStack? {
