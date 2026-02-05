@@ -35,9 +35,7 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
     @Inject(method = "render", at = @At("HEAD"))
     public void htslreborn$render(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
         if (!FileExplorer.inActionGui()) return;
-        try {
-            FileExplorer.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
-        } catch (ConcurrentModificationException ignored) {}
+        FileExplorer.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
     }
 
     @Inject(method="mouseClicked" , at=@At("HEAD"), cancellable = true)
