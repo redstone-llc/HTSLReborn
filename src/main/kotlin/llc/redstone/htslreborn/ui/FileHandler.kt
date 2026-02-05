@@ -4,6 +4,7 @@ import llc.redstone.htslreborn.utils.ItemConvertUtils
 import net.minecraft.item.ItemStack
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
 import kotlin.io.path.name
@@ -19,8 +20,8 @@ object FileHandler {
     internal val baseDir = Paths.get("./htsl/imports")
     internal var currentDir = baseDir
 
-    val itemExtensions = listOf(".json", ".nbt")
-    val htslExtensions = listOf(".htsl")
+    val itemExtensions = listOf("json", "nbt")
+    val htslExtensions = listOf("htsl")
 
     fun refreshFiles(live: Boolean = false) {
         var live = live
@@ -59,8 +60,8 @@ object FileHandler {
         }
     }
 
-    fun getFile(fileName: String): File {
-        return currentDir.resolve(fileName).toFile()
+    fun getFile(fileName: String): Path {
+        return currentDir.resolve(fileName)
     }
 
     fun getItemForFile(file: File): ItemStack? {

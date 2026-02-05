@@ -21,7 +21,6 @@ import llc.redstone.htslreborn.ui.FileHandler.itemExtensions
 import llc.redstone.htslreborn.ui.FileHandler.refreshFiles
 import llc.redstone.htslreborn.ui.components.*
 import llc.redstone.systemsapi.SystemsAPI
-import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.cursor.Cursor
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.tooltip.Tooltip
@@ -30,9 +29,8 @@ import net.minecraft.client.input.KeyInput
 import net.minecraft.client.resource.language.I18n
 import net.minecraft.text.Text
 import net.minecraft.util.Util
-import org.lwjgl.glfw.GLFW
-import java.io.File
-import kotlin.io.path.pathString
+import java.nio.file.Files
+import kotlin.io.path.extension
 
 class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     companion object {
@@ -119,19 +117,19 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     }
 
     fun explorerEntry(name: String, index: Int): FlowLayout {
-        val file: File? = filteredFiles.getOrNull(index)?.let { FileHandler.getFile(it) }
+        val file = filteredFiles[index].let { FileHandler.getFile(it) }
 
         val entry = when {
-            (file?.isDirectory == true) ->
-                FolderEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file)
+            (Files.isDirectory(file)) ->
+                FolderEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file.toFile())
 
-            (itemExtensions.any { file?.name?.lowercase()?.endsWith(it) == true }) ->
-                ItemEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file!!)
+            (itemExtensions.contains(file.extension)) ->
+                ItemEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file.toFile())
 
-            (htslExtensions.any { file?.name?.lowercase()?.endsWith(it) == true }) ->
-                ScriptEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file!!)
+            (htslExtensions.contains(file.extension)) ->
+                ScriptEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file.toFile())
 
-            else -> throw IllegalStateException("Unknown file type.")
+            else -> throw IllegalStateException("Unknown file type: $file")
         }
 
         return entry.apply {

@@ -5,6 +5,7 @@ import llc.redstone.htslreborn.HTSLReborn.LOGGER
 import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.config.HtslConfigModel
 import llc.redstone.htslreborn.htslio.HTSLImporter
+import llc.redstone.htslreborn.ui.FileHandler.htslExtensions
 import llc.redstone.htslreborn.ui.FileHandler.search
 import llc.redstone.htslreborn.utils.RenderUtils.isInitialized
 import llc.redstone.systemsapi.importer.ActionContainer
@@ -18,7 +19,10 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.WatchKey
 import java.nio.file.WatchService
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.name
 
 object FileExplorerHandler {
 
@@ -121,7 +125,7 @@ object FileExplorerHandler {
         val filteredFiles = FileHandler.filteredFiles
         val fileName = filteredFiles[index]
         val file = FileHandler.getFile(fileName)
-        if (file.isDirectory) {
+        if (Files.isDirectory(file)) {
             FileHandler.currentDir = FileHandler.currentDir.resolve(fileName)
             FileHandler.refreshFiles()
             FileExplorer.INSTANCE.refreshExplorer()
@@ -136,7 +140,7 @@ object FileExplorerHandler {
         val filteredFiles = FileHandler.filteredFiles
         val fileName = filteredFiles[index]
         val file = FileHandler.getFile(fileName)
-        if (file.isFile && file.extension == "htsl") {
+        if (file.isRegularFile() && htslExtensions.contains(file.extension)) {
             val method = when (CONFIG.defaultImportStrategy) {
                 HtslConfigModel.ImportStrategy.APPEND -> ActionContainer::addActions
                 HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
@@ -144,7 +148,7 @@ object FileExplorerHandler {
             }
             FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, file.name)
             importingFile = file.name
-            HTSLImporter.importFile(file, method) {
+            HTSLImporter.importFile(file.toFile(), method) {
                 FileExplorer.INSTANCE.hideWorkingScreen()
             }
             return true
