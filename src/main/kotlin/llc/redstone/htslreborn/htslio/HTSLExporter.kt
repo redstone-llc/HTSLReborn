@@ -1,5 +1,7 @@
 package llc.redstone.htslreborn.htslio
 
+import llc.redstone.htslreborn.HTSLReborn
+import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.exporting
 import llc.redstone.htslreborn.parser.ActionParser
 import llc.redstone.htslreborn.parser.ActionParser.handleSwaps
@@ -18,6 +20,7 @@ import llc.redstone.systemsapi.data.Location
 import llc.redstone.systemsapi.data.PropertyHolder
 import llc.redstone.systemsapi.data.StatOp
 import llc.redstone.systemsapi.data.StatValue
+import net.minecraft.sound.SoundEvents
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -45,10 +48,20 @@ object HTSLExporter {
                 }
                 path.writeText(lines.joinToString("\n"))
 
+                if (HTSLReborn.CONFIG.playCompleteSound) MC.player?.playSound(
+                    SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(),
+                    1.0f,
+                    1.0f
+                )
                 UISuccessToast.report("Successfully exported HTSL code to ${path.name}")
                 onComplete(true)
             } catch (e: Exception) {
                 onComplete(false)
+                if (HTSLReborn.CONFIG.playCompleteSound) MC.player?.playSound(
+                    SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(),
+                    1.0f,
+                    0.8f
+                )
                 UIErrorToast.report(e)
                 e.printStackTrace()
             } finally {

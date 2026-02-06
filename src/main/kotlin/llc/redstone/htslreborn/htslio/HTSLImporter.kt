@@ -1,5 +1,6 @@
 package llc.redstone.htslreborn.htslio
 
+import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.importing
 import llc.redstone.htslreborn.parser.Parser
@@ -13,6 +14,8 @@ import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.importer.ActionContainer
 import llc.redstone.systemsapi.util.CommandUtils
 import net.minecraft.client.MinecraftClient
+import net.minecraft.sound.SoundEvent
+import net.minecraft.sound.SoundEvents
 import net.minecraft.text.Text
 import net.minecraft.util.Colors
 import net.minecraft.world.GameMode
@@ -55,7 +58,6 @@ object HTSLImporter {
         if (MC.player?.gameMode != GameMode.CREATIVE) CommandUtils.runCommand("gmc")
 
         //TODO: go through the compiled code and look for anything that doesnt exist yet and prompt the user to create it first
-        var errored = false
         SystemsAPI.launch {
             try {
                 importing = true
@@ -93,17 +95,26 @@ object HTSLImporter {
                         }
                     }
                 }
-            } catch (e: Exception) {
-                errored = true
+
+                if (HTSLReborn.CONFIG.playCompleteSound) MC.player?.playSound(
+                    SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(),
+                    1.0f,
+                    1.0f
+                )
+                UISuccessToast.report("Successfully imported HTSL code from ${path.name}")
                 onComplete()
+            } catch (e: Exception) {
+                if (HTSLReborn.CONFIG.playCompleteSound) MC.player?.playSound(
+                    SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(),
+                    1.0f,
+                    0.8f
+                )
                 UIErrorToast.report(e)
                 e.printStackTrace()
+                onComplete()
+            } finally {
                 importing = false
             }
-            if (errored) return@launch
-            UISuccessToast.report("Successfully imported HTSL code from ${path.name}")
-            onComplete()
-            importing = false
         }
     }
 }
