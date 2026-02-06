@@ -1,7 +1,6 @@
 package llc.redstone.htslreborn.ui
 
 import llc.redstone.htslreborn.HTSLReborn.CONFIG
-import llc.redstone.htslreborn.HTSLReborn.LOGGER
 import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.config.HtslConfigModel
 import llc.redstone.htslreborn.htslio.HTSLImporter
@@ -11,7 +10,6 @@ import llc.redstone.htslreborn.utils.RenderUtils.isInitialized
 import llc.redstone.systemsapi.importer.ActionContainer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import java.nio.file.FileSystems
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
@@ -75,9 +73,10 @@ object FileExplorerHandler {
     }
 
     fun setWatchedDir(path: Path) {
-        require (path.isDirectory()) { "Path must be a directory" }
-        watchedKey.cancel()
         if (!path.exists()) path.createDirectories()
+        require(path.isDirectory()) { "Path must be a directory" }
+
+        watchedKey.cancel()
         watchedKey = registerWatchedDir(path)
         watchedDir = path
     }

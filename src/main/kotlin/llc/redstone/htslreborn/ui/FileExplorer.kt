@@ -15,6 +15,7 @@ import llc.redstone.htslreborn.HTSLReborn.importing
 import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.accessors.HandledScreenAccessor
 import llc.redstone.htslreborn.ui.FileExplorerHandler.onSearchChanged
+import llc.redstone.htslreborn.ui.FileHandler.baseDir
 import llc.redstone.htslreborn.ui.FileHandler.filteredFiles
 import llc.redstone.htslreborn.ui.FileHandler.htslExtensions
 import llc.redstone.htslreborn.ui.FileHandler.itemExtensions
@@ -130,7 +131,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             (htslExtensions.contains(file.extension)) ->
                 ScriptEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file)
 
-            else -> throw IllegalStateException("Unknown file type: $file")
+            else -> throw IllegalStateException("Unknown file type: ${file.toAbsolutePath()}")
         }
 
         return entry.apply {
@@ -248,7 +249,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         val update = {
             breadcrumbs.clearChildren()
 
-            val names = (2 until subDir.nameCount).map { subDir.getName(it).toString() }
+            val names = (baseDir.nameCount - 1 until subDir.nameCount).map { subDir.getName(it).toString() }
             names.forEachIndexed { index, name ->
                 if (index > 0) breadcrumbs.child(UIComponents.label(Text.literal(">").withColor(0x505050)))
                 breadcrumbs.child(breadcrumb(name, index))

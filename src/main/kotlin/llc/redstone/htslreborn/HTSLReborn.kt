@@ -2,12 +2,16 @@ package llc.redstone.htslreborn
 
 import llc.redstone.htslreborn.commands.HTSLCommand
 import llc.redstone.htslreborn.config.HtslConfig
+import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.htslreborn.ui.FileExplorerHandler
+import llc.redstone.htslreborn.ui.FileHandler
+import llc.redstone.htslreborn.utils.RenderUtils.isInitialized
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.io.path.Path
 
 object HTSLReborn : ClientModInitializer {
     const val MOD_ID = "htslreborn"
@@ -32,6 +36,19 @@ object HTSLReborn : ClientModInitializer {
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             HTSLCommand.register(dispatcher)
+        }
+
+        CONFIG.subscribeToImportsDirectory {
+            FileHandler.baseDir = Path(it)
+            FileHandler.currentDir = FileHandler.baseDir
+
+            FileHandler.refreshFiles(live = true)
+            FileExplorerHandler.setWatchedDir(FileHandler.currentDir)
+            LOGGER.info(FileHandler.filteredFiles.toString())
+            if (FileExplorer.INSTANCE.isInitialized()) {
+                FileExplorer.INSTANCE.refreshExplorer(true)
+                FileExplorer.INSTANCE.refreshBreadcrumbs()
+            }
         }
 
         FileExplorerHandler.init()

@@ -33,8 +33,12 @@
   "htslreborn.importing.working.cancel": "Cancel",
 
   "text.config.htslreborn.title": "HTSL Reborn",
+
+  "text.config.htslreborn.section.explorer": "File Explorer",
   "text.config.htslreborn.option.showFileExplorer": "Show File Explorer",
   "text.config.htslreborn.option.showFileExplorer.tooltip": "Shows the file explorer when\nin an action container.",
+  "text.config.htslreborn.option.importsDirectory": "Base Imports Directory",
+  "text.config.htslreborn.option.importsDirectory.tooltip": "Changes the base directory of the\nfile explorer.",
 
   "text.config.htslreborn.section.import": "Importing/Exporting",
   "text.config.htslreborn.option.defaultImportStrategy": "Default Import Strategy",

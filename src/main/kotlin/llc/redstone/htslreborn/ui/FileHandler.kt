@@ -1,18 +1,10 @@
 package llc.redstone.htslreborn.ui
 
+import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.utils.ItemConvertUtils
 import net.minecraft.item.ItemStack
-import java.io.File
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
-import kotlin.comparisons.compareBy
-import kotlin.io.path.createDirectory
-import kotlin.io.path.exists
-import kotlin.io.path.isDirectory
-import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.name
-import kotlin.text.lowercase
+import kotlin.io.path.*
 
 object FileHandler {
     internal var files = mutableListOf<String>()
@@ -21,7 +13,7 @@ object FileHandler {
     internal val cachedItems = mutableMapOf<String, ItemStack?>()
     internal var search = ""
 
-    internal val baseDir = Paths.get("./htsl/imports")
+    internal var baseDir = Path(HTSLReborn.CONFIG.importsDirectory)
     internal var currentDir = baseDir
 
     val itemExtensions = listOf("nbt")
@@ -45,8 +37,7 @@ object FileHandler {
         }.sortedWith(compareBy(
             { !it.isDirectory() },
             { it.name.lowercase() }
-        ),
-            ).map { it.name }.toList().toMutableList()
+        )).map { it.name }.toList().toMutableList()
 
         filteredFiles = files.toMutableList()
         page = 0
