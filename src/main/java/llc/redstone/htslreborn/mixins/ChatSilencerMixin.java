@@ -27,7 +27,7 @@ public class ChatSilencerMixin {
             cancellable = true
     )
     public void onGameMessage(GameMessageS2CPacket packet, CallbackInfo ci) {
-        if (!HTSLReborn.INSTANCE.getCONFIG().getHideImportMessages()) return;
+        if (!HTSLReborn.INSTANCE.getCONFIG().getSilenceImportMessages()) return;
         if (!HTSLReborn.INSTANCE.getImporting() && !HTSLReborn.INSTANCE.getExporting()) return;
 
         String message = packet.content().getString();
