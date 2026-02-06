@@ -24,7 +24,7 @@ object FileHandler {
     internal val baseDir = Paths.get("./htsl/imports")
     internal var currentDir = baseDir
 
-    val itemExtensions = listOf("json", "nbt")
+    val itemExtensions = listOf("nbt")
     val htslExtensions = listOf("htsl")
 
     fun refreshFiles(live: Boolean = false) {
