@@ -23,7 +23,7 @@ class HtslConfigModel {
     @JvmField
     var defaultImportStrategy: ImportStrategy = ImportStrategy.APPEND
     enum class ImportStrategy {
-        APPEND, REPLACE, UPDATE
+        APPEND, REPLACE, /*UPDATE*/
     }
 
     @JvmField

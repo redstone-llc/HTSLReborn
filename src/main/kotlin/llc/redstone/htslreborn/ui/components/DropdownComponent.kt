@@ -44,14 +44,14 @@ class DropdownComponent(
                         renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
                         setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.replace.description")))
                     },
-                    UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.update")) {
-                        click(it)
-                    }.apply {
-                        id("update")
-                        horizontalSizing(Sizing.fill())
-                        renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.update.description")))
-                    },
+//                    UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.update")) {
+//                        click(it)
+//                    }.apply {
+//                        id("update")
+//                        horizontalSizing(Sizing.fill())
+//                        renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
+//                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.update.description")))
+//                    },
                 )
             )
         }
