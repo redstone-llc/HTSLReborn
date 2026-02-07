@@ -289,18 +289,20 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
     }
 
     fun showWorkingScreen(type: WorkingScreenType, fileName: String) {
-        val action = Text.translatable(when (type) {
+        val importScreen = this.uiAdapter.rootComponent.childById(FlowLayout::class.java, "importScreen")
+        if (importScreen != null) return
+
+        val display = Text.translatable(when (type) {
             WorkingScreenType.IMPORT -> "htslreborn.importing.working.type.import"
             WorkingScreenType.EXPORT -> "htslreborn.importing.working.type.export"
-        })
-        val display = action.append(Text.literal(" '$fileName'..."))
+        }, fileName)
         val workingScreen = buildWorkingScreen(display, type)
-        base.child(workingScreen)
+        this.uiAdapter.rootComponent.child(workingScreen)
     }
 
     fun hideWorkingScreen() {
-        val importScreen = base.childById(FlowLayout::class.java, "importScreen")
-        if (importScreen != null) base.removeChild(importScreen)
+        val importScreen = this.uiAdapter.rootComponent.childById(FlowLayout::class.java, "importScreen")
+        if (importScreen != null) this.uiAdapter.rootComponent.removeChild(importScreen)
     }
 
     val base: FlowLayout = UIContainers.verticalFlow(Sizing.fill(), Sizing.fill())
@@ -316,27 +318,30 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
             sizing(Sizing.fixed(accessor.getGuiLeft()), Sizing.expand())
             padding(Insets.of(5))
 
-            child(base.also {
-                it.id("base")
-                it.surface(Surface.DARK_PANEL)
-                it.padding(Insets.of(5))
+            child(
+                base.apply {
+                    id("base")
+                    surface(Surface.DARK_PANEL)
+                    padding(Insets.of(5))
 
-                it.children(
-                    listOf(
-                        buildTitle(),
-                        buildHeader(),
-                        buildExplorer(),
-                        buildContextButtons(),
-                        breadcrumbs
+                    children(
+                        listOf(
+                            buildTitle(),
+                            buildHeader(),
+                            buildExplorer(),
+                            buildContextButtons(),
+                            breadcrumbs
+                        )
                     )
-                )
-
-                if (importing) {
-                    showWorkingScreen(WorkingScreenType.IMPORT, importingFile!!.name)
-                } else if (exporting) {
-                    showWorkingScreen(WorkingScreenType.EXPORT, exportingFile!!.name)
                 }
-            })
+            )
+
+            if (importing) {
+                showWorkingScreen(WorkingScreenType.IMPORT, importingFile!!.name)
+            } else if (exporting) {
+                showWorkingScreen(WorkingScreenType.EXPORT, exportingFile!!.name)
+            }
+
         }
     }
 }

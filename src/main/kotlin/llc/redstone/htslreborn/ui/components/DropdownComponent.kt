@@ -3,6 +3,8 @@ package llc.redstone.htslreborn.ui.components
 import io.wispforest.owo.ui.component.ButtonComponent
 import io.wispforest.owo.ui.component.UIComponents
 import io.wispforest.owo.ui.container.FlowLayout
+import io.wispforest.owo.ui.container.OverlayContainer
+import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.Insets
 import io.wispforest.owo.ui.core.Positioning
 import io.wispforest.owo.ui.core.Sizing
@@ -16,45 +18,46 @@ import kotlin.io.path.name
 
 class DropdownComponent(
     horizontalSizing: Sizing, verticalSizing: Sizing
-) : FlowLayout(horizontalSizing, verticalSizing, Algorithm.VERTICAL) {
-    companion object {
-        fun create(parentButton: ButtonComponent, horizontalSizing: Sizing, verticalSizing: Sizing): DropdownComponent {
-            return DropdownComponent(horizontalSizing, verticalSizing).apply {
-                id("importDropdown")
-                surface(Surface.DARK_PANEL)
-                padding(Insets.of(2))
-                positioning(Positioning.absolute(parentButton.x() - 10, parentButton.y() - 75))
-                children(
-                    listOf(
-                        UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.add")) {
-                            click(it)
-                        }.apply {
-                            id("add")
-                            horizontalSizing(Sizing.fill())
-                            renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
-                        },
-                        UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.replace")) {
-                            click(it)
-                        }.apply {
-                            id("replace")
-                            horizontalSizing(Sizing.fill())
-                            renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.replace.description")))
-                        },
-                        UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.update")) {
-                            click(it)
-                        }.apply {
-                            id("update")
-                            horizontalSizing(Sizing.fill())
-                            renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.update.description")))
-                        },
-                    )
-                )
-            }
-        }
+) : OverlayContainer<FlowLayout>(UIContainers.verticalFlow(horizontalSizing, verticalSizing)) {
 
+    init {
+        id("importDropdown")
+
+        child().apply {
+            surface(Surface.DARK_PANEL)
+            padding(Insets.of(2))
+            children(
+                listOf(
+                    UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.add")) {
+                        click(it)
+                    }.apply {
+                        id("add")
+                        horizontalSizing(Sizing.fill())
+                        renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
+                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
+                    },
+                    UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.replace")) {
+                        click(it)
+                    }.apply {
+                        id("replace")
+                        horizontalSizing(Sizing.fill())
+                        renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
+                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.replace.description")))
+                    },
+                    UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.update")) {
+                        click(it)
+                    }.apply {
+                        id("update")
+                        horizontalSizing(Sizing.fill())
+                        renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
+                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.update.description")))
+                    },
+                )
+            )
+        }
+    }
+
+    companion object {
         fun click(button: ButtonComponent) {
             if (FileExplorer.INSTANCE.focus !is ScriptEntryComponent) return
             val method = when (button.id()) {

@@ -13,6 +13,7 @@ import llc.redstone.htslreborn.htslio.HTSLImporter
 import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.htslreborn.ui.FileHandler
 import llc.redstone.systemsapi.importer.ActionContainer
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
@@ -32,17 +33,7 @@ class ScriptEntryComponent(
                     UIComponents.button(
                         Text.translatable("htslreborn.explorer.button.script.import")
                     ) {
-                        val method = when (CONFIG.defaultImportStrategy) {
-                            HtslConfigModel.ImportStrategy.APPEND -> ActionContainer::addActions
-                            HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
-                            HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
-                        }
-
-                        importingFile = path
-                        FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, path.name)
-                        HTSLImporter.importFile(path, method) {
-                            FileExplorer.INSTANCE.hideWorkingScreen()
-                        }
+                        handleScriptClick()
                     }.apply {
                         val tooltipKey = when (CONFIG.defaultImportStrategy) {
                             HtslConfigModel.ImportStrategy.APPEND -> "htslreborn.explorer.button.script.import.append.description"
@@ -55,7 +46,7 @@ class ScriptEntryComponent(
                         val base = FileExplorer.INSTANCE.base
                         val dropdown = base.childById(DropdownComponent::class.java, "importDropdown")
                         if (dropdown == null)  {
-                            base.queue { base.child(DropdownComponent.create(it, Sizing.fixed(50), Sizing.content())) }
+                            base.queue { base.child(DropdownComponent(Sizing.fixed(50), Sizing.content())) }
                         } else {
                             base.queue { base.removeChild(dropdown) }
                         }
@@ -98,6 +89,28 @@ class ScriptEntryComponent(
             open,
             delete
         )
+    }
+
+    fun handleScriptClick() {
+        val method = when (CONFIG.defaultImportStrategy) {
+            HtslConfigModel.ImportStrategy.APPEND -> ActionContainer::addActions
+            HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
+            HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
+        }
+
+        importingFile = path
+        FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, path.name)
+        HTSLImporter.importFile(path, method) {
+            FileExplorer.INSTANCE.hideWorkingScreen()
+        }
+    }
+
+    override fun onMouseDown(click: Click, doubled: Boolean): Boolean {
+        if (doubled) {
+            handleScriptClick()
+            return true
+        }
+        return super.onMouseDown(click, false)
     }
 
     companion object {

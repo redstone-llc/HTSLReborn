@@ -4,8 +4,9 @@ import io.wispforest.owo.ui.component.UIComponents
 import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.core.UIComponent
 import llc.redstone.htslreborn.ui.FileExplorer
-import llc.redstone.htslreborn.ui.FileExplorerHandler.handleDirectoryClick
+import llc.redstone.htslreborn.ui.FileExplorerHandler.setWatchedDir
 import llc.redstone.htslreborn.ui.FileHandler
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
@@ -22,7 +23,7 @@ class FolderEntryComponent(
     @OptIn(ExperimentalPathApi::class)
     override fun buildContextButtons(): List<UIComponent> {
         val open = UIComponents.button(Text.translatable("htslreborn.explorer.button.folder.open")) {
-            handleDirectoryClick(index)
+            handleFolderClick()
         }.apply {
             sizing(Sizing.content(), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.folder.open.description")))
@@ -52,6 +53,22 @@ class FolderEntryComponent(
             openExternal,
             delete
         )
+    }
+
+    fun handleFolderClick() {
+        FileHandler.currentDir = path
+        FileHandler.refreshFiles()
+        FileExplorer.INSTANCE.refreshExplorer()
+        FileExplorer.INSTANCE.refreshBreadcrumbs()
+        setWatchedDir(FileHandler.currentDir)
+    }
+
+    override fun onMouseDown(click: Click, doubled: Boolean): Boolean {
+        if (doubled) {
+            handleFolderClick()
+            return true
+        }
+        return super.onMouseDown(click, false)
     }
 
     companion object {

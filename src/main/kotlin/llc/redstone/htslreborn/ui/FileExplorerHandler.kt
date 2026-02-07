@@ -1,13 +1,7 @@
 package llc.redstone.htslreborn.ui
 
-import llc.redstone.htslreborn.HTSLReborn.CONFIG
-import llc.redstone.htslreborn.HTSLReborn.importingFile
-import llc.redstone.htslreborn.config.HtslConfigModel
-import llc.redstone.htslreborn.htslio.HTSLImporter
-import llc.redstone.htslreborn.ui.FileHandler.htslExtensions
 import llc.redstone.htslreborn.ui.FileHandler.search
 import llc.redstone.htslreborn.utils.RenderUtils.isInitialized
-import llc.redstone.systemsapi.importer.ActionContainer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -103,38 +97,4 @@ object FileExplorerHandler {
         }
     }
 
-    //Index of the
-    fun handleDirectoryClick(index: Int): Boolean {
-        val filteredFiles = FileHandler.filteredFiles
-        val file = filteredFiles[index]
-        if (file.isDirectory()) {
-            FileHandler.currentDir = file
-            FileHandler.refreshFiles()
-            FileExplorer.INSTANCE.refreshExplorer()
-            FileExplorer.INSTANCE.refreshBreadcrumbs()
-            setWatchedDir(FileHandler.currentDir)
-            return true
-        }
-        return false
-    }
-
-    fun handleScriptClick(index: Int): Boolean {
-        val filteredFiles = FileHandler.filteredFiles
-        val file = filteredFiles[index]
-        if (file.isRegularFile() && htslExtensions.contains(file.extension)) {
-            val method = when (CONFIG.defaultImportStrategy) {
-                HtslConfigModel.ImportStrategy.APPEND -> ActionContainer::addActions
-                HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
-                HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
-            }
-
-            importingFile = file
-            FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, file.name)
-            HTSLImporter.importFile(file, method) {
-                FileExplorer.INSTANCE.hideWorkingScreen()
-            }
-            return true
-        }
-        return false
-    }
 }

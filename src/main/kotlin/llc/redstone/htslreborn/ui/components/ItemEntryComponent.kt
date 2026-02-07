@@ -9,6 +9,7 @@ import llc.redstone.htslreborn.ui.FileHandler
 import llc.redstone.htslreborn.utils.ItemUtils.giveItem
 import llc.redstone.htslreborn.utils.ItemUtils.saveItem
 import llc.redstone.htslreborn.utils.UIErrorToast
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
@@ -23,11 +24,7 @@ class ItemEntryComponent(
 
     override fun buildContextButtons(): List<UIComponent> {
         val give = UIComponents.button(Text.translatable("htslreborn.explorer.button.item.give")) {
-            try {
-                MC.player?.giveItem(path)
-            } catch (e: IllegalStateException) {
-                UIErrorToast.report(e.message)
-            }
+            handleItemClick()
         }.apply {
             sizing(Sizing.content(), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.give.description")))
@@ -69,6 +66,20 @@ class ItemEntryComponent(
             open,
             delete
         )
+    }
+
+    fun handleItemClick() = try {
+        MC.player?.giveItem(path)
+    } catch (e: IllegalStateException) {
+        UIErrorToast.report(e.message)
+    }
+
+    override fun onMouseDown(click: Click, doubled: Boolean): Boolean {
+        if (doubled) {
+            handleItemClick()
+            return true
+        }
+        return super.onMouseDown(click, false)
     }
 
     companion object {
