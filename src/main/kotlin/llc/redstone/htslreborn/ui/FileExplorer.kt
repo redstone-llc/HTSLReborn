@@ -30,9 +30,9 @@ import net.minecraft.client.input.KeyInput
 import net.minecraft.client.resource.language.I18n
 import net.minecraft.text.Text
 import net.minecraft.util.Util
-import java.nio.file.Files
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
+import kotlin.io.path.name
 
 class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     companion object {
@@ -119,7 +119,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
     }
 
     fun explorerEntry(name: String, index: Int): FlowLayout {
-        val file = filteredFiles[index].let { FileHandler.getFile(it) }
+        val file = filteredFiles[index]
 
         val entry = when {
             (file.isDirectory()) ->
@@ -164,8 +164,8 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         gap(1)
         margins(Insets.right(6))
 
-        children(filteredFiles.mapIndexed { index, fileName ->
-            explorerEntry(fileName, index)
+        children(filteredFiles.mapIndexed { index, file ->
+            explorerEntry(file.name, index)
         })
     }
 
@@ -191,8 +191,8 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
         content.clearChildren()
         content.children(
-            filteredFiles.mapIndexed { index, fileName ->
-                explorerEntry(fileName, index)
+            filteredFiles.mapIndexed { index, file ->
+                explorerEntry(file.name, index)
             }
         )
     }
@@ -379,10 +379,9 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
                 )
 
                 if (importing) {
-                    showWorkingScreen(WorkingScreenType.IMPORT, importingFile)
-                }
-                if (exporting) {
-                    showWorkingScreen(WorkingScreenType.EXPORT, exportingFile)
+                    showWorkingScreen(WorkingScreenType.IMPORT, importingFile!!.name)
+                } else if (exporting) {
+                    showWorkingScreen(WorkingScreenType.EXPORT, exportingFile!!.name)
                 }
             })
         }

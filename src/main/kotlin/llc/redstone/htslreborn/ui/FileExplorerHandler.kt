@@ -113,10 +113,9 @@ object FileExplorerHandler {
     //Index of the
     fun handleDirectoryClick(index: Int): Boolean {
         val filteredFiles = FileHandler.filteredFiles
-        val fileName = filteredFiles[index]
-        val file = FileHandler.getFile(fileName)
+        val file = filteredFiles[index]
         if (file.isDirectory()) {
-            FileHandler.currentDir = FileHandler.currentDir.resolve(fileName)
+            FileHandler.currentDir = file
             FileHandler.refreshFiles()
             FileExplorer.INSTANCE.refreshExplorer()
             FileExplorer.INSTANCE.refreshBreadcrumbs()
@@ -128,16 +127,16 @@ object FileExplorerHandler {
 
     fun handleScriptClick(index: Int): Boolean {
         val filteredFiles = FileHandler.filteredFiles
-        val fileName = filteredFiles[index]
-        val file = FileHandler.getFile(fileName)
+        val file = filteredFiles[index]
         if (file.isRegularFile() && htslExtensions.contains(file.extension)) {
             val method = when (CONFIG.defaultImportStrategy) {
                 HtslConfigModel.ImportStrategy.APPEND -> ActionContainer::addActions
                 HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
                 HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
             }
+
+            importingFile = file
             FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, file.name)
-            importingFile = file.name
             HTSLImporter.importFile(file, method) {
                 FileExplorer.INSTANCE.hideWorkingScreen()
             }

@@ -6,6 +6,7 @@ import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.core.UIComponent
 import llc.redstone.htslreborn.HTSLReborn.CONFIG
 import llc.redstone.htslreborn.HTSLReborn.exportingFile
+import llc.redstone.htslreborn.HTSLReborn.importing
 import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.config.HtslConfigModel
 import llc.redstone.htslreborn.htslio.HTSLExporter
@@ -17,7 +18,6 @@ import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.Util
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.name
@@ -38,8 +38,9 @@ class ScriptEntryComponent(
                             HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
                             HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
                         }
+
+                        importingFile = path
                         FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, path.name)
-                        importingFile = path.name
                         HTSLImporter.importFile(path, method) {
                             FileExplorer.INSTANCE.hideWorkingScreen()
                         }
@@ -57,13 +58,13 @@ class ScriptEntryComponent(
 
         val export = UIComponents.button(Text.translatable("htslreborn.explorer.button.script.export")) {
             FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.EXPORT, path.name)
-            exportingFile = path.name
+            exportingFile = path
             HTSLExporter.exportFile(path) {
                 FileExplorer.INSTANCE.hideWorkingScreen()
             }
         }.apply {
-                setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.export.description")))
-            }
+            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.export.description")))
+        }
 
         val spacer = UIComponents.spacer()
 

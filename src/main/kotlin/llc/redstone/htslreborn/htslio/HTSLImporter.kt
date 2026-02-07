@@ -3,6 +3,7 @@ package llc.redstone.htslreborn.htslio
 import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.importing
+import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.parser.Parser
 import llc.redstone.htslreborn.parser.PreProcess
 import llc.redstone.htslreborn.tokenizer.Tokenizer
@@ -22,6 +23,7 @@ import net.minecraft.world.GameMode
 import java.nio.file.Path
 import kotlin.collections.contains
 import kotlin.collections.isNotEmpty
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.path.name
 
 object HTSLImporter {
@@ -60,7 +62,9 @@ object HTSLImporter {
         //TODO: go through the compiled code and look for anything that doesnt exist yet and prompt the user to create it first
         SystemsAPI.launch {
             try {
+                importingFile = path
                 importing = true
+
                 for ((goto, actions) in compiledCode) {
                     val split = goto.split(" ")
                     when (split.first()) {
@@ -116,6 +120,7 @@ object HTSLImporter {
                 onComplete()
             } finally {
                 importing = false
+                importingFile = null
             }
         }
     }

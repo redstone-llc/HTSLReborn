@@ -10,11 +10,8 @@ import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.Util
-import java.io.File
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.deleteExisting
 import kotlin.io.path.deleteRecursively
 
 class FolderEntryComponent(

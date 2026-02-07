@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.nio.file.Path
 import kotlin.io.path.Path
 
 object HTSLReborn : ClientModInitializer {
@@ -23,9 +24,9 @@ object HTSLReborn : ClientModInitializer {
         get() = MinecraftClient.getInstance()
 
     var importing = false
-    var importingFile = ""
+    var importingFile: Path? = null
     var exporting = false
-    var exportingFile = ""
+    var exportingFile: Path? = null
 
     override fun onInitializeClient() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.

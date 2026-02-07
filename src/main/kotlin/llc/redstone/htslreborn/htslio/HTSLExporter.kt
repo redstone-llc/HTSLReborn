@@ -3,6 +3,7 @@ package llc.redstone.htslreborn.htslio
 import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.exporting
+import llc.redstone.htslreborn.HTSLReborn.exportingFile
 import llc.redstone.htslreborn.parser.ActionParser
 import llc.redstone.htslreborn.parser.ActionParser.handleSwaps
 import llc.redstone.htslreborn.parser.ConditionParser
@@ -24,6 +25,7 @@ import net.minecraft.sound.SoundEvents
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.path.createDirectory
 import kotlin.io.path.exists
 import kotlin.io.path.name
@@ -37,7 +39,9 @@ import kotlin.reflect.full.starProjectedType
 object HTSLExporter {
     fun exportFile(path: Path, onComplete: (Boolean) -> Unit = {}) {
         SystemsAPI.launch {
+            exportingFile = path
             exporting = true
+
             try {
                 val actions = SystemsAPI.getHousingImporter().getOpenActionContainer()?.getActions() ?: return@launch
                 val lines = export(actions)
@@ -56,7 +60,8 @@ object HTSLExporter {
                 UISuccessToast.report("Successfully exported HTSL code to ${path.name}")
                 onComplete(true)
             } catch (e: Exception) {
-                onComplete(false)
+                if (e.cause is CancellationException) return@launch
+
                 if (HTSLReborn.CONFIG.playCompleteSound) MC.player?.playSound(
                     SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(),
                     1.0f,
@@ -64,8 +69,10 @@ object HTSLExporter {
                 )
                 UIErrorToast.report(e)
                 e.printStackTrace()
+                onComplete(false)
             } finally {
                 exporting = false
+                exportingFile = null
             }
         }
     }

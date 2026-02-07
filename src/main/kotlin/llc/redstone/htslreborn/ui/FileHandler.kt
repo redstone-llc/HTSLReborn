@@ -7,8 +7,8 @@ import java.nio.file.Path
 import kotlin.io.path.*
 
 object FileHandler {
-    internal var files = mutableListOf<String>()
-    internal var filteredFiles = mutableListOf<String>()
+    internal var files = mutableListOf<Path>()
+    internal var filteredFiles = mutableListOf<Path>()
     internal var page = 0
     internal val cachedItems = mutableMapOf<String, ItemStack?>()
     internal var search = ""
@@ -37,7 +37,7 @@ object FileHandler {
         }.sortedWith(compareBy(
             { !it.isDirectory() },
             { it.name.lowercase() }
-        )).map { it.name }.toList().toMutableList()
+        )).toMutableList()
 
         filteredFiles = files.toMutableList()
         page = 0
@@ -45,7 +45,7 @@ object FileHandler {
 
         if (search.isNotEmpty()) {
             val query = search.lowercase()
-            filteredFiles = files.filter { it.lowercase().contains(query) }.toMutableList()
+            filteredFiles = files.filter { it.name.lowercase().contains(query) }.toMutableList()
         } else {
             filteredFiles = files.toMutableList()
         }
@@ -54,10 +54,6 @@ object FileHandler {
             FileExplorer.INSTANCE.focus = null
             FileExplorer.INSTANCE.updateButtons()
         }
-    }
-
-    fun getFile(fileName: String): Path {
-        return currentDir.resolve(fileName)
     }
 
     fun getItemForFile(path: Path): ItemStack? {
