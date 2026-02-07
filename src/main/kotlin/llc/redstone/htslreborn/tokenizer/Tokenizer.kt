@@ -1,6 +1,5 @@
 package llc.redstone.htslreborn.tokenizer
 
-import llc.redstone.htslreborn.tokenizer.States.*
 import guru.zoroark.tegral.niwen.lexer.StateLabel
 import guru.zoroark.tegral.niwen.lexer.Token
 import guru.zoroark.tegral.niwen.lexer.matchers.anyOf
@@ -8,11 +7,9 @@ import guru.zoroark.tegral.niwen.lexer.matchers.matches
 import guru.zoroark.tegral.niwen.lexer.niwenLexer
 import llc.redstone.htslreborn.parser.ActionParser
 import llc.redstone.htslreborn.parser.ConditionParser
-import java.io.File
-import java.nio.file.Files
+import llc.redstone.htslreborn.tokenizer.States.*
 import java.nio.file.Path
 import kotlin.io.path.readLines
-import kotlin.io.path.readText
 
 object Tokenizer {
     fun tokenize(text: String): List<TokenWithPosition> {

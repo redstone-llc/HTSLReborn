@@ -1,9 +1,7 @@
 package llc.redstone.htslreborn.parser
 
-import llc.redstone.systemsapi.data.Location
-import guru.zoroark.tegral.niwen.lexer.Token
-import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
+import llc.redstone.systemsapi.data.Location
 
 object LocationParser {
     fun parse(str: String, iterator: Iterator<TokenWithPosition>): Location =

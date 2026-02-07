@@ -10,20 +10,8 @@ import llc.redstone.htslreborn.parser.ConditionParser
 import llc.redstone.htslreborn.utils.UIErrorToast
 import llc.redstone.htslreborn.utils.UISuccessToast
 import llc.redstone.systemsapi.SystemsAPI
-import llc.redstone.systemsapi.data.Action
-import llc.redstone.systemsapi.data.Comparison
-import llc.redstone.systemsapi.data.Condition
-import llc.redstone.systemsapi.data.InventorySlot
-import llc.redstone.systemsapi.data.ItemStack
-import llc.redstone.systemsapi.data.Keyed
-import llc.redstone.systemsapi.data.KeyedLabeled
-import llc.redstone.systemsapi.data.Location
-import llc.redstone.systemsapi.data.PropertyHolder
-import llc.redstone.systemsapi.data.StatOp
-import llc.redstone.systemsapi.data.StatValue
+import llc.redstone.systemsapi.data.*
 import net.minecraft.sound.SoundEvents
-import java.io.File
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.path.createDirectory
@@ -184,13 +172,13 @@ object HTSLExporter {
             }
 
             val actionClass = action::class
-            var constructor = actionClass.primaryConstructor!!
-            var parameters = constructor.parameters.toMutableList()
+            val constructor = actionClass.primaryConstructor!!
+            val parameters = constructor.parameters.toMutableList()
 
             handleSwaps(parameters, actionClass)
 
-            var actionProperties = actionClass.memberProperties
-            var newActionProperties = mutableListOf<KProperty1<Action, *>>()
+            val actionProperties = actionClass.memberProperties
+            val newActionProperties = mutableListOf<KProperty1<Action, *>>()
 
             for (parm in parameters) {
                 newActionProperties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *>)

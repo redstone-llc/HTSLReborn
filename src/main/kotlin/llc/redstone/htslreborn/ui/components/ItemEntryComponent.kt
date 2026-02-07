@@ -71,12 +71,6 @@ class ItemEntryComponent(
         )
     }
 
-    private fun convertSlot(slot: Int) = when (slot) {
-        in 0..8 -> slot + 36
-        in 9..35 -> slot
-        else -> -1
-    }
-
     companion object {
         fun create(horizontalSizing: Sizing, verticalSizing: Sizing, index: Int, path: Path): ExplorerEntryComponent {
             return ItemEntryComponent(horizontalSizing, verticalSizing, index, path)

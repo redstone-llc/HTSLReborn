@@ -21,8 +21,7 @@ class FolderEntryComponent(
 
     @OptIn(ExperimentalPathApi::class)
     override fun buildContextButtons(): List<UIComponent> {
-        val open = UIComponents.button(Text.translatable("htslreborn.explorer.button.folder.open")
-        ) {
+        val open = UIComponents.button(Text.translatable("htslreborn.explorer.button.folder.open")) {
             handleDirectoryClick(index)
         }.apply {
             sizing(Sizing.content(), Sizing.fill())

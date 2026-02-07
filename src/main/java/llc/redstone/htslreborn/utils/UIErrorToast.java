@@ -47,9 +47,7 @@ public class UIErrorToast implements Toast {
 
     public UIErrorToast(String message) {
         this.textRenderer = MinecraftClient.getInstance().textRenderer;
-        var texts = this.initText(message, (consumer) -> {
-            consumer.accept(Text.literal("No context provided").formatted(Formatting.GRAY));
-        });
+        var texts = this.initText(message, (consumer) -> consumer.accept(Text.literal("No context provided").formatted(Formatting.GRAY)));
         this.width = Math.min(240, TextOps.width(textRenderer, texts) + 8);
         this.errorMessage = this.wrap(texts);
     }
@@ -94,8 +92,8 @@ public class UIErrorToast implements Toast {
         owoContext.fill(0, 0, this.getWidth(), this.getHeight(), 0x77000000);
         owoContext.drawRectOutline(0, 0, this.getWidth(), this.getHeight(), 0xA7FF0000);
 
-        int xOffset = this.getWidth() / 2 - this.textRenderer.getWidth(this.errorMessage.get(0)) / 2;
-        owoContext.drawTextWithShadow(this.textRenderer, this.errorMessage.get(0), 4 + xOffset, 4, 0xFFFFFFFF);
+        int xOffset = this.getWidth() / 2 - this.textRenderer.getWidth(this.errorMessage.getFirst()) / 2;
+        owoContext.drawTextWithShadow(this.textRenderer, this.errorMessage.getFirst(), 4 + xOffset, 4, 0xFFFFFFFF);
 
         for (int i = 1; i < this.errorMessage.size(); i++) {
             owoContext.drawText(this.textRenderer, this.errorMessage.get(i), 4, 4 + i * 11, 0xFFFFFFFF, false);

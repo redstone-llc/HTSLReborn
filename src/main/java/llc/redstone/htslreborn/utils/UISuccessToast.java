@@ -66,8 +66,8 @@ public class UISuccessToast implements Toast {
         owoContext.fill(0, 0, this.getWidth(), this.getHeight(), 0x77000000);
         owoContext.drawRectOutline(0, 0, this.getWidth(), this.getHeight(), 0xA700FF00);
 
-        int xOffset = this.getWidth() / 2 - this.textRenderer.getWidth(this.errorMessage.get(0)) / 2;
-        owoContext.drawTextWithShadow(this.textRenderer, this.errorMessage.get(0), 4 + xOffset, 4, 0xFFFFFFFF);
+        int xOffset = this.getWidth() / 2 - this.textRenderer.getWidth(this.errorMessage.getFirst()) / 2;
+        owoContext.drawTextWithShadow(this.textRenderer, this.errorMessage.getFirst(), 4 + xOffset, 4, 0xFFFFFFFF);
 
         for (int i = 1; i < this.errorMessage.size(); i++) {
             owoContext.drawText(this.textRenderer, this.errorMessage.get(i), 4, 4 + i * 11, 0xFFFFFFFF, false);

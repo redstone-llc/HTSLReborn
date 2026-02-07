@@ -1,4 +1,4 @@
-package llc.redstone.htslreborn.config;
+package llc.redstone.htslreborn.config
 
 import io.wispforest.owo.config.annotation.Config
 import io.wispforest.owo.config.annotation.Hook

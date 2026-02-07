@@ -1,12 +1,11 @@
 package llc.redstone.htslreborn.parser
 
+import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
+import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.Action.Conditional
 import llc.redstone.systemsapi.data.Action.RandomAction
 import llc.redstone.systemsapi.data.Condition
-import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
-import llc.redstone.htslreborn.tokenizer.Tokens
-import java.io.File
 import java.nio.file.Path
 
 object Parser {

@@ -6,7 +6,6 @@ import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import org.mozilla.javascript.Context
-import org.mozilla.javascript.Parser
 import org.mozilla.javascript.ScriptableObject
 
 object PreProcess {
@@ -29,7 +28,7 @@ object PreProcess {
 
         val iterator = tokens.iterator()
 
-        var loopAmount: Int = 0
+        var loopAmount: Int
         var loopVarName: String? = loopVarName
         while (iterator.hasNext()) {
             val token = iterator.next()

@@ -1,27 +1,20 @@
 package llc.redstone.htslreborn.parser
 
-import llc.redstone.systemsapi.data.Comparison
-import llc.redstone.systemsapi.data.Condition
-import llc.redstone.systemsapi.data.Condition.*
-import llc.redstone.systemsapi.data.ItemStack
-import llc.redstone.systemsapi.data.Keyed
-import llc.redstone.systemsapi.data.StatValue
 import llc.redstone.htslreborn.tokenizer.Comparators
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
+import llc.redstone.systemsapi.data.*
+import llc.redstone.systemsapi.data.Condition.*
+import llc.redstone.systemsapi.data.Condition.DamageCause
+import llc.redstone.systemsapi.data.Condition.FishingEnvironment
+import llc.redstone.systemsapi.data.Condition.PortalType
 import net.minecraft.nbt.StringNbtReader
-import java.io.File
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.readText
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.companionObjectInstance
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.primaryConstructor
-import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.*
 
 object ConditionParser {
     val keywords = mapOf(

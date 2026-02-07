@@ -1,7 +1,5 @@
 package llc.redstone.htslreborn.utils
 
-import guru.zoroark.tegral.niwen.lexer.Token
-import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 
 object ErrorUtils {

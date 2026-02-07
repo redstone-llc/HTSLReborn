@@ -170,7 +170,7 @@ object ActionParser {
 
                 if (prop.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
                     val companion = prop.returnType.classifier
-                        .let { it as? kotlin.reflect.KClass<*> }
+                        .let { it as? KClass<*> }
                         ?.companionObjectInstance
                         ?: error("No companion object for keyed enum: ${prop.returnType}")
 

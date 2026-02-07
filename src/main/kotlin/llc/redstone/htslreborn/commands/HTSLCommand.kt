@@ -10,15 +10,11 @@ import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.ui.FileHandler
 import llc.redstone.htslreborn.utils.ItemUtils.giveItem
 import llc.redstone.htslreborn.utils.ItemUtils.saveItem
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.text.Text
-import kotlin.io.path.Path
-import kotlin.io.path.deleteExisting
-import kotlin.io.path.extension
-import kotlin.io.path.name
-import kotlin.io.path.pathString
-import kotlin.io.path.walk
+import kotlin.io.path.*
 
 object HTSLCommand {
     fun register(dispatcher: CommandDispatcher<FabricClientCommandSource>) {

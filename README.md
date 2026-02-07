@@ -40,7 +40,7 @@ To migrate from HTSL to HTSL Reborn, just copy all your imports into the new HTS
 <details>
 <summary><b>What's better about this compared to the ChatTriggers module?</b></summary>
 
-There are a couple reasons why we abandoned HTSL to make this new mod.
+There are a couple of reasons why we abandoned HTSL to make this new mod.
 * We wanted to update to the latest version of Minecraft.
 * We wanted to leave the ChatTriggers ecosystem.
 * We wanted to start fresh with a clean codebase (the old one was starting to get out of hand.)

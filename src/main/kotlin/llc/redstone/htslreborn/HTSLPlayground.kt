@@ -3,12 +3,7 @@ package llc.redstone.htslreborn
 import llc.redstone.htslreborn.parser.PreProcess
 import llc.redstone.htslreborn.tokenizer.Tokenizer
 import org.mozilla.javascript.EvaluatorException
-import java.io.File
-import kotlin.io.path.Path
-import kotlin.io.path.extension
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.name
-import kotlin.io.path.walk
+import kotlin.io.path.*
 
 // Used primarily for testing the tokenizer, preprocessor, and parser
 fun main(args: Array<String>) {
