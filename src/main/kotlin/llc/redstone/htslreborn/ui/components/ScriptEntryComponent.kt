@@ -6,7 +6,6 @@ import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.core.UIComponent
 import llc.redstone.htslreborn.HTSLReborn.CONFIG
 import llc.redstone.htslreborn.HTSLReborn.exportingFile
-import llc.redstone.htslreborn.HTSLReborn.importing
 import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.config.HtslConfigModel
 import llc.redstone.htslreborn.htslio.HTSLExporter
@@ -52,7 +51,15 @@ class ScriptEntryComponent(
                         }
                         setTooltip(Tooltip.of(Text.translatable(tooltipKey)))
                     },
-                    UIComponents.button(Text.of("↓")) { FileExplorer.INSTANCE.dropdown.handleDropdownButton(it) }
+                    UIComponents.button(Text.of("↓")) {
+                        val base = FileExplorer.INSTANCE.base
+                        val dropdown = base.childById(DropdownComponent::class.java, "importDropdown")
+                        if (dropdown == null)  {
+                            base.queue { base.child(DropdownComponent.create(it, Sizing.fixed(50), Sizing.content())) }
+                        } else {
+                            base.queue { base.removeChild(dropdown) }
+                        }
+                    }
                 ))
         }
 

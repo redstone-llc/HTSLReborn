@@ -1,37 +1,58 @@
 package llc.redstone.htslreborn.ui.components
 
 import io.wispforest.owo.ui.component.ButtonComponent
+import io.wispforest.owo.ui.component.UIComponents
 import io.wispforest.owo.ui.container.FlowLayout
-import io.wispforest.owo.ui.core.OwoUIGraphics
+import io.wispforest.owo.ui.core.Insets
 import io.wispforest.owo.ui.core.Positioning
 import io.wispforest.owo.ui.core.Sizing
+import io.wispforest.owo.ui.core.Surface
 import llc.redstone.htslreborn.htslio.HTSLImporter
 import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.systemsapi.importer.ActionContainer
+import net.minecraft.client.gui.tooltip.Tooltip
+import net.minecraft.text.Text
 import kotlin.io.path.name
 
 class DropdownComponent(
     horizontalSizing: Sizing, verticalSizing: Sizing
 ) : FlowLayout(horizontalSizing, verticalSizing, Algorithm.VERTICAL) {
-    var isVisible = false
-    var x = 0
-    var y = 0
-
-    fun handleDropdownButton(buttonComponent: ButtonComponent?) {
-        isVisible = !isVisible
-        x = buttonComponent!!.x() + 5
-        y = buttonComponent.y() + 5 - this.height()
-        positioning(Positioning.absolute(x, y))
-    }
-
-    override fun draw(graphics: OwoUIGraphics, mouseX: Int, mouseY: Int, partialTicks: Float, delta: Float) {
-        if (!isVisible) return
-        super.draw(graphics, mouseX, mouseY, partialTicks, delta)
-    }
-
     companion object {
-        fun create(horizontalSizing: Sizing, verticalSizing: Sizing): DropdownComponent {
-            return DropdownComponent(horizontalSizing, verticalSizing)
+        fun create(parentButton: ButtonComponent, horizontalSizing: Sizing, verticalSizing: Sizing): DropdownComponent {
+            return DropdownComponent(horizontalSizing, verticalSizing).apply {
+                id("importDropdown")
+                surface(Surface.DARK_PANEL)
+                padding(Insets.of(2))
+                positioning(Positioning.absolute(parentButton.x() - 10, parentButton.y() - 75))
+                children(
+                    listOf(
+                        UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.add")) {
+                            click(it)
+                        }.apply {
+                            id("add")
+                            horizontalSizing(Sizing.fill())
+                            renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
+                            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
+                        },
+                        UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.replace")) {
+                            click(it)
+                        }.apply {
+                            id("replace")
+                            horizontalSizing(Sizing.fill())
+                            renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
+                            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.replace.description")))
+                        },
+                        UIComponents.button(Text.translatable("htslreborn.explorer.button.script.import.update")) {
+                            click(it)
+                        }.apply {
+                            id("update")
+                            horizontalSizing(Sizing.fill())
+                            renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
+                            setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.update.description")))
+                        },
+                    )
+                )
+            }
         }
 
         fun click(button: ButtonComponent) {
@@ -45,10 +66,11 @@ class DropdownComponent(
 
             val file = (FileExplorer.INSTANCE.focus as ScriptEntryComponent).path
             FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, file.name)
-            HTSLImporter.importFile(file, method) {
-                FileExplorer.INSTANCE.hideWorkingScreen()
-            }
-            FileExplorer.INSTANCE.dropdown.isVisible = false
+            HTSLImporter.importFile(file, method, onComplete = FileExplorer.INSTANCE::hideWorkingScreen)
+
+            val base = FileExplorer.INSTANCE.base
+            val dropdown = base.childById(DropdownComponent::class.java, "importDropdown")
+            base.queue { base.removeChild(dropdown) }
         }
     }
 }

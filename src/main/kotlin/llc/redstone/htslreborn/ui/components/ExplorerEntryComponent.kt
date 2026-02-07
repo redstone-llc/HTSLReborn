@@ -1,8 +1,12 @@
 package llc.redstone.htslreborn.ui.components
 
+import io.wispforest.owo.ui.component.BoxComponent
+import io.wispforest.owo.ui.component.UIComponents
 import io.wispforest.owo.ui.container.FlowLayout
+import io.wispforest.owo.ui.core.Color
 import io.wispforest.owo.ui.core.CursorStyle
 import io.wispforest.owo.ui.core.OwoUIGraphics
+import io.wispforest.owo.ui.core.Positioning
 import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.core.UIComponent
 import llc.redstone.htslreborn.ui.FileExplorer
@@ -24,19 +28,55 @@ abstract class ExplorerEntryComponent(
     abstract fun buildContextButtons(): List<UIComponent>
 
     override fun child(child: UIComponent?): FlowLayout? {
-        mouseEnter().subscribe {
-            cursorStyle(CursorStyle.HAND)
-        }
-        return super.child(child)
+        val value = super.child(child)
+
+        // Render this on top of everything
+        val clickmask = this.childById(BoxComponent::class.java, "clickmask")
+        if (clickmask != null) removeChild(clickmask)
+        super.child(
+            UIComponents.box(Sizing.fill(), Sizing.fill()).apply {
+                id("clickmask")
+                positioning(Positioning.absolute(0, 0))
+                color(Color.ofArgb(0))
+                fill(true)
+                mouseDown().subscribe { click, bool ->
+                    // why twice? idfk but IT WORKS
+                    this@ExplorerEntryComponent.onMouseDown(click, bool)
+                    this@ExplorerEntryComponent.onMouseDown(click, bool)
+                }
+                mouseEnter()?.subscribe {
+                    cursorStyle(CursorStyle.HAND)
+                }
+            }
+        )
+
+        return value
     }
 
     override fun children(children: Collection<UIComponent?>?): FlowLayout? {
-        children?.forEach {
-            it?.mouseEnter()?.subscribe {
-                it.cursorStyle(CursorStyle.HAND)
+        val value = super.children(children)
+
+        // Render this on top of everything
+        val clickmask = childById(BoxComponent::class.java, "clickmask")
+        if (clickmask != null) removeChild(clickmask)
+        super.child(
+            UIComponents.box(Sizing.fill(), Sizing.fill()).apply {
+                id("clickmask")
+                positioning(Positioning.absolute(0, 0))
+                color(Color.ofArgb(0))
+                fill(true)
+                mouseDown().subscribe { click, bool ->
+                    // why twice? idfk but IT WORKS
+                    this@ExplorerEntryComponent.onMouseDown(click, bool)
+                    this@ExplorerEntryComponent.onMouseDown(click, bool)
+                }
+                mouseEnter()?.subscribe {
+                    cursorStyle(CursorStyle.HAND)
+                }
             }
-        }
-        return super.children(children)
+        )
+
+        return value
     }
 
     override fun draw(graphics: OwoUIGraphics, mouseX: Int, mouseY: Int, partialTicks: Float, delta: Float) {
