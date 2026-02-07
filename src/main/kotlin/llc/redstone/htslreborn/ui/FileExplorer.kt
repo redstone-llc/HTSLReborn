@@ -1,7 +1,6 @@
 package llc.redstone.htslreborn.ui
 
 import io.wispforest.owo.ui.base.BaseOwoScreen
-import io.wispforest.owo.ui.component.ButtonComponent
 import io.wispforest.owo.ui.component.LabelComponent
 import io.wispforest.owo.ui.component.UIComponents
 import io.wispforest.owo.ui.container.FlowLayout
@@ -20,7 +19,10 @@ import llc.redstone.htslreborn.ui.FileHandler.filteredFiles
 import llc.redstone.htslreborn.ui.FileHandler.htslExtensions
 import llc.redstone.htslreborn.ui.FileHandler.itemExtensions
 import llc.redstone.htslreborn.ui.FileHandler.refreshFiles
-import llc.redstone.htslreborn.ui.components.*
+import llc.redstone.htslreborn.ui.components.ExplorerEntryComponent
+import llc.redstone.htslreborn.ui.components.FolderEntryComponent
+import llc.redstone.htslreborn.ui.components.ItemEntryComponent
+import llc.redstone.htslreborn.ui.components.ScriptEntryComponent
 import llc.redstone.systemsapi.SystemsAPI
 import net.minecraft.client.gui.cursor.Cursor
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
@@ -30,11 +32,13 @@ import net.minecraft.client.input.KeyInput
 import net.minecraft.client.resource.language.I18n
 import net.minecraft.text.Text
 import net.minecraft.util.Util
+import java.nio.file.Path
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
+import kotlin.io.path.nameWithoutExtension
 
-class FileExplorer() : BaseOwoScreen<FlowLayout>() {
+class FileExplorer : BaseOwoScreen<FlowLayout>() {
     companion object {
         @JvmStatic
         var INSTANCE = FileExplorer()
@@ -118,7 +122,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    fun explorerEntry(name: String, index: Int): FlowLayout {
+    fun explorerEntry(file: Path, index: Int): FlowLayout {
         val file = filteredFiles[index]
 
         val entry = when {
@@ -137,18 +141,15 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         return entry.apply {
             val icon = UIComponents.texture(this.icon, 0, 0, 16, 16, 16, 16)
             val label = UIComponents.label(
-                name.lastIndexOf('.').let { dot ->
-                    if (dot > 0) {
-                        val base = name.substring(0, dot)
-                        val extension = name.substring(dot)
-                        Text.literal(base).append(Text.literal(extension).withColor(0x808080))
-                    } else Text.literal(name)
+                Text.literal(file.nameWithoutExtension).apply {
+                    if (file.isDirectory()) return@apply
+                    append(Text.literal(".${file.extension}").withColor(0x808080))
                 }
             )
 
             surface(Surface.DARK_PANEL)
             gap(4)
-            padding(Insets.of(5))
+            padding(Insets.of(4).withLeft(5).withRight(5))
             alignment(HorizontalAlignment.LEFT, VerticalAlignment.CENTER)
 
             children(
@@ -165,7 +166,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         margins(Insets.right(6))
 
         children(filteredFiles.mapIndexed { index, file ->
-            explorerEntry(file.name, index)
+            explorerEntry(file, index)
         })
     }
 
@@ -190,10 +191,9 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             return
         }
         content.clearChildren()
-        content.children(
-            filteredFiles.mapIndexed { index, file ->
-                explorerEntry(file.name, index)
-            }
+        content.children(filteredFiles.mapIndexed { index, file ->
+            explorerEntry(file, index)
+        }
         )
     }
 
@@ -207,8 +207,6 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
             scrollbarThiccness(4)
         }
     }
-
-    val dropdown: DropdownComponent = buildDropdown()
 
     private fun buildContextButtons(): FlowLayout {
         return UIContainers.horizontalFlow(Sizing.fill(), Sizing.fixed(0)).apply {
@@ -257,48 +255,6 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
         }
 
         if (breadcrumbs.hasParent()) breadcrumbs.queue { update() } else update()
-    }
-
-    fun buildDropdown(): DropdownComponent {
-        return DropdownComponent.create(Sizing.fixed(50), Sizing.content()).apply {
-            surface(Surface.DARK_PANEL)
-            padding(Insets.of(2))
-            positioning(Positioning.absolute(0, 0))
-            children(
-                listOf(
-                    UIComponents.button(
-                        Text.translatable("htslreborn.explorer.button.script.import.add")
-                    ) {
-                        DropdownComponent.click(it)
-                    }.apply {
-                        id("add")
-                        horizontalSizing(Sizing.fill())
-                        renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.add.description")))
-                    },
-                    UIComponents.button(
-                        Text.translatable("htslreborn.explorer.button.script.import.replace")
-                    ) {
-                        DropdownComponent.click(it)
-                    }.apply {
-                        id("replace")
-                        horizontalSizing(Sizing.fill())
-                        renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.replace.description")))
-                    },
-                    UIComponents.button(
-                        Text.translatable("htslreborn.explorer.button.script.import.update")
-                    ) {
-                        DropdownComponent.click(it)
-                    }.apply {
-                        id("update")
-                        horizontalSizing(Sizing.fill())
-                        renderer(ButtonComponent.Renderer.flat(0x00000000, 0x50000000, 0x00000000))
-                        setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.script.import.update.description")))
-                    },
-                )
-            )
-        }
     }
 
     fun buildWorkingScreen(display: Text, type: WorkingScreenType): FlowLayout {
@@ -371,10 +327,7 @@ class FileExplorer() : BaseOwoScreen<FlowLayout>() {
                         buildHeader(),
                         buildExplorer(),
                         buildContextButtons(),
-                        breadcrumbs,
-
-                        // Below is things that go on top of the screen generally an absolute positioning
-                        dropdown
+                        breadcrumbs
                     )
                 )
 

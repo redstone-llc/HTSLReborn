@@ -1,5 +1,6 @@
 package llc.redstone.htslreborn.mixins;
 
+import llc.redstone.htslreborn.HTSLReborn;
 import llc.redstone.htslreborn.accessors.HandledScreenAccessor;
 import llc.redstone.htslreborn.ui.FileExplorer;
 import net.minecraft.client.gui.Click;
@@ -32,7 +33,7 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
 
     @Inject(method = "render", at = @At("HEAD"))
     public void htslreborn$render(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-        if (!FileExplorer.inActionGui()) return;
+        if (!(FileExplorer.inActionGui() || !HTSLReborn.INSTANCE.getCONFIG().getShowFileExplorer())) return;
         FileExplorer.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
     }
 
