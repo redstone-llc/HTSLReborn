@@ -1,6 +1,14 @@
 {
-  "htslreborn.explorer.title": "HTSL Reborn",
+  "htslreborn.command.item.give.success": "Gave you '%s'",
+  "htslreborn.command.item.give.fail": "Failed to find item at '%s'",
+  "htslreborn.command.item.save.success": "Saved '%s' to '%s'",
+  "htslreborn.command.item.save.fail": "Failed to save held item to '%s'",
+  "htslreborn.command.item.delete.success": "Deleted '%s'",
+  "htslreborn.command.item.delete.fail": "Failed to delete '%s'",
+
   "htslreborn.action.container.title": "Edit Actions|Actions: ",
+
+  "htslreborn.explorer.title": "HTSL Reborn",
   "htslreborn.explorer.search": "Search",
   "htslreborn.explorer.openfolder": "Open Folder",
   "htslreborn.explorer.openfolder.description": "Open current folder in external file explorer",

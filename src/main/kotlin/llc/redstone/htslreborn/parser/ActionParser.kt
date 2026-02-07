@@ -1,14 +1,12 @@
 package llc.redstone.htslreborn.parser
 
-import llc.redstone.systemsapi.data.*
-import llc.redstone.systemsapi.data.Action.*
 import llc.redstone.htslreborn.tokenizer.Operators
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
-import llc.redstone.htslreborn.utils.ItemConvertUtils
-import java.io.File
-import java.nio.file.Files
+import llc.redstone.htslreborn.utils.ItemUtils
+import llc.redstone.systemsapi.data.*
+import llc.redstone.systemsapi.data.Action.*
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
@@ -133,12 +131,12 @@ object ActionParser {
                         val file = parent.resolve(relativeFileLocation)
                         val nbt = if (file.exists()) {
                             try {
-                                ItemConvertUtils.stringToNbtCompound(relativeFileLocation.replace("\\\"", "\""))
+                                ItemUtils.stringToNbtCompound(relativeFileLocation.replace("\\\"", "\""))
                             } catch (e: Exception) {
                                 error("Failed to parse ItemStack NBT from string or find file at location: $relativeFileLocation")
                             }
                         } else {
-                            ItemConvertUtils.fileToNbtCompound(file)
+                            ItemUtils.fileToNbtCompound(file)
                         }
 
                         ItemStack(

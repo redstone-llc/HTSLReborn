@@ -6,15 +6,13 @@ import io.wispforest.owo.ui.core.UIComponent
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.htslreborn.ui.FileHandler
-import llc.redstone.htslreborn.utils.ItemConvertUtils
-import llc.redstone.systemsapi.util.CommandUtils
-import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
+import llc.redstone.htslreborn.utils.ItemUtils.giveItem
+import llc.redstone.htslreborn.utils.ItemUtils.saveItem
+import llc.redstone.htslreborn.utils.UIErrorToast
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.Util
-import net.minecraft.world.GameMode
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.deleteExisting
 
@@ -25,19 +23,22 @@ class ItemEntryComponent(
 
     override fun buildContextButtons(): List<UIComponent> {
         val give = UIComponents.button(Text.translatable("htslreborn.explorer.button.item.give")) {
-            if (MC.player?.gameMode != GameMode.CREATIVE) CommandUtils.runCommand("gmc")
-
-            val item = FileHandler.getItemForFile(path) ?: return@button
-            val slot = convertSlot(MC.player?.inventory?.emptySlot ?: -1)
-            item.giveItem(slot)
+            try {
+                MC.player?.giveItem(path)
+            } catch (e: IllegalStateException) {
+                UIErrorToast.report(e.message)
+            }
         }.apply {
             sizing(Sizing.content(), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.give.description")))
         }
 
         val save = UIComponents.button(Text.translatable("htslreborn.explorer.button.item.save")) {
-            val item = MC.player?.inventory?.selectedStack ?: return@button
-            ItemConvertUtils.itemStackToFile(item, path.toFile())
+            try {
+                MC.player?.saveItem(path)
+            } catch (e: IllegalStateException) {
+                UIErrorToast.report(e.message)
+            }
         }.apply {
             sizing(Sizing.content(), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.item.save.description")))

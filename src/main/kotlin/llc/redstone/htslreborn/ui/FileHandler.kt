@@ -1,7 +1,7 @@
 package llc.redstone.htslreborn.ui
 
 import llc.redstone.htslreborn.HTSLReborn
-import llc.redstone.htslreborn.utils.ItemConvertUtils
+import llc.redstone.htslreborn.utils.ItemUtils
 import net.minecraft.item.ItemStack
 import java.nio.file.Path
 import kotlin.io.path.*
@@ -59,7 +59,7 @@ object FileHandler {
     fun getItemForFile(path: Path): ItemStack? {
         return cachedItems.getOrPut(path.name) {
             try {
-                return@getOrPut ItemConvertUtils.fileToItemStack(path)
+                return@getOrPut ItemUtils.fileToItemStack(path)
             } catch (e: Exception) {
                 e.printStackTrace()
                 return null
