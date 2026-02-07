@@ -104,6 +104,8 @@ object HTSLImporter {
                 UISuccessToast.report("Successfully imported HTSL code from ${path.name}")
                 onComplete()
             } catch (e: Exception) {
+                if (e.cause is CancellationException) return@launch
+
                 if (HTSLReborn.CONFIG.playCompleteSound) MC.player?.playSound(
                     SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(),
                     1.0f,
