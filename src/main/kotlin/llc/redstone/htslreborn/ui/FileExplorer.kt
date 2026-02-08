@@ -7,6 +7,7 @@ import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.ScrollContainer
 import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.*
+import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.exporting
 import llc.redstone.htslreborn.HTSLReborn.exportingFile
@@ -315,11 +316,15 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
         refreshBreadcrumbs()
 
         root.apply {
-            sizing(Sizing.fixed(accessor.getGuiLeft()), Sizing.expand())
+            sizing(Sizing.fixed(accessor.getGuiLeft()), Sizing.fixed(MC.window.scaledHeight))
             padding(Insets.of(5))
+            verticalAlignment(VerticalAlignment.CENTER)
+            horizontalAlignment(HorizontalAlignment.RIGHT)
 
             child(
                 base.apply {
+                    sizing(Sizing.fixed((accessor.getGuiLeft() * HTSLReborn.CONFIG.widthScale).toInt() - 10), Sizing.fixed((MC.window.scaledHeight * HTSLReborn.CONFIG.heightScale).toInt() - 10))
+
                     id("base")
                     surface(Surface.DARK_PANEL)
                     padding(Insets.of(5))
