@@ -1,5 +1,6 @@
 package llc.redstone.htslreborn.htslio
 
+import kotlinx.coroutines.CancellationException
 import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.importing
@@ -20,17 +21,21 @@ import net.minecraft.text.Text
 import net.minecraft.util.Colors
 import net.minecraft.world.GameMode
 import java.nio.file.Path
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.path.name
 
 object HTSLImporter {
-    fun importFile(path: Path, method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions, supportsBase: Boolean = true, onComplete: () -> Unit = {}) {
+    fun importFile(
+        path: Path,
+        method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions,
+        supportsBase: Boolean = true,
+        onComplete: () -> Unit = {}
+    ) {
         val compiledCode: MutableMap<String, List<Action>>
         try {
             var tokens = Tokenizer.tokenize(path)
             tokens = PreProcess.preProcess(tokens)
             compiledCode = Parser.parse(tokens, path)
-        }  catch (e: Exception) {
+        } catch (e: Exception) {
             UIErrorToast.report(e)
             e.printStackTrace()
             onComplete()
@@ -40,7 +45,13 @@ object HTSLImporter {
         import(path, compiledCode, method, supportsBase, onComplete)
     }
 
-    fun import(path: Path, compiledCode: MutableMap<String, List<Action>>, method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions, supportsBase: Boolean = true, onComplete: () -> Unit = {}) {
+    fun import(
+        path: Path,
+        compiledCode: MutableMap<String, List<Action>>,
+        method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions,
+        supportsBase: Boolean = true,
+        onComplete: () -> Unit = {}
+    ) {
         if (compiledCode.contains("base") && compiledCode["base"]?.isNotEmpty() == true && !supportsBase) {
             MinecraftClient.getInstance().player?.sendMessage(
                 Text.of("Couldn't use actions before a goto call.").copy().withColor(Colors.RED), false
@@ -63,36 +74,42 @@ object HTSLImporter {
                 importing = true
 
                 for ((goto, actions) in compiledCode) {
-                    val split = goto.split(" ")
-                    when (split.first()) {
+                    val type = goto.split(" ").first()
+                    val args = goto.substringAfter(" ")
+                    when (type) {
                         "base" -> {
                             SystemsAPI.getHousingImporter().getOpenActionContainer()
                                 ?.let { method(it, actions) }
                         }
 
                         "function" -> {
-                            val name = split.getOrNull(1) ?: continue
-                            SystemsAPI.getHousingImporter().getFunction(name)?.getActionContainer()
-                                ?.let { method(it, actions) }
+                            val function = SystemsAPI.getHousingImporter().getFunction(args)
+                                ?: SystemsAPI.getHousingImporter().createFunction(args)
+
+                            method(function.getActionContainer(), actions)
                         }
 
                         "command" -> {
-                            val name = split.getOrNull(1) ?: continue
-                            SystemsAPI.getHousingImporter().getCommand(name)?.getActionContainer()
-                                ?.let { method(it, actions) }
+                            val command = SystemsAPI.getHousingImporter().getCommand(args)
+                                ?: SystemsAPI.getHousingImporter().createCommand(args)
+
+                            method(command.getActionContainer(), actions)
                         }
 
                         "event" -> {
-                            val name = split.getOrNull(1) ?: continue
-                            SystemsAPI.getHousingImporter().getEvent(Event.Events.valueOf(name))
+                            SystemsAPI.getHousingImporter().getEvent(Event.Events.valueOf(args))
                                 .let { method(it, actions) }
                         }
 
                         "gui" -> {
-                            val name = split.getOrNull(1) ?: continue
-                            val slot = split.getOrNull(2)?.toIntOrNull() ?: continue
-                            SystemsAPI.getHousingImporter().getMenu(name)?.getMenuElement(slot)?.getActionContainer()
-                                ?.let { method(it, actions) }
+                            val name = args.substringBeforeLast(" ")
+                            val slot =
+                                args.substringAfterLast(" ").toIntOrNull() ?: error("Invalid slot number in goto $goto")
+                            val menu = SystemsAPI.getHousingImporter().getMenu(name)
+                                ?: SystemsAPI.getHousingImporter().createMenu(name)
+
+                            menu.getMenuElement(slot).getActionContainer()
+                                ?.let { method(it, actions) } ?: error("Slot $slot does not exist in menu $name")
                         }
                     }
                 }
@@ -104,15 +121,25 @@ object HTSLImporter {
                 )
                 UISuccessToast.report("Successfully imported HTSL code from ${path.name}")
                 onComplete()
-            } catch (e: Exception) {
-                if (e.cause is CancellationException) return@launch
+            } catch (_: CancellationException) {
 
                 if (HTSLReborn.CONFIG.playCompleteSound) MC.player?.playSound(
                     SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(),
                     1.0f,
                     0.8f
                 )
+
+                UIErrorToast.report("Import cancelled.")
+                SystemsAPI.getHousingImporter().setImporting(false)
+                onComplete()
+            } catch (e: Exception) {
+                if (HTSLReborn.CONFIG.playCompleteSound) MC.player?.playSound(
+                    SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(),
+                    1.0f,
+                    0.8f
+                )
                 UIErrorToast.report(e)
+                SystemsAPI.getHousingImporter().setImporting(false)
                 e.printStackTrace()
                 onComplete()
             } finally {

@@ -52,6 +52,7 @@ object FileExplorerHandler {
     }
 
     fun registerWatchedDir(path: Path): WatchKey {
+        if (!watchedDir.exists()) watchedDir.createDirectories()
         return try {
             path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
         } catch (e: Exception) {
