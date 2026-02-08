@@ -17,7 +17,7 @@
 
 ## Overview
 
-HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode easier. With the help of [SystemsAPI](https://github.com/redstone-llc/SystemsAPI), HTSL Reborn ports HTSL's syntax to latest versions, allowing for a seamless switch, and a large possibility for more features to make things work nicer with Housing. To see it in action, check out our [video demo](https://youtu.be/Td826Y_UO48)!
+HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode easier. With the help of [SystemsAPI](https://github.com/redstone-llc/SystemsAPI), we ported HTSL's syntax to latest versions. Now that we're based on a more modern loader, there's a large possibility for extra QoL features to come in the future!
 
 ## Features
 
@@ -32,6 +32,10 @@ HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode
 - [x] Exporting to code
 - [x] File browser hot-reloading
 - [x] Item support
+
+## Demo
+
+https://github.com/user-attachments/assets/a7a782d7-e7f4-42f0-a898-65cadbcea64b
 
 ## Questions
 
@@ -63,3 +67,7 @@ What does that mean for you?
 If you think you may have found a bug, please [create an issue](https://github.com/redstone-llc/HTSLReborn/issues). Otherwise, feel free to join our [discord](https://discord.gg/pCcpqzU4He) or [create a discussion post](https://github.com/redstone-llc/HTSLReborn/discussions).
     
 </details>
+
+## Credits
+
+Thank you, primarially, to [@BusterBrown1218](https://github.com/BusterBrown1218), the creator of the original HTSL ChatTriggers module.
