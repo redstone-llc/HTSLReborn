@@ -6,9 +6,9 @@ import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.OverlayContainer
 import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.Insets
-import io.wispforest.owo.ui.core.Positioning
 import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.core.Surface
+import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.htslio.HTSLImporter
 import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.systemsapi.importer.ActionContainer
@@ -60,16 +60,21 @@ class DropdownComponent(
     companion object {
         fun click(button: ButtonComponent) {
             if (FileExplorer.INSTANCE.focus !is ScriptEntryComponent) return
+
             val method = when (button.id()) {
                 "add" -> ActionContainer::addActions
                 "replace" -> ActionContainer::setActions
-                "update" -> ActionContainer::updateActions
+//                "update" -> ActionContainer::updateActions
                 else -> throw IllegalStateException("Unknown import type: ${button.id()}")
             }
 
-            val file = (FileExplorer.INSTANCE.focus as ScriptEntryComponent).path
-            FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, file.name)
-            HTSLImporter.importFile(file, method, onComplete = FileExplorer.INSTANCE::hideWorkingScreen)
+            val path = (FileExplorer.INSTANCE.focus as ScriptEntryComponent).path
+
+            importingFile = path
+            FileExplorer.INSTANCE.showWorkingScreen(FileExplorer.WorkingScreenType.IMPORT, path.name)
+            HTSLImporter.importFile(path, method) {
+                FileExplorer.INSTANCE.hideWorkingScreen()
+            }
 
             val base = FileExplorer.INSTANCE.base
             val dropdown = base.childById(DropdownComponent::class.java, "importDropdown")
