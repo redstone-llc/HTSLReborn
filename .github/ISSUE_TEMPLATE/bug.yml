@@ -1,7 +1,7 @@
 name: Issue
 description: File a bug report.
 title: "[BUG] "
-labels: ["bug", "triage"]
+labels: ["triage"]
 type: "Bug"
 body:
   - type: markdown
@@ -34,7 +34,7 @@ body:
 
   - type: textarea
     attributes:
-      label: "Step 4: Relevant logs"
+      label: "Step 4. Relevant logs"
       description: "Paste any relevant logs you've found in here. This will be formatted automatically, so no need to include backticks."
       render: java
     validations:
