@@ -6,7 +6,9 @@ type: "Feature"
 body:
   - type: markdown
     attributes:
-      value: "**Welcome to submit a new feature request!**"
+      value: |
+        **Thanks for caring about improving HTSL Reborn!**
+        Feel free to suggest any additions or improvements to the mod that you'd like to see implemented in the future.
 
   - type: textarea
     attributes:
