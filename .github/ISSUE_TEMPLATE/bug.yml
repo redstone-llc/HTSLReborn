@@ -6,7 +6,7 @@ type: "Bug"
 body:
   - type: markdown
     attributes:
-      value: "**Welcome to submit a new issue!**\n- It takes only 4 steps, so please be patient :)\n- Tip: If your issue is not a feature request and is not an issue (e.g. \"how do I use X feature\"), please use [Discussions](https://github.com/redstone-llc/HTSLReborn/discussions) instead."
+      value: "**Welcome to your new bug report!**\n- It takes only 4 steps, so please be patient :)\n- Tip: If your issue is not a feature request and is not an issue (e.g. \"how do I use X feature\"), please use [Discussions](https://github.com/redstone-llc/HTSLReborn/discussions) instead."
 
   - type: checkboxes
     attributes:
