@@ -12,6 +12,7 @@ repositories {
     mavenLocal()
     maven("https://maven.kosmx.dev") //IDK why I couldnt make this a strict maven :shrug:
     maven { url = uri("https://jitpack.io") }
+    maven("https://repo.redstone.llc/releases")
 
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
@@ -26,7 +27,6 @@ repositories {
     strictMaven("https://maven.terraformersmc.com/", "Terraformers", "com.terraformersmc")
     strictMaven("https://maven.isxander.dev/releases", "xanderRepoReleases", "dev.isxander", "org.quiltmc.parsers")
     strictMaven("https://maven.wispforest.io/releases", "wispForestReleases", "io.wispforest", "io.wispforest.endec")
-    strictMaven("https://repo.redstone.llc/releases", "redstoneReleases", "llc.redstone")
     strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth", "me.djtheredstoner")
 }
 
