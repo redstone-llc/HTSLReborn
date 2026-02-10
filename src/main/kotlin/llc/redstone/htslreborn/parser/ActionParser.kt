@@ -20,16 +20,16 @@ object ActionParser {
         "applyLayout" to ApplyInventoryLayout::class,
         "applyPotion" to ApplyPotionEffect::class,
         "cancelEvent" to CancelEvent::class,
-        "globalstat" to GlobalVariable::class,
         "globalvar" to GlobalVariable::class,
+        "globalstat" to GlobalVariable::class,
         "changeHealth" to ChangeHealth::class,
         "hungerLevel" to ChangeHunger::class,
         "maxHealth" to ChangeMaxHealth::class,
         "changeGroup" to ChangePlayerGroup::class,
-        "stat" to PlayerVariable::class,
         "var" to PlayerVariable::class,
-        "teamstat" to TeamVariable::class,
+        "stat" to PlayerVariable::class,
         "teamvar" to TeamVariable::class,
+        "teamstat" to TeamVariable::class,
         "clearEffects" to ClearAllPotionEffects::class,
         "closeMenu" to CloseMenu::class,
         "actionBar" to DisplayActionBar::class,
@@ -78,7 +78,7 @@ object ActionParser {
         if (clazz == TeamVariable::class) swapParams("teamName", "variable")
     }
 
-    fun createAction(keyword: String, iterator: Iterator<TokenWithPosition>, path: Path?): Action? {
+    fun createAction(keyword: String, iterator: ListIterator<TokenWithPosition>, path: Path?): Action? {
         //Get the action class
         val clazz = keywords[keyword] ?: return null
 

@@ -21,7 +21,7 @@ object Parser {
         )
         var isElse = false
 
-        val iterator = tokens.iterator()
+        val iterator = tokens.listIterator()
 
         while (iterator.hasNext()) {
             val token = iterator.next()

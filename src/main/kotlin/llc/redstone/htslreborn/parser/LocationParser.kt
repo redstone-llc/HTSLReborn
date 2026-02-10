@@ -5,31 +5,48 @@ import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.systemsapi.data.Location
 
 object LocationParser {
-    fun parse(str: String, iterator: Iterator<TokenWithPosition>): Location =
+    fun parse(str: String, iterator: ListIterator<TokenWithPosition>): Location =
         when (str.lowercase().replace("_", " ")) {
             "house spawn location", "house spawn" -> Location.HouseSpawn
             "current location" -> Location.CurrentLocation
             "invokers location" -> Location.InvokersLocation
             "custom coordinates" -> {
-                val xPart = iterator.next().string
-                val yPart = iterator.next().string
-                val zPart = iterator.next().string
+                val token = iterator.next().string
+                val parts = token.split(" ")
+                var xPart: String
+                var yPart: String
+                var zPart: String
                 var pitch: String? = null
                 var yaw: String? = null
-                if (iterator.hasNext()) {
-                    val next = iterator.next()
-                    if (next.tokenType != Tokens.NEWLINE) {
-                        pitch = next.string
-                        if (iterator.hasNext()) {
-                            val next2 = iterator.next()
-                            if (next2.tokenType != Tokens.NEWLINE) {
-                                yaw = next2.string
-                            }
-                        }
+
+                println("Parsing custom coordinates: $token")
+                if (parts.size == 1) {
+                    xPart = parts[0]
+                    yPart = iterator.next().string
+                    zPart = iterator.next().string
+                    val pitchToken = if (iterator.hasNext()) iterator.next() else null
+                    pitch = if (pitchToken != null && pitchToken.tokenType != Tokens.BOOLEAN && pitchToken.tokenType != Tokens.NEWLINE) {
+                        pitchToken.string
+                    } else {
+                        iterator.previous()
+                        null
+                    }
+                    val yawToken = if (iterator.hasNext()) iterator.next() else null
+                    yaw = if (yawToken != null && yawToken.tokenType != Tokens.BOOLEAN && yawToken.tokenType != Tokens.NEWLINE) {
+                        yawToken.string
+                    } else {
+                        iterator.previous()
+                        null
                     }
 
+                } else {
+                    if (parts.size !in 3..5) error("Custom coordinates must have 3 to 5 parts: $token")
+                    xPart = parts[0]
+                    yPart = parts[1]
+                    zPart = parts[2]
+                    pitch = parts.getOrNull(3)
+                    yaw = parts.getOrNull(4)
                 }
-
                 fun parsePart(part: String?): Location.Custom.Coordinate? {
                     if (part == null) return null
                     return Location.Custom.Coordinate(
