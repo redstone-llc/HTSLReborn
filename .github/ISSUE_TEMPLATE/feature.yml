@@ -1,6 +1,5 @@
 name: Feature request
 description: Suggest a new feature.
-title: "[FEATURE] "
 labels: ["triage"]
 type: "Feature"
 body:
