@@ -146,6 +146,7 @@ object ActionParser {
                     }
 
                     StatOp::class -> when (token.tokenType) {
+                        Operators.UNSET -> StatOp.UnSet
                         Operators.SET -> StatOp.Set
                         Operators.INCREMENT -> StatOp.Inc
                         Operators.DECREMENT -> StatOp.Dec

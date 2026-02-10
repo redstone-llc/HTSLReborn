@@ -39,7 +39,9 @@ dependencies {
 
     modImplementation("io.wispforest:owo-lib:${property("deps.owo")}")
     ksp("dev.kosmx.kowoconfig:ksp-owo-config:0.2.0")
-    modImplementation("llc.redstone:SystemsAPI:${property("deps.systemsapi")}")
+    modImplementation("llc.redstone:SystemsAPI:${property("deps.systemsapi")}") {
+        exclude(module = "dynamic-fps")
+    }
 
     implementation(include("org.mozilla:rhino:1.9.0")!!)
     implementation(include("guru.zoroark.tegral:tegral-niwen-lexer:0.0.4")!!)
