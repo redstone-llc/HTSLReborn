@@ -35,6 +35,11 @@
   "htslreborn.explorer.button.item.open.description": "Open item file in external text editor",
   "htslreborn.explorer.button.item.delete.description": "Delete Item",
 
+  "htslreborn.explorer.confirm.delete.title": "Confirm Deletion",
+  "htslreborn.explorer.confirm.delete.message": "Are you sure you want to delete",
+  "htslreborn.explorer.confirm.delete.button.confirm": "Yes",
+  "htslreborn.explorer.confirm.delete.button.cancel": "No",
+
   "htslreborn.importing.button.cancel": "Cancel",
   "htslreborn.importing.timeremaining": "Time Remaining: %ss",
   "htslreborn.importing.working.type.import": "Importing '%s'...",

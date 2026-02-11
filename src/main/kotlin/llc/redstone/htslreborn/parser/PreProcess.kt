@@ -1,6 +1,7 @@
 package llc.redstone.htslreborn.parser
 
 import guru.zoroark.tegral.niwen.lexer.Token
+import llc.redstone.htslreborn.HTSLReborn.CONFIG
 import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
@@ -20,7 +21,7 @@ object PreProcess {
         val processedTokens = mutableListOf<TokenWithPosition>()
 
         val context = reusedContext ?: Context.enter()
-        val scope = reusedScope ?: context.initSafeStandardObjects()
+        val scope = reusedScope ?: if (CONFIG.disablesJSSandboxing) context.initStandardObjects() else context.initSafeStandardObjects()
         if (loopVarName != null) {
             val index = loopIndex ?: 0
             scope.put(loopVarName, scope, index)

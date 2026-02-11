@@ -39,9 +39,7 @@ class FolderEntryComponent(
         }
 
         val delete = UIComponents.button(Text.of("\uD83D\uDDD1")) {
-            path.deleteRecursively()
-            FileHandler.refreshFiles()
-            FileExplorer.INSTANCE.refreshExplorer()
+            DeleteConfirmationComponent.handleDeleteClick()
         }.apply {
             sizing(Sizing.fixed(20), Sizing.fill())
             setTooltip(Tooltip.of(Text.translatable("htslreborn.explorer.button.folder.delete.description")))

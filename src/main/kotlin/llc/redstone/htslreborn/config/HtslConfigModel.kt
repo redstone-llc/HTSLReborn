@@ -17,6 +17,9 @@ class HtslConfigModel {
     var showFileExplorer: Boolean = true
 
     @JvmField
+    var fileDeleteConfirmation: Boolean = true
+
+    @JvmField
     @Hook
     var importsDirectory: String = "htsl/imports"
 

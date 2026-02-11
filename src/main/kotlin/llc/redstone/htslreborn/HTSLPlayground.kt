@@ -20,10 +20,8 @@ fun main(args: Array<String>) {
     println("Tokens:")
     tokens.forEach { println("${it.tokenType} -> ${it.string}") }
 
-    val preProcessed = PreProcess.preProcess(tokens)
-
     println("\nParsed Locations:")
-    val iterator = preProcessed.listIterator()
+    val iterator = tokens.listIterator()
     while (iterator.hasNext()) {
         val token = iterator.next()
         if (token.tokenType == Tokens.STRING && token.string.lowercase() == "custom_coordinates") {
