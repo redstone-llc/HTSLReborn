@@ -1,5 +1,5 @@
 <h1 align="center">
-    <img src="src/main/resources/assets/htslreborn/icon.png" height="256" alt="HTSL Reborn Icon">
+    <img src="src/main/resources/assets/htslreborn/icon.png" height="300" alt="HTSL Reborn Icon">
     <br>
     HTSL Reborn
     <br>
@@ -42,7 +42,7 @@ https://github.com/user-attachments/assets/a7a782d7-e7f4-42f0-a898-65cadbcea64b
 <details>
 <summary><b>How do I migrate?</b></summary>
 
-To migrate from HTSL to HTSL Reborn, just copy all your imports into the new HTSL folder, located in the root of your minecraft instance. You should be good to go once things have been moved over.
+To migrate from HTSL to HTSL Reborn, just copy all your imports into the new HTSL folder, located in the root of your Minecraft instance. You should be good to go once things have been moved over.
     
 </details>
 
