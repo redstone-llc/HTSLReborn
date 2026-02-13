@@ -45,6 +45,7 @@ object Tokenizer {
                 matches("-?\\d+") isToken Tokens.INT
                 matches("\\s+").ignore
 
+                "\"\"" isToken Tokens.STRING
                 '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER
                 '\"' isToken Tokens.QUOTE thenState IN_STRING
                 '%' isToken Tokens.PLACEHOLDER thenState PLACEHOLDER

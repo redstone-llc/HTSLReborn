@@ -133,6 +133,22 @@ object PreProcess {
 
                 Tokens.STRING -> {
                     var processedString = token.string
+                    if (processedString == "\"\"") {
+                        processedTokens.add(
+                            TokenWithPosition(
+                                Token(
+                                    "",
+                                    token.startsAt,
+                                    token.endsAt,
+                                    Tokens.STRING,
+                                ),
+                                token.line,
+                                token.column
+                            )
+                        )
+                        continue
+                    }
+
                     for ((key, value) in defineList) {
                         val regex = Regex("(?<!\")\\b$key\\b(?!\")") // Match whole words not inside quotes
                         processedString = processedString.replace(regex, value)
