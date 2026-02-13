@@ -32,7 +32,8 @@ enum class Tokens: TokenType {
     JS_CODE,
     LOOP_KEYWORD,
     DEFINE_KEYWORD,
-    DEFINE_VALUE
+    DEFINE_VALUE,
+    NULL
     ;
 }
 

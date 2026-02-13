@@ -80,6 +80,7 @@ object ConditionParser {
                         }
                         Tokens.LONG -> StatValue.Lng(token.string.removeSuffix("L").toLong())
                         Tokens.DOUBLE -> StatValue.Dbl(token.string.removeSuffix("D").toDouble())
+                        Tokens.NULL -> null
                         else -> StatValue.Str(token.string)
                     }
                 }
@@ -103,10 +104,14 @@ object ConditionParser {
                     Comparators.GREATER_THAN -> Comparison.Gt
                     Comparators.LESS_THAN -> Comparison.Lt
                     Comparators.LESS_THAN_OR_EQUAL -> Comparison.Le
-                    Comparators.GREATER_THAN_OR_EQUAL -> Comparison.Gt
+                    Comparators.GREATER_THAN_OR_EQUAL -> Comparison.Ge
                     else -> null
                 }
                 else -> null
+            }
+
+            if (token.tokenType == Tokens.NULL) {
+                args[param] = null
             }
 
             if (args.containsKey(param) && args[param] != null) {

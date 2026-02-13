@@ -19,7 +19,6 @@ object LocationParser {
                 var pitch: String? = null
                 var yaw: String? = null
 
-                println("Parsing custom coordinates: $token")
                 if (parts.size == 1) {
                     xPart = parts[0]
                     yPart = iterator.next().string

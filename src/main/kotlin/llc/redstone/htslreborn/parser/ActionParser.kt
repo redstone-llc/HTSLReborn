@@ -26,6 +26,7 @@ object ActionParser {
         "hungerLevel" to ChangeHunger::class,
         "maxHealth" to ChangeMaxHealth::class,
         "changeGroup" to ChangePlayerGroup::class,
+        "changePlayerGroup" to ChangePlayerGroup::class,
         "var" to PlayerVariable::class,
         "stat" to PlayerVariable::class,
         "teamvar" to TeamVariable::class,
@@ -116,6 +117,7 @@ object ActionParser {
                             }
                             Tokens.LONG -> StatValue.Lng(token.string.removeSuffix("L").toLong())
                             Tokens.DOUBLE -> StatValue.Dbl(token.string.removeSuffix("D").toDouble())
+                            Tokens.NULL -> null
                             else -> error("Unknown StatValue token: ${token.string}")
                         }
                     }
@@ -165,11 +167,15 @@ object ActionParser {
                     else -> null
                 }
 
-                if (args.containsKey(param) && args[param] != null) {
+                if (token.tokenType == Tokens.NULL) {
+                    args[param] = null
                     continue
                 }
 
-                if (prop.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
+                if (args.containsKey(param) && args[param] != null) {
+                    continue
+                }
+                if (prop.returnType.isSubtypeOf(Keyed::class.starProjectedType.withNullability(true))) {
                     val companion = prop.returnType.classifier
                         .let { it as? KClass<*> }
                         ?.companionObjectInstance

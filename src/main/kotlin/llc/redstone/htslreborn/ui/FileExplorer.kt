@@ -20,7 +20,9 @@ import llc.redstone.htslreborn.ui.FileHandler.filteredFiles
 import llc.redstone.htslreborn.ui.FileHandler.htslExtensions
 import llc.redstone.htslreborn.ui.FileHandler.itemExtensions
 import llc.redstone.htslreborn.ui.FileHandler.refreshFiles
+import llc.redstone.htslreborn.ui.FileHandler.search
 import llc.redstone.htslreborn.ui.components.ExplorerEntryComponent
+import llc.redstone.htslreborn.ui.components.CreateEntryComponent
 import llc.redstone.htslreborn.ui.components.FolderEntryComponent
 import llc.redstone.htslreborn.ui.components.ItemEntryComponent
 import llc.redstone.htslreborn.ui.components.ScriptEntryComponent
@@ -33,7 +35,6 @@ import net.minecraft.client.input.KeyInput
 import net.minecraft.client.resource.language.I18n
 import net.minecraft.text.Text
 import net.minecraft.util.Util
-import java.nio.file.Path
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
@@ -123,28 +124,36 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    fun explorerEntry(file: Path, index: Int): FlowLayout {
-        val file = filteredFiles[index]
+    fun explorerEntry(index: Int): FlowLayout {
+        val file = filteredFiles.getOrNull(index)
 
         val entry = when {
-            (file.isDirectory()) ->
+            (file?.isDirectory() == true) ->
                 FolderEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file)
 
-            (itemExtensions.contains(file.extension)) ->
-                ItemEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file)
+            (itemExtensions.contains(file?.extension)) ->
+                ItemEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file!!)
 
-            (htslExtensions.contains(file.extension)) ->
-                ScriptEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file)
+            (htslExtensions.contains(file?.extension)) ->
+                ScriptEntryComponent.create(Sizing.fill(), Sizing.fixed(25), index, file!!)
 
-            else -> throw IllegalStateException("Unknown file type: ${file.toAbsolutePath()}")
+            (index == -1) ->
+                CreateEntryComponent.create(Sizing.fill(), Sizing.fixed(25))
+
+            else -> throw IllegalStateException("Unknown file type: ${file?.toAbsolutePath()}")
         }
 
         return entry.apply {
             val icon = UIComponents.texture(this.icon, 0, 0, 16, 16, 16, 16)
             val label = UIComponents.label(
-                Text.literal(file.nameWithoutExtension).apply {
-                    if (file.isDirectory()) return@apply
-                    append(Text.literal(".${file.extension}").withColor(0x808080))
+                if (file == null) {
+                    Text.translatable("htslreborn.explorer.newfile").styled() { it.withBold(true) }
+                        .append(Text.literal("\"$search\"").styled() { it.withBold(false) })
+                } else {
+                    Text.literal(file.nameWithoutExtension).apply {
+                        if (file.isDirectory()) return@apply
+                        append(Text.literal(".${file.extension}").withColor(0x808080))
+                    }
                 }
             )
 
@@ -166,9 +175,21 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
         gap(1)
         margins(Insets.right(6))
 
-        children(filteredFiles.mapIndexed { index, file ->
-            explorerEntry(file, index)
-        })
+        children(
+            if (filteredFiles.isEmpty()) {
+                listOf(
+                    explorerEntry(-1)
+                )
+            } else {
+                MutableList(filteredFiles.size) { index ->
+                    explorerEntry(index)
+                }.also {
+                    if (search.isNotEmpty() && filteredFiles.find { it.nameWithoutExtension == search } == null) {
+                        it.add(0, explorerEntry(-1))
+                    }
+                }
+            }
+        )
     }
 
     fun updateButtons() {
@@ -192,8 +213,19 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
             return
         }
         content.clearChildren()
-        content.children(filteredFiles.mapIndexed { index, file ->
-            explorerEntry(file, index)
+        content.children(
+            if (filteredFiles.isEmpty()) {
+            listOf(
+                explorerEntry(-1)
+            )
+        } else {
+                MutableList(filteredFiles.size) { index ->
+                explorerEntry(index)
+            }.also {
+                if (search.isNotEmpty() && filteredFiles.find { it.nameWithoutExtension == search } == null) {
+                    it.add(0, explorerEntry(-1))
+                }
+            }
         }
         )
     }
@@ -271,7 +303,7 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
             horizontalAlignment(HorizontalAlignment.CENTER)
             verticalAlignment(VerticalAlignment.CENTER)
             gap(5)
-            
+
             mouseDown().subscribe { click, bool ->
                 true
             }
@@ -293,10 +325,12 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
         val importScreen = this.uiAdapter.rootComponent.childById(FlowLayout::class.java, "importScreen")
         if (importScreen != null) return
 
-        val display = Text.translatable(when (type) {
-            WorkingScreenType.IMPORT -> "htslreborn.importing.working.type.import"
-            WorkingScreenType.EXPORT -> "htslreborn.importing.working.type.export"
-        }, fileName)
+        val display = Text.translatable(
+            when (type) {
+                WorkingScreenType.IMPORT -> "htslreborn.importing.working.type.import"
+                WorkingScreenType.EXPORT -> "htslreborn.importing.working.type.export"
+            }, fileName
+        )
         val workingScreen = buildWorkingScreen(display, type)
         this.uiAdapter.rootComponent.child(workingScreen)
     }
@@ -323,7 +357,10 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
 
             child(
                 base.apply {
-                    sizing(Sizing.fixed((accessor.getGuiLeft() * HTSLReborn.CONFIG.widthScale).toInt() - 10), Sizing.fixed((MC.window.scaledHeight * HTSLReborn.CONFIG.heightScale).toInt() - 10))
+                    sizing(
+                        Sizing.fixed((accessor.getGuiLeft() * HTSLReborn.CONFIG.widthScale).toInt() - 10),
+                        Sizing.fixed((MC.window.scaledHeight * HTSLReborn.CONFIG.heightScale).toInt() - 10)
+                    )
 
                     id("base")
                     surface(Surface.DARK_PANEL)

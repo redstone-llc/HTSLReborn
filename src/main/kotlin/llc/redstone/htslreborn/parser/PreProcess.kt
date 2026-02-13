@@ -1,7 +1,6 @@
 package llc.redstone.htslreborn.parser
 
 import guru.zoroark.tegral.niwen.lexer.Token
-import llc.redstone.htslreborn.HTSLReborn.CONFIG
 import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
@@ -21,7 +20,7 @@ object PreProcess {
         val processedTokens = mutableListOf<TokenWithPosition>()
 
         val context = reusedContext ?: Context.enter()
-        val scope = reusedScope ?: if (CONFIG.disablesJSSandboxing) context.initStandardObjects() else context.initSafeStandardObjects()
+        val scope = reusedScope ?: context.initSafeStandardObjects()
         if (loopVarName != null) {
             val index = loopIndex ?: 0
             scope.put(loopVarName, scope, index)
@@ -149,6 +148,10 @@ object PreProcess {
                         continue
                     }
 
+                    processedString = token.string.substring(1, token.string.length - 1) // Remove surrounding quotes
+                        .replace("""\"""", "\"") // Unescape quotes
+                    val withoutQuotes = processedString
+
                     for ((key, value) in defineList) {
                         val regex = Regex("(?<!\")\\b$key\\b(?!\")") // Match whole words not inside quotes
                         processedString = processedString.replace(regex, value)
@@ -158,8 +161,14 @@ object PreProcess {
                         processedString = processedString.replace(loopVarNameRegex, loopIndex.toString())
                     }
 
-                    if (processedString == token.string) {
-                        processedTokens.add(token)
+                    if (processedString == withoutQuotes) {
+                        processedTokens.add(
+                            TokenWithPosition(
+                                token.token.copy(string = withoutQuotes),
+                                token.line,
+                                token.column
+                            )
+                        )
                         continue
                     }
 

@@ -8,5 +8,9 @@ object ErrorUtils {
         throw HTSLCompileException(errorMessage)
     }
 
-    class HTSLCompileException(message: String) : Exception(message)
+    class HTSLCompileException(message: String) : Exception(message) {
+        override fun printStackTrace() {
+                // Don't print stack trace for compile errors to avoid spamming the console with irrelevant information
+        }
+    }
 }

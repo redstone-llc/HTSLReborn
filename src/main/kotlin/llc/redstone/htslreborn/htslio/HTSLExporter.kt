@@ -23,6 +23,7 @@ import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.withNullability
 
 object HTSLExporter {
     fun exportFile(path: Path, onComplete: (Boolean) -> Unit = {}) {
@@ -70,10 +71,25 @@ object HTSLExporter {
         val properties = mutableListOf<String>()
         when (property.returnType.classifier) {
             String::class -> {
+                if (value == "Not Set") {
+                    properties.add("null")
+                    return properties
+                }
+                val value = (value as String).replace("\"", "\\\"")
                 properties.add("\"$value\"")
             }
 
-            StatValue::class, Int::class, Double::class, Long::class, Boolean::class -> {
+            StatValue::class -> {
+                when (value) {
+                    is StatValue.Str -> properties.add("\"${value.value.replace("\"", "")}\"")
+                    is StatValue.I32 -> properties.add(value.value.toString())
+                    is StatValue.Lng -> properties.add("${value.value}L")
+                    is StatValue.Dbl -> properties.add("${value.value}D")
+                    null -> properties.add("null")
+                }
+            }
+
+            Int::class, Double::class, Long::class, Boolean::class -> {
                 properties.add(value.toString())
             }
 
@@ -100,7 +116,7 @@ object HTSLExporter {
                 if (location !is Location.Custom) {
                     properties.add("\"${location.key}\"")
                 } else {
-                    properties.add("custom_coordinates \"$location\"")
+                    properties.add("\"custom_coordinates\" \"$location\"")
                 }
             }
 
@@ -128,7 +144,7 @@ object HTSLExporter {
             }
 
             else -> {
-                if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
+                if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType.withNullability(true))) {
                     val keyed = value as Keyed
                     if (keyed is KeyedLabeled) {
                         properties.add("\"${keyed.label}\"")
@@ -192,6 +208,7 @@ object HTSLExporter {
                 val value = property.getter.call(action)
                 // Add only the first string, because only conditionals and random actions should have lists
                 properties.add(handleProperty(property as KProperty1<PropertyHolder, *>, value).first())
+                if (value == StatOp.UnSet) break
             }
 
             val line = if (properties.isNotEmpty()) {

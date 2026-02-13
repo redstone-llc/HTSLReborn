@@ -35,6 +35,7 @@ object Tokenizer {
                 operatorTokens()
 
                 anyOf("true", "false") isToken Tokens.BOOLEAN
+                "null" isToken Tokens.NULL
 
                 '\n' isToken Tokens.NEWLINE
 
@@ -47,7 +48,7 @@ object Tokenizer {
 
                 "\"\"" isToken Tokens.STRING
                 '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER
-                '\"' isToken Tokens.QUOTE thenState IN_STRING
+                matches(""""(?:[^"\\]|\\.)*"""") isToken Tokens.STRING
                 '%' isToken Tokens.PLACEHOLDER thenState PLACEHOLDER
 
                 matches("""define """) isToken Tokens.DEFINE_KEYWORD thenState DEFINE
@@ -68,6 +69,7 @@ object Tokenizer {
                 operatorTokens()
 
                 anyOf("true", "false") isToken Tokens.BOOLEAN
+                "null" isToken Tokens.NULL
                 anyOf(",", ", ") isToken Tokens.COMMA
 
                 matches("//.*") isToken Tokens.COMMENT
@@ -78,7 +80,7 @@ object Tokenizer {
 
                 '!' isToken Tokens.INVERTED
 
-                '\"' isToken Tokens.QUOTE thenState IN_CONDITION_STRING
+                matches(""""(?:[^"\\]|\\.)*"""") isToken Tokens.STRING
                 '%' isToken Tokens.PLACEHOLDER thenState PLACEHOLDER_CONDITION
                 '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER_CONDITION
 
@@ -102,16 +104,6 @@ object Tokenizer {
                 '\n' isToken Tokens.NEWLINE thenState default
             }
 
-            fun stringState(state: StateLabel, nextState: StateLabel?) {
-                state state {
-                    matches("""(\\"|[^\\"])+""") isToken Tokens.STRING
-                    if (nextState != null) {
-                        '\"' isToken Tokens.QUOTE thenState nextState
-                    } else {
-                        '\"' isToken Tokens.QUOTE thenState default
-                    }
-                }
-            }
 
             fun placeholderStringState(state: StateLabel, nextState: StateLabel?) {
                 state state {
@@ -124,8 +116,6 @@ object Tokenizer {
                 }
             }
 
-            stringState(IN_STRING, null)
-            stringState(IN_CONDITION_STRING, IF_CONDITION)
 
             placeholderStringState(PLACEHOLDER, null)
             placeholderStringState(PLACEHOLDER_CONDITION, IF_CONDITION)
@@ -135,7 +125,8 @@ object Tokenizer {
                 it.tokenType != Tokens.QUOTE &&
                         it.tokenType != Tokens.BRACE_OPEN &&
                         it.tokenType != Tokens.BRACE_CLOSE &&
-                        it.tokenType != Tokens.COMMENT
+                        it.tokenType != Tokens.COMMENT &&
+                        it.tokenType != Tokens.IF_CONDITION_END
             } //Filter out unused and wasted tokens
 //            .filter { it.tokenType != Tokens.NEWLINE }
             .map { token ->
