@@ -8,6 +8,7 @@ import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtIo
+import net.minecraft.nbt.NbtOps
 import net.minecraft.nbt.StringNbtReader
 import net.minecraft.world.GameMode
 import java.io.DataInputStream
@@ -17,6 +18,7 @@ import java.io.FileOutputStream
 import java.nio.file.Path
 import kotlin.io.path.inputStream
 import kotlin.io.path.name
+import kotlin.jvm.optionals.getOrNull
 
 object ItemUtils {
 
@@ -55,17 +57,16 @@ object ItemUtils {
     }
 
     fun itemStackToFile(itemStack: ItemStack, file: File) {
-        val nbtCompound = ItemUtils.toNBT(itemStack)
+        val nbtCompound = NbtHelper.serializeItemStack(itemStack).getOrNull()
         val dataOut = DataOutputStream(FileOutputStream(file))
         NbtIo.write(nbtCompound, dataOut)
         dataOut.close()
     }
-
     fun stringToNbtCompound(nbtString: String): NbtCompound {
         return StringNbtReader.readCompound(nbtString)
     }
 
     fun fileToItemStack(path: Path) =
-        ItemUtils.createFromNBT(fileToNbtCompound(path))
+        NbtHelper.deserializeItemStack(fileToNbtCompound(path)).getOrNull()
 
 }
