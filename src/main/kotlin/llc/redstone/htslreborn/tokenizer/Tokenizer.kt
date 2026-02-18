@@ -18,7 +18,9 @@ object Tokenizer {
 
         val lexer = niwenLexer {
             default state {
-                anyOf(*actionKeywords.toTypedArray()) isToken Tokens.ACTION_KEYWORD
+                anyOf(*actionKeywords.map {
+                    "$it "
+                }.toTypedArray()) isToken Tokens.ACTION_KEYWORD
 
                 "{\n" isToken Tokens.DEPTH_ADD
 
@@ -137,7 +139,6 @@ object Tokenizer {
                 )
             }
     }
-
 
     fun tokenize(path: Path): List<TokenWithPosition> {
         val input = path.readLines().joinToString("\n")

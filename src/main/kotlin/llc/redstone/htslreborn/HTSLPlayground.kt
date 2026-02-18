@@ -8,7 +8,7 @@ import llc.redstone.htslreborn.tokenizer.Tokens
 // Used primarily for testing the tokenizer, preprocessor, and parser
 fun main(args: Array<String>) {
     val input = """
-        stat "p" = "\"%var.global/r0% %var.global/r1%\"" false
+        stat kills inc 1
     """.trimIndent()
 
     val tokens = Tokenizer.tokenize(input)

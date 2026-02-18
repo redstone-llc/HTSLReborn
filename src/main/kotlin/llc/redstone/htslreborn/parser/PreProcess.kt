@@ -26,13 +26,23 @@ object PreProcess {
             scope.put(loopVarName, scope, index)
         }
 
-        val iterator = tokens.iterator()
+        val iterator = tokens.listIterator()
 
         var loopAmount: Int
         var loopVarName: String? = loopVarName
         while (iterator.hasNext()) {
             val token = iterator.next()
             when (token.tokenType) {
+                Tokens.ACTION_KEYWORD -> {
+                    processedTokens.add(
+                        TokenWithPosition(
+                           token.token.copy(string = token.string.trim()),
+                            token.line,
+                            token.column
+                        )
+                    )
+                }
+
                 Tokens.PLACEHOLDER -> {
                     val valueToken = iterator.takeIf { it.hasNext() }?.next()
                     if (valueToken?.tokenType != Tokens.STRING) htslCompileError(
@@ -60,6 +70,7 @@ object PreProcess {
                         )
                     )
                 }
+
                 Tokens.JS_CODE -> {
                     // Replace defined variables
                     var processedString = token.string
@@ -148,9 +159,20 @@ object PreProcess {
                         continue
                     }
 
-                    processedString = token.string.substring(1, token.string.length - 1) // Remove surrounding quotes
-                        .replace("""\"""", "\"") // Unescape quotes
-                    val withoutQuotes = processedString
+                    if (token.string.startsWith("\"") && token.string.endsWith("\"")) {
+                        processedString = token.string
+                            .substring(1, token.string.length - 1) // Remove surrounding quotes
+                            .replace("""\"""", "\"") // Unescape quotes
+
+                        processedTokens.add(
+                            TokenWithPosition(
+                                token.token.copy(string = processedString),
+                                token.line,
+                                token.column
+                            )
+                        )
+                        continue
+                    }
 
                     for ((key, value) in defineList) {
                         val regex = Regex("(?<!\")\\b$key\\b(?!\")") // Match whole words not inside quotes
@@ -161,16 +183,6 @@ object PreProcess {
                         processedString = processedString.replace(loopVarNameRegex, loopIndex.toString())
                     }
 
-                    if (processedString == withoutQuotes) {
-                        processedTokens.add(
-                            TokenWithPosition(
-                                token.token.copy(string = withoutQuotes),
-                                token.line,
-                                token.column
-                            )
-                        )
-                        continue
-                    }
 
                     processedTokens.addAll(Tokenizer.tokenize(processedString))
                 }
