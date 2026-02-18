@@ -58,11 +58,13 @@ object HTSLImporter {
             )
         }
 
-        if (MC.currentScreen?.title?.string?.contains(Regex("Edit Actions|Actions: ")) == false) {
-            MinecraftClient.getInstance().player?.sendMessage(
-                Text.of("You must have an action gui open to import HTSL code.").copy().withColor(Colors.RED), false
-            )
-            return
+        if (supportsBase) {
+            if (MC.currentScreen?.title?.string?.contains(Regex("Edit Actions|Actions: ")) == false) {
+                MinecraftClient.getInstance().player?.sendMessage(
+                    Text.of("You must have an action gui open to import HTSL code.").copy().withColor(Colors.RED), false
+                )
+                return
+            }
         }
 
         if (MC.player?.gameMode != GameMode.CREATIVE) CommandUtils.runCommand("gmc")

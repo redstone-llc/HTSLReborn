@@ -27,7 +27,6 @@ object HTSLCommand {
                                 .executes(::import)
                         )
                 )
-                .then(literal("test").executes(::test))
                 .then(literal("item")
                     .then(literal("give").then(
                         argument("file", StringArgumentType.greedyString())
@@ -51,17 +50,6 @@ object HTSLCommand {
         val file = Path(fileArg)
 
         HTSLImporter.importFile(file, supportsBase = false)
-
-        return 1
-    }
-
-    fun test(context: CommandContext<FabricClientCommandSource>): Int {
-        val imports = Path("./htsl/imports")
-        imports.walk().flatMap { it.walk() }.filter { it.extension == "htsl" }.forEach {
-            var tokens = Tokenizer.tokenize(it)
-            tokens = PreProcess.preProcess(tokens)
-            val compiledCode = Parser.parse(tokens, it)
-        }
 
         return 1
     }
