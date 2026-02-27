@@ -107,18 +107,12 @@ object ActionParser {
                     Boolean::class -> token.string.toBoolean()
                     StatValue::class -> {
                         when (token.tokenType) {
-                            Tokens.STRING -> StatValue.Str(token.string)
-                            Tokens.INT -> {
-                                if (token.string.toIntOrNull() == null) {
-                                    StatValue.Lng(token.string.removeSuffix("L").toLong())
-                                } else {
-                                    StatValue.I32(token.string.toInt())
-                                }
+                            Tokens.STRING -> if (token.string.contains("%")) {
+                                StatValue.UnquotedStr(token.string)
+                            } else {
+                                StatValue.Str(token.string)
                             }
-                            Tokens.LONG -> StatValue.Lng(token.string.removeSuffix("L").toLong())
-                            Tokens.DOUBLE -> StatValue.Dbl(token.string.removeSuffix("D").toDouble())
-                            Tokens.NULL -> null
-                            else -> error("Unknown StatValue token: ${token.string}")
+                            else -> StatValue.fromString(token.string)
                         }
                     }
 

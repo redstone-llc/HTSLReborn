@@ -8,8 +8,8 @@ import llc.redstone.htslreborn.tokenizer.Tokens
 // Used primarily for testing the tokenizer, preprocessor, and parser
 fun main(args: Array<String>) {
     val input = """
-        stat kills inc 1
-    """.trimIndent()
+        globalstat "r0" = %var.player/level_time% false
+     """.trimIndent()
 
     val tokens = Tokenizer.tokenize(input)
     println("Tokens:")

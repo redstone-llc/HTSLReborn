@@ -176,17 +176,11 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
         margins(Insets.right(6))
 
         children(
-            if (filteredFiles.isEmpty()) {
-                listOf(
-                    explorerEntry(-1)
-                )
-            } else {
-                MutableList(filteredFiles.size) { index ->
-                    explorerEntry(index)
-                }.also {
-                    if (search.isNotEmpty() && filteredFiles.find { it.nameWithoutExtension == search } == null) {
-                        it.add(0, explorerEntry(-1))
-                    }
+            MutableList(filteredFiles.size) { index ->
+                explorerEntry(index)
+            }.also {
+                if (search.isNotEmpty() && filteredFiles.find { it.nameWithoutExtension == search } == null) {
+                    it.add(0, explorerEntry(-1))
                 }
             }
         )
@@ -214,19 +208,13 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
         }
         content.clearChildren()
         content.children(
-            if (filteredFiles.isEmpty()) {
-            listOf(
-                explorerEntry(-1)
-            )
-        } else {
-                MutableList(filteredFiles.size) { index ->
+            MutableList(filteredFiles.size) { index ->
                 explorerEntry(index)
             }.also {
                 if (search.isNotEmpty() && filteredFiles.find { it.nameWithoutExtension == search } == null) {
                     it.add(0, explorerEntry(-1))
                 }
             }
-        }
         )
     }
 

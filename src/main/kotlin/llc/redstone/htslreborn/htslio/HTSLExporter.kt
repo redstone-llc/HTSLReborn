@@ -80,12 +80,10 @@ object HTSLExporter {
             }
 
             StatValue::class -> {
+                println("type: ${value?.javaClass}, value: $value")
                 when (value) {
-                    is StatValue.Str -> properties.add("\"${value.value.replace("\"", "")}\"")
-                    is StatValue.I32 -> properties.add(value.value.toString())
-                    is StatValue.Lng -> properties.add("${value.value}L")
-                    is StatValue.Dbl -> properties.add("${value.value}D")
                     null -> properties.add("null")
+                    else -> properties.add(value.toString())
                 }
             }
 

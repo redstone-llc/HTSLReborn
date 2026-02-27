@@ -63,7 +63,7 @@ object PreProcess {
                                 "%$placeholder%",
                                 token.startsAt,
                                 token.endsAt,
-                                Tokens.STRING,
+                                Tokens.PLACEHOLDER_STRING,
                             ),
                             token.line,
                             token.column

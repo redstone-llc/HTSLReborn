@@ -13,6 +13,7 @@ enum class Tokens: TokenType {
     LONG,
     DOUBLE,
     STRING,
+    PLACEHOLDER_STRING,
     QUOTE,
     PLACEHOLDER,
     COMMENT,
