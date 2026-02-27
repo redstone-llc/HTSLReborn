@@ -8,7 +8,6 @@ import llc.redstone.htslreborn.utils.ItemUtils
 import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.data.Action.*
 import java.nio.file.Path
-import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
 import kotlin.reflect.KClass
@@ -123,16 +122,16 @@ object ActionParser {
                             htslCompileError("Cannot load ItemStack from file when file is null", token)
                         }
                         val relativeFileLocation = token.string
-                        val parent = if (path.isDirectory()) path else path.parent
-                        val file = parent.resolve(relativeFileLocation)
-                        val nbt = if (file.exists()) {
+                        val nbt = try {
+                            val parent = if (path.isDirectory()) path else path.parent
+                            val file = parent.resolve(relativeFileLocation)
+                            ItemUtils.fileToNbtCompound(file)
+                        } catch (_: Exception) {
                             try {
                                 ItemUtils.stringToNbtCompound(relativeFileLocation.replace("\\\"", "\""))
                             } catch (e: Exception) {
-                                error("Failed to parse ItemStack NBT from string or find file at location: $relativeFileLocation")
+                                htslCompileError("Failed to parse ItemStack NBT from string or file: ${e.message}", token)
                             }
-                        } else {
-                            ItemUtils.fileToNbtCompound(file)
                         }
 
                         ItemStack(
