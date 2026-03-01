@@ -43,9 +43,9 @@ object Tokenizer {
 
                 matches("//.*") isToken Tokens.COMMENT
                 "/*" isToken Tokens.COMMENT thenState IN_MULTI_LINE_COMMENT
-                matches("-?\\d+\\.\\d+") isToken Tokens.DOUBLE
-                matches("-?\\d+?L") isToken Tokens.LONG
-                matches("-?\\d+") isToken Tokens.INT
+                matches("-?[\\d,]+\\.\\d+") isToken Tokens.DOUBLE
+                matches("-?[\\d,]+?L") isToken Tokens.LONG
+                matches("-?[\\d,]+") isToken Tokens.INT
                 matches("\\s+").ignore
 
                 "\"\"" isToken Tokens.STRING
@@ -75,9 +75,9 @@ object Tokenizer {
                 anyOf(",", ", ") isToken Tokens.COMMA
 
                 matches("//.*") isToken Tokens.COMMENT
-                matches("-?\\d+\\.\\d+") isToken Tokens.DOUBLE
-                matches("-?\\d+?L") isToken Tokens.LONG
-                matches("-?\\d+") isToken Tokens.INT
+                matches("-?[\\d,]+\\.\\d+") isToken Tokens.DOUBLE
+                matches("-?[\\d,]+?L") isToken Tokens.LONG
+                matches("-?[\\d,]+") isToken Tokens.INT
                 matches("\\s+").ignore
 
                 '!' isToken Tokens.INVERTED

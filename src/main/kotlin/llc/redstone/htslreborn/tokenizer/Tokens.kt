@@ -3,7 +3,9 @@ package llc.redstone.htslreborn.tokenizer
 import guru.zoroark.tegral.niwen.lexer.StateBuilder
 import guru.zoroark.tegral.niwen.lexer.StateLabel
 import guru.zoroark.tegral.niwen.lexer.TokenType
+import guru.zoroark.tegral.niwen.lexer.matchers.TokenRecognizer
 import guru.zoroark.tegral.niwen.lexer.matchers.anyOf
+import guru.zoroark.tegral.niwen.lexer.matchers.matches
 
 enum class Tokens: TokenType {
     ACTION_KEYWORD,
@@ -54,22 +56,33 @@ enum class Operators: TokenType {
 }
 
 fun StateBuilder.operatorTokens() {
-    "unset" isToken Operators.UNSET
+    word("unset") isToken Operators.UNSET
     "increment" isToken Operators.INCREMENT
     "decrement" isToken Operators.DECREMENT
     "multiply" isToken Operators.MULTIPLY
     "divide" isToken Operators.DIVIDE
-    anyOf("inc", "+=") isToken Operators.INCREMENT
-    anyOf("dec", "-=") isToken Operators.DECREMENT
-    anyOf("set", "=") isToken Operators.SET
-    anyOf("mult", "*=") isToken Operators.MULTIPLY
-    anyOf("div", "/=") isToken Operators.DIVIDE
-    anyOf("and", "&=") isToken Operators.BITWISE_AND
-    anyOf("xor", "^=") isToken Operators.BITWISE_XOR
-    anyOf("or", "|=") isToken Operators.BITWISE_OR
-    anyOf("leftShift", "shl", "<<=") isToken Operators.LEFT_SHIFT
-    anyOf("arithmeticRightShift", "shr", ">>=") isToken Operators.ARITHMETIC_RIGHT_SHIFT
-    anyOf("logicalRightShift", "lshr", ">>>=") isToken Operators.LOGICAL_RIGHT_SHIFT
+    word("inc") isToken Operators.INCREMENT
+    "+=" isToken Operators.INCREMENT
+    word("dec") isToken Operators.DECREMENT
+    "-=" isToken Operators.DECREMENT
+    word("set") isToken Operators.SET
+    "=" isToken Operators.SET
+    word("mult") isToken Operators.MULTIPLY
+    "*=" isToken Operators.MULTIPLY
+    word("div") isToken Operators.DIVIDE
+    "/=" isToken Operators.DIVIDE
+    word("and") isToken Operators.BITWISE_AND
+    "&=" isToken Operators.BITWISE_AND
+    word("xor") isToken Operators.BITWISE_XOR
+    "^=" isToken Operators.BITWISE_XOR
+    word("or") isToken Operators.BITWISE_OR
+    "|=" isToken Operators.BITWISE_OR
+    word("shl") isToken Operators.LEFT_SHIFT
+    word("shr") isToken Operators.ARITHMETIC_RIGHT_SHIFT
+    word("lshr") isToken Operators.LOGICAL_RIGHT_SHIFT
+    anyOf("leftShift", "<<=") isToken Operators.LEFT_SHIFT
+    anyOf("arithmeticRightShift", ">>=") isToken Operators.ARITHMETIC_RIGHT_SHIFT
+    anyOf("logicalRightShift", ">>>=") isToken Operators.LOGICAL_RIGHT_SHIFT
 }
 
 enum class Comparators: TokenType {
@@ -98,4 +111,8 @@ enum class States: StateLabel {
     JS_INTERPRETER_CONDITION,
     DEFINE,
     IN_MULTI_LINE_COMMENT
+}
+
+fun StateBuilder.word(word: String): TokenRecognizer {
+    return matches("\b$word\b")
 }
