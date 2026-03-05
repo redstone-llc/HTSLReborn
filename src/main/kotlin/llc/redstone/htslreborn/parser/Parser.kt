@@ -2,6 +2,7 @@ package llc.redstone.htslreborn.parser
 
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
+import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.Action.Conditional
 import llc.redstone.systemsapi.data.Action.RandomAction
@@ -82,17 +83,23 @@ object Parser {
                     if (conditional != null) {
                         val index = tokens.indexOf(token)
                         if (index > 0 && tokens[index - 1].tokenType == Tokens.INVERTED) {
-                            conditions.add(ConditionParser.createCondition(token.string, iterator, path, true) ?: error("Did not expect null condition"))
+                            conditions.add(ConditionParser.createCondition(token.string, iterator, path, true) ?: htslCompileError("A condition failed to parse", token))
                             continue
                         }
 
-                        conditions.add(ConditionParser.createCondition(token.string, iterator, path) ?: error("Did not expect null condition"))
+                        conditions.add(ConditionParser.createCondition(token.string, iterator, path) ?: htslCompileError("A condition failed to parse", token))
                     }
                 }
 
                 Tokens.COMMA -> {
                     if (conditional != null && iterator.hasNext()) {
-                        conditions.add(ConditionParser.createCondition(iterator.next().string, iterator, path) ?: error("Did not expect null condition"))
+                        val token = iterator.next()
+                        val index = tokens.indexOf(token)
+                        if (index > 0 && tokens[index].tokenType == Tokens.INVERTED) {
+                            conditions.add(ConditionParser.createCondition(iterator.next().string, iterator, path, true) ?: htslCompileError("A condition failed to parse", token))
+                            continue
+                        }
+                        conditions.add(ConditionParser.createCondition(token.string, iterator, path) ?: htslCompileError("A condition failed to parse", token))
                     }
                 }
 
@@ -125,8 +132,8 @@ object Parser {
                 }
 
                 Tokens.ACTION_KEYWORD -> {
-                    val action = ActionParser.createAction(token.string, iterator, path) ?: error("Did not action to be null")
-                    if (depth.size - 1 == 0) {
+                    val action = ActionParser.createAction(token.string, iterator, path) ?: htslCompileError("An action failed to parse", token)
+                    if (depth.isEmpty()) {
                         compiledActions.add(action)
                         continue
                     } else {

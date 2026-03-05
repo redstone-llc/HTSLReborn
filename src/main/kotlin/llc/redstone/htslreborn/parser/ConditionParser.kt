@@ -4,6 +4,7 @@ import llc.redstone.htslreborn.tokenizer.Comparators
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
+import llc.redstone.htslreborn.utils.ItemUtils
 import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.data.Condition.*
 import llc.redstone.systemsapi.data.Condition.DamageCause
@@ -70,18 +71,13 @@ object ConditionParser {
                 Boolean::class -> token.string.toBoolean()
                 StatValue::class -> {
                     when (token.tokenType) {
-                        Tokens.STRING -> StatValue.Str(token.string)
-                        Tokens.INT -> {
-                            if (token.string.toIntOrNull() == null) {
-                                StatValue.Lng(token.string.removeSuffix("L").toLong())
-                            } else {
-                                StatValue.I32(token.string.toInt())
-                            }
+                        Tokens.STRING -> if (token.string.contains("%")) {
+                            StatValue.UnquotedStr(token.string)
+                        } else {
+                            StatValue.Str(token.string)
                         }
-                        Tokens.LONG -> StatValue.Lng(token.string.removeSuffix("L").toLong())
-                        Tokens.DOUBLE -> StatValue.Dbl(token.string.removeSuffix("D").toDouble())
-                        Tokens.NULL -> null
-                        else -> StatValue.Str(token.string)
+
+                        else -> StatValue.fromString(token.string)
                     }
                 }
 
@@ -89,12 +85,28 @@ object ConditionParser {
                     if (path == null) {
                         htslCompileError("Cannot load ItemStack from file when file is null", token)
                     }
+                    if (token.tokenType == Tokens.NULL) {
+                        args[param] = null
+                        continue
+                    }
                     val relativeFileLocation = token.string
-                    val parent = if (path.isDirectory()) path else path.parent
-                    val nbtString = parent.resolve(relativeFileLocation).readText()
+                    val nbt = try {
+                        val parent = if (path.isDirectory()) path else path.parent
+                        val file = parent.resolve(relativeFileLocation)
+                        ItemUtils.fileToNbtCompound(file)
+                    } catch (_: Exception) {
+                        try {
+                            ItemUtils.stringToNbtCompound(relativeFileLocation.replace("\\\"", "\""))
+                        } catch (e: Exception) {
+                            htslCompileError(
+                                "Failed to parse ItemStack NBT from string or file: ${e.message}",
+                                token
+                            )
+                        }
+                    }
 
                     ItemStack(
-                        nbt = StringNbtReader.readCompound(nbtString),
+                        nbt = nbt,
                         relativeFileLocation = relativeFileLocation,
                     )
                 }
@@ -127,7 +139,7 @@ object ConditionParser {
                 val getByKeyMethod = companion::class.members.find { it.name == "fromKey" }
                     ?: htslCompileError("No getByKey method for keyed enum: ${prop.returnType}", token)
 
-                args[param] = getByKeyMethod.call(companion, token)
+                args[param] = getByKeyMethod.call(companion, token.string)
             }
         }
 

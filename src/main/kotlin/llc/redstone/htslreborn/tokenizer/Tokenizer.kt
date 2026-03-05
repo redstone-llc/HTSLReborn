@@ -18,9 +18,9 @@ object Tokenizer {
 
         val lexer = niwenLexer {
             default state {
-                anyOf(*actionKeywords.map {
-                    "$it "
-                }.toTypedArray()) isToken Tokens.ACTION_KEYWORD
+                actionKeywords.forEach {
+                    matches("\\b$it\\b") isToken Tokens.ACTION_KEYWORD
+                }
 
                 "{\n" isToken Tokens.DEPTH_ADD
 
@@ -43,9 +43,11 @@ object Tokenizer {
 
                 matches("//.*") isToken Tokens.COMMENT
                 "/*" isToken Tokens.COMMENT thenState IN_MULTI_LINE_COMMENT
-                matches("-?[\\d,]+\\.\\d+") isToken Tokens.DOUBLE
-                matches("-?[\\d,]+?L") isToken Tokens.LONG
-                matches("-?[\\d,]+") isToken Tokens.INT
+                matches("-?(\\d{1,3}(,\\d{3})*|\\d+)\\.\\d+") isToken Tokens.DOUBLE
+                matches("-?(\\d{1,3}(,\\d{3})*|\\d+)D") isToken Tokens.DOUBLE
+                matches("-?(\\d{1,3}(,\\d{3})*|\\d+)L") isToken Tokens.LONG
+                matches("-?(\\d{1,3}(,\\d{3})*|\\d+)") isToken Tokens.INT
+
                 matches("\\s+").ignore
 
                 "\"\"" isToken Tokens.STRING
@@ -75,9 +77,11 @@ object Tokenizer {
                 anyOf(",", ", ") isToken Tokens.COMMA
 
                 matches("//.*") isToken Tokens.COMMENT
-                matches("-?[\\d,]+\\.\\d+") isToken Tokens.DOUBLE
-                matches("-?[\\d,]+?L") isToken Tokens.LONG
-                matches("-?[\\d,]+") isToken Tokens.INT
+                matches("-?(\\d{1,3}(,\\d{3})*|\\d+)\\.\\d+") isToken Tokens.DOUBLE
+                matches("-?(\\d{1,3}(,\\d{3})*|\\d+)D") isToken Tokens.DOUBLE
+                matches("-?(\\d{1,3}(,\\d{3})*|\\d+)L") isToken Tokens.LONG
+                matches("-?(\\d{1,3}(,\\d{3})*|\\d+)") isToken Tokens.INT
+
                 matches("\\s+").ignore
 
                 '!' isToken Tokens.INVERTED
@@ -148,7 +152,8 @@ object Tokenizer {
     class TokenWithPosition(
         val token: Token,
         val line: Int,
-        val column: Int
+        val column: Int,
+        val quoted: Boolean = false
     ) {
         val string = token.string
         val endsAt = token.endsAt

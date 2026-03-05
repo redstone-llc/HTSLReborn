@@ -1,14 +1,12 @@
 package llc.redstone.htslreborn
 
-import llc.redstone.htslreborn.parser.LocationParser
 import llc.redstone.htslreborn.parser.PreProcess
 import llc.redstone.htslreborn.tokenizer.Tokenizer
-import llc.redstone.htslreborn.tokenizer.Tokens
 
-// Used primarily for testing the tokenizer, preprocessor, and parser
+// Used primarily for testing the tokenizer and preprocessor
 fun main(args: Array<String>) {
     val input = """
-        globalstat "r0" = %var.player/level_time% false
+        kill
      """.trimIndent()
 
     val tokens = Tokenizer.tokenize(input)

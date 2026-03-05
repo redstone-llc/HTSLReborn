@@ -114,5 +114,5 @@ enum class States: StateLabel {
 }
 
 fun StateBuilder.word(word: String): TokenRecognizer {
-    return matches("\b$word\b")
+    return matches("(?i)\\b$word\\b")
 }

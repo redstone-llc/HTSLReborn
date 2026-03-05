@@ -83,117 +83,141 @@ object ActionParser {
         val clazz = keywords[keyword] ?: return null
 
         val constructor = clazz.primaryConstructor ?: return null
-
-        val args: MutableMap<KParameter, Any?> = mutableMapOf()
+        var args: MutableMap<KParameter, Any?> = mutableMapOf()
 
         val parameters = constructor.parameters.toMutableList()
         handleSwaps(parameters, clazz)
 
-        for (param in parameters) {
-            val prop = clazz.memberProperties.find { it.name == param.name }!!
+        try {
 
-            if (!iterator.hasNext()) continue
-            val token = iterator.next()
-            //End of action
-            if (token.tokenType == Tokens.NEWLINE) continue
+            for (param in parameters) {
+                val prop = clazz.memberProperties.find { it.name == param.name }!!
 
-            try {
-                args[param] = when (prop.returnType.classifier) {
-                    String::class -> token.string
-                    Int::class -> token.string.toInt()
-                    Long::class -> token.string.removeSuffix("L").toLong()
-                    Double::class -> token.string.removeSuffix("D").toDouble()
-                    Boolean::class -> token.string.toBoolean()
-                    StatValue::class -> {
-                        when (token.tokenType) {
-                            Tokens.STRING -> if (token.string.contains("%")) {
-                                StatValue.UnquotedStr(token.string)
-                            } else {
-                                StatValue.Str(token.string)
-                            }
-                            else -> StatValue.fromString(token.string)
-                        }
-                    }
+                if (!iterator.hasNext()) error("Not enough arguments for action '$keyword'")
+                val token = iterator.next()
+                //End of action
+                if (token.tokenType == Tokens.NEWLINE) break
 
-                    Location::class -> LocationParser.parse(token.string, iterator)
+                try {
+                    args[param] = when (prop.returnType.classifier) {
+                        String::class -> token.string
+                        Int::class -> token.string.toInt()
+                        Long::class -> token.string.removeSuffix("L").toLong()
+                        Double::class -> token.string.removeSuffix("D").toDouble()
+                        Boolean::class -> token.string.toBoolean()
+                        StatValue::class -> {
+                            when (token.tokenType) {
+                                Tokens.STRING -> if (!token.quoted) {
+                                    StatValue.UnquotedStr(token.string)
+                                } else {
+                                    StatValue.Str(token.string)
+                                }
 
-                    ItemStack::class -> {
-                        if (path == null) {
-                            htslCompileError("Cannot load ItemStack from file when file is null", token)
-                        }
-                        val relativeFileLocation = token.string
-                        val nbt = try {
-                            val parent = if (path.isDirectory()) path else path.parent
-                            val file = parent.resolve(relativeFileLocation)
-                            ItemUtils.fileToNbtCompound(file)
-                        } catch (_: Exception) {
-                            try {
-                                ItemUtils.stringToNbtCompound(relativeFileLocation.replace("\\\"", "\""))
-                            } catch (e: Exception) {
-                                htslCompileError("Failed to parse ItemStack NBT from string or file: ${e.message}", token)
+                                else -> StatValue.fromString(token.string)
                             }
                         }
 
-                        ItemStack(
-                            nbt = nbt,
-                            relativeFileLocation = relativeFileLocation,
-                        )
+                        Location::class -> LocationParser.parse(token.string, iterator)
+
+                        ItemStack::class -> {
+                            if (path == null) {
+                                htslCompileError("Cannot load ItemStack from file when file is null", token)
+                            }
+                            val relativeFileLocation = token.string
+                            if (token.tokenType == Tokens.NULL) {
+                                args[param] = null
+                                continue
+                            }
+                            val nbt = try {
+                                val parent = if (path.isDirectory()) path else path.parent
+                                val file = parent.resolve(relativeFileLocation)
+                                ItemUtils.fileToNbtCompound(file)
+                            } catch (_: Exception) {
+                                try {
+                                    ItemUtils.stringToNbtCompound(relativeFileLocation.replace("\\\"", "\""))
+                                } catch (e: Exception) {
+                                    htslCompileError(
+                                        "Failed to parse ItemStack NBT from string or file: ${e.message}",
+                                        token
+                                    )
+                                }
+                            }
+
+                            ItemStack(
+                                nbt = nbt,
+                                relativeFileLocation = relativeFileLocation,
+                            )
+                        }
+
+                        StatOp::class -> when (token.tokenType) {
+                            Operators.UNSET -> StatOp.UnSet
+                            Operators.SET -> StatOp.Set
+                            Operators.INCREMENT -> StatOp.Inc
+                            Operators.DECREMENT -> StatOp.Dec
+                            Operators.MULTIPLY -> StatOp.Mul
+                            Operators.DIVIDE -> StatOp.Div
+                            Operators.BITWISE_AND -> StatOp.BitAnd
+                            Operators.BITWISE_OR -> StatOp.BitOr
+                            Operators.BITWISE_XOR -> StatOp.BitXor
+                            Operators.LEFT_SHIFT -> StatOp.LS
+                            Operators.LOGICAL_RIGHT_SHIFT -> StatOp.LRS
+                            Operators.ARITHMETIC_RIGHT_SHIFT -> StatOp.ARS
+                            else -> error("Unknown StatOp: ${token.string}")
+                        }
+
+                        InventorySlot::class -> InventorySlot.fromKey(token.string)
+                        else -> null
                     }
 
-                    StatOp::class -> when (token.tokenType) {
-                        Operators.UNSET -> StatOp.UnSet
-                        Operators.SET -> StatOp.Set
-                        Operators.INCREMENT -> StatOp.Inc
-                        Operators.DECREMENT -> StatOp.Dec
-                        Operators.MULTIPLY -> StatOp.Mul
-                        Operators.DIVIDE -> StatOp.Div
-                        Operators.BITWISE_AND -> StatOp.BitAnd
-                        Operators.BITWISE_OR -> StatOp.BitOr
-                        Operators.BITWISE_XOR -> StatOp.BitXor
-                        Operators.LEFT_SHIFT -> StatOp.LS
-                        Operators.LOGICAL_RIGHT_SHIFT -> StatOp.LRS
-                        Operators.ARITHMETIC_RIGHT_SHIFT -> StatOp.ARS
-                        else -> error("Unknown StatOp: ${token.string}")
+                    if (token.tokenType == Tokens.NULL) {
+                        args[param] = null
+                        continue
                     }
 
-                    InventorySlot::class -> InventorySlot.fromKey(token.string)
-                    else -> null
-                }
+                    if (args.containsKey(param) && args[param] != null) {
+                        continue
+                    }
+                    if (prop.returnType.isSubtypeOf(Keyed::class.starProjectedType.withNullability(true))) {
+                        val companion = prop.returnType.classifier
+                            .let { it as? KClass<*> }
+                            ?.companionObjectInstance
+                            ?: error("No companion object for keyed enum: ${prop.returnType}")
 
-                if (token.tokenType == Tokens.NULL) {
-                    args[param] = null
-                    continue
-                }
+                        val getByKeyMethod = companion::class.members.find { it.name == "fromKey" }
+                            ?: error("No getByKey method for keyed enum: ${prop.returnType}")
 
-                if (args.containsKey(param) && args[param] != null) {
-                    continue
-                }
-                if (prop.returnType.isSubtypeOf(Keyed::class.starProjectedType.withNullability(true))) {
-                    val companion = prop.returnType.classifier
-                        .let { it as? KClass<*> }
-                        ?.companionObjectInstance
-                        ?: error("No companion object for keyed enum: ${prop.returnType}")
+                        args[param] = getByKeyMethod.call(companion, token.string)
+                    }
 
-                    val getByKeyMethod = companion::class.members.find { it.name == "fromKey" }
-                        ?: error("No getByKey method for keyed enum: ${prop.returnType}")
-
-                    args[param] = getByKeyMethod.call(companion, token.string)
-                }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                htslCompileError("Failed to parse action parameter '${param.name}': ${e.message} in file ${path?.name}", token)
-            }
-        }
-
-        if (args.size != constructor.parameters.size) {
-            clazz.constructors.forEach { newCon ->
-                if (constructor.parameters.size == newCon.parameters.size) {
-                    return newCon.callBy(args)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    htslCompileError(
+                        "Failed to parse action parameter '${param.name}': ${e.message} in file ${path?.name}",
+                        token
+                    )
                 }
             }
-        }
 
-        return constructor.callBy(args)
+            val newArgs = args.filterValues { it != null }.toMutableMap()
+
+            if (newArgs.size != constructor.parameters.size) {
+                clazz.constructors.forEach { newCon ->
+                    if (newArgs.size == newCon.parameters.size) {
+                        return newCon.callBy(newArgs)
+                    }
+                }
+            }
+            return try {
+                constructor.callBy(args)
+            } catch (_: Exception) {
+                constructor.callBy(newArgs)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            htslCompileError(
+                "Failed to create action instance: ${e.message} in file ${path?.name}",
+                iterator.previous()
+            )
+        }
     }
 }

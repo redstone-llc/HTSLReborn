@@ -19,6 +19,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.writeText
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
@@ -80,9 +81,9 @@ object HTSLExporter {
             }
 
             StatValue::class -> {
-                println("type: ${value?.javaClass}, value: $value")
                 when (value) {
                     null -> properties.add("null")
+                    is StatValue.Str -> properties.add("\"${value.value.replace("\"", "\\\"")}\"")
                     else -> properties.add(value.toString())
                 }
             }
@@ -144,7 +145,9 @@ object HTSLExporter {
             else -> {
                 if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType.withNullability(true))) {
                     val keyed = value as Keyed
-                    if (keyed is KeyedLabeled) {
+                    if (keyed::class.hasAnnotation<CustomKey>()) {
+                        properties.add(keyed.toString())
+                    } else if (keyed is KeyedLabeled) {
                         properties.add("\"${keyed.label}\"")
                     } else {
                         properties.add("\"${keyed.key}\"")
@@ -164,7 +167,7 @@ object HTSLExporter {
             if (action is Action.Conditional) {
                 val conditional = action as Action.Conditional
                 val exportedConditions = exportConditions(conditional.conditions)
-                lines.add("if${if (conditional.matchAnyCondition) "" else " and"} (${exportedConditions.joinToString(", ")}) {")
+                lines.add("if${if (conditional.matchAnyCondition) " and" else ""} (${exportedConditions.joinToString(", ")}) {")
                 val exportedActions = export(conditional.ifActions)
                 lines.addAll(exportedActions.map { "    $it" })
                 if (conditional.elseActions.isNotEmpty()) {

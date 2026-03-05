@@ -168,7 +168,8 @@ object PreProcess {
                             TokenWithPosition(
                                 token.token.copy(string = processedString),
                                 token.line,
-                                token.column
+                                token.column,
+                                quoted = true
                             )
                         )
                         continue
