@@ -3,10 +3,10 @@ package llc.redstone.htslreborn.parser
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
-import llc.redstone.systemsapi.data.Action
-import llc.redstone.systemsapi.data.Action.Conditional
-import llc.redstone.systemsapi.data.Action.RandomAction
-import llc.redstone.systemsapi.data.Condition
+import llc.redstone.systemsdata.Action
+import llc.redstone.systemsdata.Action.Conditional
+import llc.redstone.systemsdata.Action.RandomAction
+import llc.redstone.systemsdata.Condition
 import java.nio.file.Path
 
 object Parser {
@@ -133,7 +133,8 @@ object Parser {
 
                 Tokens.ACTION_KEYWORD -> {
                     val action = ActionParser.createAction(token.string, iterator, path) ?: htslCompileError("An action failed to parse", token)
-                    if (depth.isEmpty()) {
+
+                    if (depth.size - 1 == 0) {
                         compiledActions.add(action)
                         continue
                     } else {

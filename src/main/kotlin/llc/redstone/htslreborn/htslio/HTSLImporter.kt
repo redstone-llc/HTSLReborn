@@ -12,7 +12,7 @@ import llc.redstone.htslreborn.utils.UIErrorToast
 import llc.redstone.htslreborn.utils.UISuccessToast
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.api.Event
-import llc.redstone.systemsapi.data.Action
+import llc.redstone.systemsdata.Action
 import llc.redstone.systemsapi.importer.ActionContainer
 import llc.redstone.systemsapi.util.CommandUtils
 import net.minecraft.client.MinecraftClient

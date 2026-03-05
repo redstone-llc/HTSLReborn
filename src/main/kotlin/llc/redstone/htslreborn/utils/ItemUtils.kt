@@ -3,12 +3,11 @@ package llc.redstone.htslreborn.utils
 import llc.redstone.htslreborn.ui.FileHandler
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
-import llc.redstone.systemsapi.util.ItemUtils
+import llc.redstone.systemsapi.util.NbtHelper
 import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtIo
-import net.minecraft.nbt.NbtOps
 import net.minecraft.nbt.StringNbtReader
 import net.minecraft.world.GameMode
 import java.io.DataInputStream

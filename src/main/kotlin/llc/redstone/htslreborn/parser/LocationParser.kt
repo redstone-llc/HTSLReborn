@@ -2,7 +2,7 @@ package llc.redstone.htslreborn.parser
 
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
-import llc.redstone.systemsapi.data.Location
+import llc.redstone.systemsdata.Location
 
 object LocationParser {
     fun parse(str: String, iterator: ListIterator<TokenWithPosition>): Location? =

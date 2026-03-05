@@ -5,11 +5,11 @@ import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import llc.redstone.htslreborn.utils.ItemUtils
-import llc.redstone.systemsapi.data.*
-import llc.redstone.systemsapi.data.Condition.*
-import llc.redstone.systemsapi.data.Condition.DamageCause
-import llc.redstone.systemsapi.data.Condition.FishingEnvironment
-import llc.redstone.systemsapi.data.Condition.PortalType
+import llc.redstone.systemsdata.*
+import llc.redstone.systemsdata.Condition.*
+import llc.redstone.systemsdata.Condition.DamageCause
+import llc.redstone.systemsdata.Condition.FishingEnvironment
+import llc.redstone.systemsdata.Condition.PortalType
 import net.minecraft.nbt.StringNbtReader
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
@@ -106,7 +106,7 @@ object ConditionParser {
                     }
 
                     ItemStack(
-                        nbt = nbt,
+                        nbt = nbt.toString(),
                         relativeFileLocation = relativeFileLocation,
                     )
                 }

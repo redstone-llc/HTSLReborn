@@ -5,8 +5,8 @@ import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import llc.redstone.htslreborn.utils.ItemUtils
-import llc.redstone.systemsapi.data.*
-import llc.redstone.systemsapi.data.Action.*
+import llc.redstone.systemsdata.*
+import llc.redstone.systemsdata.Action.*
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
@@ -144,7 +144,7 @@ object ActionParser {
                             }
 
                             ItemStack(
-                                nbt = nbt,
+                                nbt = nbt.toString(),
                                 relativeFileLocation = relativeFileLocation,
                             )
                         }
