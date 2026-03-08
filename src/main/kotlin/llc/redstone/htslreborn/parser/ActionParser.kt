@@ -63,6 +63,19 @@ object ActionParser {
         "displayNametag" to ToggleNametagDisplay::class,
     )
 
+    fun getSyntax(keyword: String): String {
+        val clazz = keywords[keyword] ?: return "Unknown action '$keyword'"
+        if (clazz == Conditional::class) {
+            return "if (<condition>) {\n    <actions>\n} else {\n    <actions>\n}"
+        }
+        if (clazz == RandomAccess::class) {
+            return "random {\n    <actions>\n}"
+        }
+        val constructor = clazz.primaryConstructor ?: return "No primary constructor for action '$keyword'"
+        val params = constructor.parameters.joinToString(" ") { "<${it.name}>" }
+        return "$keyword $params"
+    }
+
     fun handleSwaps(parameters: MutableList<KParameter>, clazz: KClass<out Action>) {
         fun swapParams(name: String, name2: String) {
             val index1 = parameters.indexOfFirst { it.name == name }

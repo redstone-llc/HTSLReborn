@@ -6,6 +6,7 @@ import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import llc.redstone.htslreborn.utils.ItemUtils
 import llc.redstone.systemsdata.*
+import llc.redstone.systemsdata.Action.Conditional
 import llc.redstone.systemsdata.Condition.*
 import llc.redstone.systemsdata.Condition.DamageCause
 import llc.redstone.systemsdata.Condition.FishingEnvironment
@@ -49,6 +50,13 @@ object ConditionParser {
         "teamstat" to TeamVariableRequirement::class,
         "inRegion" to InRegion::class,
     )
+
+    fun getSyntax(keyword: String): String {
+        val clazz = keywords[keyword] ?: return "Unknown action '$keyword'"
+        val constructor = clazz.primaryConstructor ?: return "No primary constructor for action '$keyword'"
+        val params = constructor.parameters.joinToString(" ") { "<${it.name}>" }
+        return "$keyword $params"
+    }
 
     fun createCondition(keyword: String, iterator: Iterator<TokenWithPosition>, path: Path?, inverted: Boolean = false): Condition? {
         val clazz = keywords[keyword] ?: return null
