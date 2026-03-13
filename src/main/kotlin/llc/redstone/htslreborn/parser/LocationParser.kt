@@ -50,7 +50,7 @@ object LocationParser {
                 fun parsePart(part: String?): Location.Custom.Coordinate? {
                     if (part == null) return null
                     return Location.Custom.Coordinate(
-                        value = part.removePrefix("~").removePrefix("^").toDoubleOrNull() ?: 0.0,
+                        value = part.removePrefix("~").removePrefix("^"),
                         type = when {
                             part.startsWith("~") -> Location.Custom.Type.RELATIVE
                             part.startsWith("^") -> Location.Custom.Type.CARET

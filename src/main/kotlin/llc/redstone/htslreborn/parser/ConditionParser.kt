@@ -58,7 +58,7 @@ object ConditionParser {
         return "$keyword $params"
     }
 
-    fun createCondition(keyword: String, iterator: Iterator<TokenWithPosition>, path: Path?, inverted: Boolean = false): Condition? {
+    fun createCondition(keyword: String, iterator: ListIterator<TokenWithPosition>, path: Path?, inverted: Boolean = false): Condition? {
         val clazz = keywords[keyword] ?: return null
 
         val constructor = clazz.primaryConstructor ?: return null
@@ -69,7 +69,10 @@ object ConditionParser {
             val prop = clazz.memberProperties.find { it.name == param.name }!!
 
             val token = iterator.next()
-            if (token.tokenType == Tokens.COMMA) break
+            if (token.tokenType == Tokens.COMMA || token.tokenType == Tokens.IF_CONDITION_END || token.tokenType == Tokens.DEPTH_ADD) {
+                iterator.previous()
+                break
+            }
 
             args[param] = when (prop.returnType.classifier) {
                 String::class -> token.string
@@ -151,7 +154,20 @@ object ConditionParser {
             }
         }
 
-        val con = constructor.callBy(args)
+        val newArgs = args.filterValues { it != null }.toMutableMap()
+
+        if (newArgs.size != constructor.parameters.size) {
+            clazz.constructors.forEach { newCon ->
+                if (newArgs.size == newCon.parameters.size) {
+                    return newCon.callBy(newArgs)
+                }
+            }
+        }
+        val con =  try {
+            constructor.callBy(args)
+        } catch (_: Exception) {
+            constructor.callBy(newArgs)
+        }
         con.inverted = inverted
         return con
     }

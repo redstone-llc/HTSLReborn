@@ -106,7 +106,7 @@ object ActionParser {
             for (param in parameters) {
                 val prop = clazz.memberProperties.find { it.name == param.name }!!
 
-                if (!iterator.hasNext()) error("Not enough arguments for action '$keyword'")
+                if (!iterator.hasNext()) break
                 val token = iterator.next()
                 //End of action
                 if (token.tokenType == Tokens.NEWLINE) break

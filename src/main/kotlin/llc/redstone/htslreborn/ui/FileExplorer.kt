@@ -26,6 +26,7 @@ import llc.redstone.htslreborn.ui.components.CreateEntryComponent
 import llc.redstone.htslreborn.ui.components.FolderEntryComponent
 import llc.redstone.htslreborn.ui.components.ItemEntryComponent
 import llc.redstone.htslreborn.ui.components.ScriptEntryComponent
+import llc.redstone.htslreborn.ui.components.TimeRemainingComponent
 import llc.redstone.systemsapi.SystemsAPI
 import net.minecraft.client.gui.cursor.Cursor
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
