@@ -18,6 +18,7 @@ public class ChatSilencerMixin {
     @Unique
     private final List<Pattern> HIDDEN_MESSAGES = List.of(
             Pattern.compile("^Added action .+!$"),
+            Pattern.compile("^Added condition .+!$"),
             Pattern.compile("^\n\n.+:\nPlease use the chat to provide the value you wish to set\\.\n.*$")
     );
 
