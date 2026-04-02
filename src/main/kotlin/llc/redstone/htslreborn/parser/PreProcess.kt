@@ -85,7 +85,7 @@ object PreProcess {
                         else -> result.toString()
                     }
 
-                    processedTokens.addAll(Tokenizer.tokenize(resultString))
+                    processedTokens.addAll(preProcess(Tokenizer.tokenize(resultString)))
                 }
 
                 Tokens.DEFINE_KEYWORD -> {

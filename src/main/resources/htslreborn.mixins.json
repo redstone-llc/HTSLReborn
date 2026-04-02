@@ -6,6 +6,7 @@
   "client": [
     "ChatSilencerMixin",
     "KeyboardMixin",
+    "ScreenCloseMixin",
     "ScreenHandlerMixin",
     "SoundSilencerMixin"
   ],

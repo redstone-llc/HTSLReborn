@@ -70,6 +70,10 @@ object HTSLExporter {
     //This class is a little gross :)
     fun handleProperty(property: KProperty1<PropertyHolder, *>, value: Any?): List<String> {
         val properties = mutableListOf<String>()
+        if (value == null) {
+            properties.add("null")
+            return properties
+        }
         when (property.returnType.classifier) {
             String::class -> {
                 if (value == "Not Set") {
