@@ -8,9 +8,10 @@ import kotlin.io.path.Path
 // Used primarily for testing the tokenizer and preprocessor
 fun main(args: Array<String>) {
     val input = """
-    // test
-    chat "hello world"
-    """.trimIndent()
+if (var my_killer_id == 0 0) { 
+    exit
+} 
+    """.split("\n").joinToString("\n") { it.trim() }
     val tokens = Tokenizer.tokenize(input)
     println("Tokens:")
     tokens.forEach { println("${it.tokenType} -> ${it.string}") }

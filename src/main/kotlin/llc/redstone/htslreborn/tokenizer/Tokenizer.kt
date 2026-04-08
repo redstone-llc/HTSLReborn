@@ -145,7 +145,7 @@ object Tokenizer {
     }
 
     fun tokenize(path: Path): List<TokenWithPosition> {
-        val input = path.readLines().joinToString("\n")
+        val input = path.readLines().joinToString("\n") { it.trim() }
         return tokenize(input)
     }
 
