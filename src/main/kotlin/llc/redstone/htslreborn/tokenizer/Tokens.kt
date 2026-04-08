@@ -30,13 +30,12 @@ enum class Tokens: TokenType {
     DEPTH_SUBTRACT,
     ELSE_KEYWORD,
     COMMA,
-    BRACE_OPEN,
-    BRACE_CLOSE,
     JS_CODE,
     LOOP_KEYWORD,
     DEFINE_KEYWORD,
     DEFINE_VALUE,
-    NULL
+    NULL,
+    SLOT_INDEX
     ;
 }
 
@@ -102,13 +101,9 @@ fun StateBuilder.comparatorTokens() {
 }
 
 enum class States: StateLabel {
-    IN_STRING,
-    IN_CONDITION_STRING,
     PLACEHOLDER,
     PLACEHOLDER_CONDITION,
     IF_CONDITION,
-    JS_INTERPRETER,
-    JS_INTERPRETER_CONDITION,
     DEFINE,
     IN_MULTI_LINE_COMMENT
 }

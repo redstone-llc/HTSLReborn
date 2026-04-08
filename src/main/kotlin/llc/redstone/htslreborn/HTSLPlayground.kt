@@ -8,9 +8,7 @@ import kotlin.io.path.Path
 // Used primarily for testing the tokenizer and preprocessor
 fun main(args: Array<String>) {
     val input = """
-if (var my_killer_id == 0 0) { 
-    exit
-} 
+    giveItem { "slot_0" } true "First Available Slot" false
     """.split("\n").joinToString("\n") { it.trim() }
     val tokens = Tokenizer.tokenize(input)
     println("Tokens:")
@@ -21,6 +19,6 @@ if (var my_killer_id == 0 0) {
     preProcessedTokens.forEach { println("${it.tokenType} -> ${it.string}") }
 
     val parser = Parser.parse(preProcessedTokens, Path("test.htsl"))
-        println("\nParsed Actions:")
-        println(parser)
+    println("\nParsed Actions:")
+    println(parser)
 }

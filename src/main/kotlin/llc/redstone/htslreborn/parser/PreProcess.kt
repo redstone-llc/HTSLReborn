@@ -80,12 +80,8 @@ object PreProcess {
                     }
 
                     val result = context.evaluateString(scope, processedString, "HTSL_JS_EVAL", token.line, null)
-                    val resultString = when (result) {
-                        is String -> "\"$result\"" // Wrap strings in quotes
-                        else -> result.toString()
-                    }
 
-                    processedTokens.addAll(preProcess(Tokenizer.tokenize(resultString)))
+                    processedTokens.addAll(preProcess(Tokenizer.tokenize(result.toString())))
                 }
 
                 Tokens.DEFINE_KEYWORD -> {

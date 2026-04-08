@@ -49,15 +49,17 @@ object Tokenizer {
                 matches("-?(\\d{1,3}(,\\d{3})+|\\d+)") isToken Tokens.INT
 
                 matches("\\s+").ignore
+                matches("slot_\\d+") isToken Tokens.SLOT_INDEX
 
                 "\"\"" isToken Tokens.STRING
-                '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER
+                matches("\\{([^\\n}]+)}") isToken Tokens.JS_CODE
                 matches(""""(?:[^"\\]|\\.)*"""") isToken Tokens.STRING
                 '%' isToken Tokens.PLACEHOLDER thenState PLACEHOLDER
 
                 matches("""define """) isToken Tokens.DEFINE_KEYWORD thenState DEFINE
 
                 matches("[^\\s(){}%\",]+") isToken Tokens.STRING
+                '{' isToken Tokens.DEPTH_ADD
 
             }
 
@@ -88,21 +90,11 @@ object Tokenizer {
 
                 matches(""""(?:[^"\\]|\\.)*"""") isToken Tokens.STRING
                 '%' isToken Tokens.PLACEHOLDER thenState PLACEHOLDER_CONDITION
-                '{' isToken Tokens.BRACE_OPEN thenState JS_INTERPRETER_CONDITION
+                matches("\\{([^\\n}]+)}") isToken Tokens.JS_CODE
 
                 matches("[^\\s(){}%\",]+") isToken Tokens.STRING
 
                 ')' isToken Tokens.IF_CONDITION_END thenState default
-            }
-
-            JS_INTERPRETER state {
-                matches("[^}]+") isToken Tokens.JS_CODE
-                '}' isToken Tokens.BRACE_CLOSE thenState default
-            }
-
-            JS_INTERPRETER_CONDITION state {
-                matches("[^}]+") isToken Tokens.JS_CODE
-                '}' isToken Tokens.BRACE_CLOSE thenState IF_CONDITION
             }
 
             DEFINE state {
@@ -129,8 +121,6 @@ object Tokenizer {
         return lexer.tokenize(text)
             .filter {
                 it.tokenType != Tokens.QUOTE &&
-                        it.tokenType != Tokens.BRACE_OPEN &&
-                        it.tokenType != Tokens.BRACE_CLOSE &&
                         it.tokenType != Tokens.COMMENT &&
                         it.tokenType != Tokens.IF_CONDITION_END
             } //Filter out unused and wasted tokens
