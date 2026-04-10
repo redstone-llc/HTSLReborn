@@ -136,7 +136,7 @@ object ActionParser {
                             if (path == null) {
                                 htslCompileError("Cannot load ItemStack from file when file is null", token)
                             }
-                            val relativeFileLocation = token.string
+                            var relativeFileLocation = token.string
                             if (token.tokenType == Tokens.NULL) {
                                 args[param] = null
                                 continue
@@ -154,11 +154,14 @@ object ActionParser {
                             }
                             val nbt = try {
                                 val parent = if (path.isDirectory()) path else path.parent
+                                if (!relativeFileLocation.endsWith(".nbt")) {
+                                    relativeFileLocation += ".nbt"
+                                }
                                 val file = parent.resolve(relativeFileLocation)
                                 ItemUtils.fileToNbtCompound(file)
                             } catch (_: Exception) {
                                 try {
-                                    ItemUtils.stringToNbtCompound(relativeFileLocation.replace("\\\"", "\""))
+                                    ItemUtils.stringToNbtCompound(token.string.replace("\\\"", "\""))
                                 } catch (e: Exception) {
                                     htslCompileError(
                                         "Failed to parse ItemStack NBT from string or file: ${e.message}",
