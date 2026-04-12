@@ -12,12 +12,14 @@ import java.nio.file.Path
 import kotlin.io.path.readLines
 
 object Tokenizer {
-    fun tokenize(text: String): List<TokenWithPosition> {
+    fun tokenize(text: String, shortcut: Boolean = true): List<TokenWithPosition> {
         val actionKeywords = ActionParser.keywords.keys
         val conditionKeywords = ConditionParser.keywords.keys
 
         val lexer = niwenLexer {
             default state {
+                if (shortcut) placeholderShortcuts()
+
                 actionKeywords.forEach {
                     matches("\\b$it\\b") isToken Tokens.ACTION_KEYWORD
                 }
@@ -25,10 +27,12 @@ object Tokenizer {
                 "{\n" isToken Tokens.DEPTH_ADD
 
                 anyOf("} else {", "}else{", "}else {", "} else{") isToken Tokens.ELSE_KEYWORD
-                "loop" isToken Tokens.LOOP_KEYWORD
+                word("loop") isToken Tokens.LOOP_KEYWORD
+                word("copy") isToken Tokens.COPY_KEYWORD
+                word("paste") isToken Tokens.PASTE_KEYWORD
                 "}" isToken Tokens.DEPTH_SUBTRACT
-                "random" isToken Tokens.RANDOM_KEYWORD
-                "goto" isToken Tokens.GOTO_KEYWORD
+                word("random") isToken Tokens.RANDOM_KEYWORD
+                word("goto") isToken Tokens.GOTO_KEYWORD
 
                 matches("if( (and|false))?\\s*\\(") isToken Tokens.IF_AND_CONDITION_START thenState IF_CONDITION
                 matches("if (or|true)\\s*\\(") isToken Tokens.IF_OR_CONDITION_START thenState IF_CONDITION

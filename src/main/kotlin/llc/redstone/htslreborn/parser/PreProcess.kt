@@ -1,6 +1,7 @@
 package llc.redstone.htslreborn.parser
 
 import guru.zoroark.tegral.niwen.lexer.Token
+import llc.redstone.htslreborn.tokenizer.PlaceholderShortcuts
 import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
@@ -33,10 +34,51 @@ object PreProcess {
         while (iterator.hasNext()) {
             val token = iterator.next()
             when (token.tokenType) {
+                is PlaceholderShortcuts -> {
+                    val args = Tokenizer.tokenize(token.string, false)
+                    println(args)
+                    fun stringOrEmpty(index: Int): String {
+                        return args.getOrNull(index)?.string ?: ""
+                    }
+
+                    val placeholder = when (token.tokenType) {
+                        PlaceholderShortcuts.GLOBAL_VAR -> "%var.global/${stringOrEmpty(2)}%"
+                        PlaceholderShortcuts.PLAYER_VAR -> "%var.player/${stringOrEmpty(2)}%"
+                        PlaceholderShortcuts.TEAM_VAR -> "%var.team/${stringOrEmpty(2)} ${stringOrEmpty(3)}%"
+                        PlaceholderShortcuts.RANDOM_INT ->  "%random.whole/${stringOrEmpty(2)} ${stringOrEmpty(3)}%"
+                        PlaceholderShortcuts.RANDOM_DOUBLE -> "%random.decimal/${stringOrEmpty(2)} ${stringOrEmpty(3)}%"
+                        PlaceholderShortcuts.HEALTH -> "%player.health%"
+                        PlaceholderShortcuts.MAX_HEALTH -> "%player.maxhealth%"
+                        PlaceholderShortcuts.HUNGER -> "%player.hunger%"
+                        PlaceholderShortcuts.LOC_X -> "%player.pos.x%"
+                        PlaceholderShortcuts.LOC_Y -> "%player.pos.y%"
+                        PlaceholderShortcuts.LOC_Z -> "%player.pos.z%"
+                        PlaceholderShortcuts.UNIX -> "%date.unix%"
+                        else -> error("Unknown placeholder shortcut ${token.tokenType}")
+                    }
+
+                    processedTokens.add(
+                        args[0]
+                    )
+
+                    processedTokens.add(
+                        TokenWithPosition(
+                            Token(
+                                placeholder,
+                                token.startsAt,
+                                token.endsAt,
+                                Tokens.PLACEHOLDER_STRING,
+                            ),
+                            token.line,
+                            token.column
+                        )
+                    )
+                }
+
                 Tokens.ACTION_KEYWORD -> {
                     processedTokens.add(
                         TokenWithPosition(
-                           token.token.copy(string = token.string.trim()),
+                            token.token.copy(string = token.string.trim()),
                             token.line,
                             token.column
                         )
@@ -79,7 +121,11 @@ object PreProcess {
                         processedString = processedString.replace(regex, value)
                     }
 
-                    val result = context.evaluateString(scope, processedString, "HTSL_JS_EVAL", token.line, null)
+                    var result = context.evaluateString(scope, processedString, "HTSL_JS_EVAL", token.line, null)
+
+                    if (result is String && result.contains(" ")) {
+                        result = "\"$result\""
+                    }
 
                     processedTokens.addAll(preProcess(Tokenizer.tokenize(result.toString())))
                 }

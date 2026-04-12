@@ -3,6 +3,7 @@ package llc.redstone.htslreborn.parser
 import llc.redstone.htslreborn.tokenizer.Tokenizer.TokenWithPosition
 import llc.redstone.htslreborn.tokenizer.Tokens
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
+import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsdata.Action
 import llc.redstone.systemsdata.Action.Conditional
 import llc.redstone.systemsdata.Action.RandomAction
@@ -144,6 +145,21 @@ object Parser {
                             depth[depth.size - 1]!!.first.add(action)
                         }
                     }
+                }
+
+                Tokens.COPY_KEYWORD -> {
+                    compiledActions.add(Action.CustomAction("COPY", function = {
+                        SystemsAPI.launch {
+                            SystemsAPI.getHousingImporter().getOpenActionContainer()?.copyToHousingClipboard()
+                        }
+                    }))
+                }
+                Tokens.PASTE_KEYWORD -> {
+                    compiledActions.add(Action.CustomAction("PASTE", function = {
+                        SystemsAPI.launch {
+                            SystemsAPI.getHousingImporter().getOpenActionContainer()?.pasteFromHousingClipboard()
+                        }
+                    }))
                 }
             }
         }

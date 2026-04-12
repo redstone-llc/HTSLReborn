@@ -6,8 +6,9 @@ import guru.zoroark.tegral.niwen.lexer.TokenType
 import guru.zoroark.tegral.niwen.lexer.matchers.TokenRecognizer
 import guru.zoroark.tegral.niwen.lexer.matchers.anyOf
 import guru.zoroark.tegral.niwen.lexer.matchers.matches
+import org.intellij.lang.annotations.Language
 
-enum class Tokens: TokenType {
+enum class Tokens : TokenType {
     ACTION_KEYWORD,
     CONDITION_KEYWORD,
     INVERTED,
@@ -33,13 +34,15 @@ enum class Tokens: TokenType {
     JS_CODE,
     LOOP_KEYWORD,
     DEFINE_KEYWORD,
+    COPY_KEYWORD,
+    PASTE_KEYWORD,
     DEFINE_VALUE,
     NULL,
     SLOT_INDEX
     ;
 }
 
-enum class Operators: TokenType {
+enum class Operators : TokenType {
     UNSET,
     INCREMENT,
     DECREMENT,
@@ -52,6 +55,39 @@ enum class Operators: TokenType {
     LEFT_SHIFT,
     ARITHMETIC_RIGHT_SHIFT,
     LOGICAL_RIGHT_SHIFT
+}
+
+enum class PlaceholderShortcuts : TokenType {
+    GLOBAL_VAR,
+    PLAYER_VAR,
+    TEAM_VAR,
+    RANDOM_INT,
+    RANDOM_DOUBLE,
+    HEALTH,
+    MAX_HEALTH,
+    HUNGER,
+    LOC_X,
+    LOC_Y,
+    LOC_Z,
+    UNIX
+}
+
+fun StateBuilder.placeholderShortcuts() {
+    placeholderShortcuts("globalstat +(?:\"([^\"]*)\"|([^ ]*))") isToken PlaceholderShortcuts.GLOBAL_VAR
+    placeholderShortcuts("globalvar +(?:\"([^\"]*)\"|([^ ]*))") isToken PlaceholderShortcuts.GLOBAL_VAR
+    placeholderShortcuts("stat +(?:\"([^\"]*)\"|([^ ]*))") isToken PlaceholderShortcuts.PLAYER_VAR
+    placeholderShortcuts("var +(?:\"([^\"]*)\"|([^ ]*))") isToken PlaceholderShortcuts.PLAYER_VAR
+    placeholderShortcuts("teamstat +(.*)? +(?:\"([^\"]*)\"|([^ ]*))") isToken PlaceholderShortcuts.TEAM_VAR
+    placeholderShortcuts("teamvar +(.*)? +(?:\"([^\"]*)\"|([^ ]*))") isToken PlaceholderShortcuts.TEAM_VAR
+    placeholderShortcuts("randomint +(.*)? +?(.*)?") isToken PlaceholderShortcuts.RANDOM_INT
+    placeholderShortcuts("randomdouble +(.*)? +?(.*)?") isToken PlaceholderShortcuts.RANDOM_DOUBLE
+    placeholderShortcuts("health") isToken PlaceholderShortcuts.HEALTH
+    placeholderShortcuts("maxhealth") isToken PlaceholderShortcuts.MAX_HEALTH
+    placeholderShortcuts("hunger") isToken PlaceholderShortcuts.HUNGER
+    placeholderShortcuts("locX") isToken PlaceholderShortcuts.LOC_X
+    placeholderShortcuts("locY") isToken PlaceholderShortcuts.LOC_Y
+    placeholderShortcuts("locZ") isToken PlaceholderShortcuts.LOC_Z
+    placeholderShortcuts("unix") isToken PlaceholderShortcuts.UNIX
 }
 
 fun StateBuilder.operatorTokens() {
@@ -84,7 +120,7 @@ fun StateBuilder.operatorTokens() {
     anyOf("logicalRightShift", ">>>=") isToken Operators.LOGICAL_RIGHT_SHIFT
 }
 
-enum class Comparators: TokenType {
+enum class Comparators : TokenType {
     EQUALS,
     LESS_THAN,
     LESS_THAN_OR_EQUAL,
@@ -100,7 +136,7 @@ fun StateBuilder.comparatorTokens() {
     anyOf(">", "greaterThan") isToken Comparators.GREATER_THAN
 }
 
-enum class States: StateLabel {
+enum class States : StateLabel {
     PLACEHOLDER,
     PLACEHOLDER_CONDITION,
     IF_CONDITION,
@@ -110,4 +146,8 @@ enum class States: StateLabel {
 
 fun StateBuilder.word(word: String): TokenRecognizer {
     return matches("(?i)\\b$word\\b")
+}
+
+fun StateBuilder.placeholderShortcuts(@Language("RegExp") placeholderWithParameters: String): TokenRecognizer {
+    return matches("(=|>|<|set|dec|mult|div|ment|inc|multiply|divide|equal|Less Than|Less Than or Equal|Greater Than|Greater Than or Equal) +$placeholderWithParameters")
 }
