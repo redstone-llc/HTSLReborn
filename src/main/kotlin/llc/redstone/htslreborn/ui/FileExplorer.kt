@@ -323,6 +323,8 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
     }
 
     fun buildWorkingScreen(display: Text, type: WorkingScreenType): FlowLayout {
+        val accessor =
+            (MC.currentScreen as? HandledScreenAccessor) ?: throw IllegalStateException("Could not get accessor")
         val label = UIComponents.label(display)
         val cancelButton = UIComponents.button(Text.translatable("htslreborn.importing.working.cancel")) {
             SystemsAPI.getHousingImporter().cancelImport()
@@ -331,10 +333,13 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
         return UIContainers.verticalFlow(Sizing.fill(), Sizing.fill()).apply {
             id("importScreen")
             surface(Surface.flat(0xcc000000.toInt()).and(Surface.blur(6f, 6f)))
-            positioning(Positioning.absolute(0, 0))
             horizontalAlignment(HorizontalAlignment.CENTER)
             verticalAlignment(VerticalAlignment.CENTER)
             gap(5)
+            sizing(
+                Sizing.fixed((accessor.getGuiLeft() * HTSLReborn.CONFIG.widthScale).toInt() - 10),
+                Sizing.fixed((MC.window.scaledHeight * HTSLReborn.CONFIG.heightScale).toInt() - 10)
+            )
 
             mouseDown().subscribe { click, bool ->
                 true
@@ -386,6 +391,7 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
             padding(Insets.of(5))
             verticalAlignment(VerticalAlignment.CENTER)
             horizontalAlignment(HorizontalAlignment.RIGHT)
+            gap(((MC.window.scaledHeight * HTSLReborn.CONFIG.heightScale).toInt() - 10) * -1)
 
             if (isMinimized) {
                 child(buildMinimizePopout())
