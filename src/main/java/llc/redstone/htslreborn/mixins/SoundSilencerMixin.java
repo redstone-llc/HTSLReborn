@@ -23,7 +23,7 @@ public class SoundSilencerMixin {
         if (!HTSLReborn.INSTANCE.getImporting() && !HTSLReborn.INSTANCE.getExporting()) return;
 
         Identifier soundId = sound.getId();
-        if (SoundEvents.BLOCK_NOTE_BLOCK_PLING.matchesId(soundId)) {
+        if (SoundEvents.BLOCK_NOTE_BLOCK_PLING.matchesId(soundId) || SoundEvents.UI_BUTTON_CLICK.matchesId(soundId)) {
             cir.cancel();
         }
     }

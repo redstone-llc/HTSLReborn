@@ -20,6 +20,7 @@ public class ChatSilencerMixin {
             Pattern.compile("^Added action .+!$"),
             Pattern.compile("^Added condition .+!$"),
             Pattern.compile("^Please provide a sound namespace key$"),
+            Pattern.compile("^Please enter coordinates, separated by spaces$"),
             Pattern.compile("^\n\n.+\nPlease use the chat to provide the value you wish to set\\.\n.*$")
     );
 
