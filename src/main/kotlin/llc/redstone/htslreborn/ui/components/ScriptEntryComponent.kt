@@ -38,7 +38,7 @@ class ScriptEntryComponent(
                         val tooltipKey = when (CONFIG.defaultImportStrategy) {
                             HtslConfigModel.ImportStrategy.APPEND -> "htslreborn.explorer.button.script.import.append.description"
                             HtslConfigModel.ImportStrategy.REPLACE -> "htslreborn.explorer.button.script.import.replace.description"
-//                            HtslConfigModel.ImportStrategy.UPDATE -> "htslreborn.explorer.button.script.import.update.description"
+                            HtslConfigModel.ImportStrategy.UPDATE -> "htslreborn.explorer.button.script.import.update.description"
                         }
                         setTooltip(Tooltip.of(Text.translatable(tooltipKey)))
                     },
@@ -93,7 +93,7 @@ class ScriptEntryComponent(
         val method = when (CONFIG.defaultImportStrategy) {
             HtslConfigModel.ImportStrategy.APPEND -> ActionContainer::addActions
             HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
-//            HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
+            HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
         }
 
         importingFile = path

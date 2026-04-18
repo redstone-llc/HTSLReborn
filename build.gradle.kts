@@ -48,6 +48,7 @@ dependencies {
     implementation(include("guru.zoroark.tegral:tegral-core:0.0.4")!!)
 
     implementation(include("llc.redstone:SystemsData:1.1.5")!!)
+    implementation(include("org.javers:javers-core:7.11.0")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 

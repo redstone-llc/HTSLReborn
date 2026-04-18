@@ -304,17 +304,16 @@ class FileExplorer : BaseOwoScreen<FlowLayout>() {
         }
     }
 
-    lateinit var breadcrumbs: FlowLayout
+    val breadcrumbs: FlowLayout = UIContainers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
+        gap(4)
+        alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
+    }
 
     fun refreshBreadcrumbs() {
         val subDir = FileHandler.currentDir
 
-        breadcrumbs = UIContainers.horizontalFlow(Sizing.fill(), Sizing.fixed(20)).apply {
-            gap(4)
-            alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
-        }
-
         val update = {
+            breadcrumbs.clearChildren()
             val names = (baseDir.nameCount - 1 until subDir.nameCount).map { subDir.getName(it).toString() }
             names.forEachIndexed { index, name ->
                 if (index > 0) breadcrumbs.child(UIComponents.label(Text.literal(">").withColor(0x505050)))
