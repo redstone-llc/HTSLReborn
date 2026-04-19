@@ -19,7 +19,7 @@ object HTSLReborn : ClientModInitializer {
     val LOGGER: Logger = LoggerFactory.getLogger("HTSL Reborn")
     const val VERSION = /*$ mod_version*/ "0.0.1"
     const val MINECRAFT = /*$ minecraft*/ "1.21.11"
-    val CONFIG: HtslConfig = HtslConfig.createAndLoad()
+    val CONFIG: HtslConfig = HtslConfig.createAndLoad();
     val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
 
