@@ -64,6 +64,7 @@ What does that mean for you?
 <details>
 <summary><b>I need help!</b></summary>
 
+If you need help figuring out the syntax of HTSL or aren't sure how to use it, check out our [wiki](https://github.com/redstone-llc/HTSLReborn/wiki)!
 If you think you may have found a bug, please [create an issue](https://github.com/redstone-llc/HTSLReborn/issues). Otherwise, feel free to join our [discord](https://discord.gg/pCcpqzU4He) or [create a discussion post](https://github.com/redstone-llc/HTSLReborn/discussions).
     
 </details>
