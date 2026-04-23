@@ -89,6 +89,7 @@ object HTSLImporter {
                         "function" -> {
                             val function = SystemsAPI.getHousingImporter().getFunction(args)
                                 ?: SystemsAPI.getHousingImporter().createFunction(args)
+                            SystemsAPI.scaledDelay(4.0)
                             if (actions.isNotEmpty()) {
                                 MC.player?.closeScreen()
                                 val actionContainer = function.getActionContainer()

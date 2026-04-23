@@ -8,19 +8,32 @@ import kotlin.io.path.Path
 // Used primarily for testing the tokenizer and preprocessor
 fun main(args: Array<String>) {
     val input = """
-        var x = teamvar red score
-        var x = globalvar score
-        var x = var "score"
-        var x = randomint 1 10
-        var x = randomdouble 1.0 10.0
-        var x = health
-        var x = maxhealth
-        var x = hunger
-        var x = locX
-        var x = locY
-        var x = locZ
-        var x = unix
-        
+        goto function "Dynamic Hats 1"
+
+if (var route/selected >= 2, !hasItem "slot_29" "Metadata" "Armor") {
+    giveItem "slot_29" false "39" true
+    var hat/dynamic = 1
+    exit
+}
+
+
+goto function "Chestplates 1"
+
+if (var route/selected >= 2, !hasItem "slot_29" "Metadata" "Armor") {
+    removeItem "slot_29"
+    giveItem "slot_29" false "38" true
+    exit
+}
+
+goto function "Remove Hats 2"
+
+if (!var route/selected >= 2, hasItem "slot_29" "Metadata") {
+    removeItem "slot_29"
+}
+
+if (!var route/selected >= 2, hasItem "slot_29" "Metadata") {
+    removeItem "slot_29"
+}
     """.split("\n").joinToString("\n") { it.trim() }
     val tokens = Tokenizer.tokenize(input)
     println("Tokens:")

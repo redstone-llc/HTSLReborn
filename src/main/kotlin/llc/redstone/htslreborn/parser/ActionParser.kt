@@ -141,7 +141,8 @@ object ActionParser {
                                 args[param] = null
                                 continue
                             }
-                            if (token.tokenType == Tokens.SLOT_INDEX) {
+
+                            if (token.string.startsWith("slot_")) {
                                 val slot = token.string.removePrefix("slot_").toIntOrNull()
                                 if (slot == null) {
                                     htslCompileError("Invalid slot index: ${token.string}", token)

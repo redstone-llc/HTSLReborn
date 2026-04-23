@@ -83,13 +83,22 @@ object HTSLExporter {
                     return properties
                 }
                 val value = (value as String).replace("\"", "\\\"")
-                properties.add("\"$value\"")
+                if (value.contains(" ")) {
+                    properties.add("\"$value\"")
+                } else {
+                    properties.add(value)
+                }
             }
 
             StatValue::class -> {
                 when (value) {
                     null -> properties.add("null")
                     is StatValue.Str -> properties.add("\"${value.value.replace("\"", "\\\"")}\"")
+                    is StatValue.UnquotedStr -> if (value.value.contains(" ")) {
+                        properties.add("\"${value.value.replace("\"", "\\\"")}\"")
+                    } else {
+                        properties.add(value.value)
+                    }
                     else -> properties.add(value.toString())
                 }
             }

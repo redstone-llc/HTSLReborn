@@ -101,6 +101,17 @@ object ConditionParser {
                         continue
                     }
                     val relativeFileLocation = token.string
+                    if (token.string.startsWith("slot_")) {
+                        val slot = token.string.removePrefix("slot_").toIntOrNull()
+                        if (slot == null) {
+                            htslCompileError("Invalid slot index: ${token.string}", token)
+                        }
+                        args[param] = ItemStack(
+                            slot = slot,
+                            relativeFileLocation = relativeFileLocation,
+                        )
+                        continue
+                    }
                     val nbt = try {
                         val parent = if (path.isDirectory()) path else path.parent
                         val file = parent.resolve(relativeFileLocation)
