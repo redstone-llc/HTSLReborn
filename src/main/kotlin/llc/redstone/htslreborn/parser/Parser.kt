@@ -46,10 +46,10 @@ object Parser {
                             val name = iterator.next().string
                             "event $name"
                         }
-                        "menu" -> {
+                        "gui" -> {
                             val name = iterator.next().string
                             val slot = iterator.next().string.toInt()
-                            "menu $name $slot"
+                            "gui $name $slot"
                         }
                         "command" -> {
                             val name = iterator.next().string

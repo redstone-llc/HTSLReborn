@@ -110,8 +110,12 @@ object HTSLImporter {
 
                         "event" -> {
                             if (actions.isNotEmpty()) {
-                                SystemsAPI.getHousingImporter().getEvent(Event.Events.valueOf(args))
-                                    .let { method(it, actions) }
+                                SystemsAPI.getHousingImporter().getEvent(
+                                    Event.Events.entries.find {
+                                        it.name.equals(args, false) ||
+                                                it.label.equals(args, false)
+                                    } ?: error("Event $args does not exist")
+                                ).let { method(it, actions) }
                             }
                         }
 
