@@ -1,0 +1,30 @@
+name: Publish with Gradle
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Publish with Gradle
+        env:
+          GRADLE_OPTS: "-Xmx2g -XX:+UseParallelGC -XX:MaxMetaspaceSize=384m"
+          _JAVA_OPTIONS: "-Xmx4g"
+        run: |
+          ./gradlew publishMavenJavaPublicationToSnapshotsRepoRepository \
+            -PreleasesRepoUsername=${{ secrets.RELEASESREPOUSERNAME }} \
+            -PreleasesRepoPassword=${{ secrets.RELEASESREPOPASSWORD }} \
+            -Pcommit=$(git rev-parse --short HEAD) \
+            -Psnapshot=true
