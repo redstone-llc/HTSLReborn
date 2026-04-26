@@ -86,6 +86,37 @@ kotlin {
     }
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            groupId = project.group.toString()
+            artifactId = "HTSLReborn"
+
+            version = if (hasProperty("commit")) "${property("commit")}+${stonecutter.current.version}" else project.version.toString()
+//            version = "dev"
+        }
+    }
+    repositories {
+        maven {
+            name = "releasesRepo"
+            url = uri("https://repo.redstone.llc/releases")
+            credentials {
+                username = property("releasesRepoUsername") as String
+                password = property("releasesRepoPassword") as String
+            }
+        }
+        maven {
+            name = "snapshotsRepo"
+            url = uri("https://repo.redstone.llc/snapshots")
+            credentials {
+                username = property("releasesRepoUsername") as String
+                password = property("releasesRepoPassword") as String
+            }
+        }
+    }
+}
+
 tasks {
     processResources {
         val props = mapOf(

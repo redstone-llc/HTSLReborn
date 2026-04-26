@@ -74,6 +74,10 @@ object PreProcess {
                     )
                 }
 
+                Tokens.IF_CONDITION_END, Tokens.COMMENT -> {
+                    // Skip these tokens
+                }
+
                 Tokens.ACTION_KEYWORD -> {
                     processedTokens.add(
                         TokenWithPosition(

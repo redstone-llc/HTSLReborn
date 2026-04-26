@@ -123,12 +123,6 @@ object Tokenizer {
             placeholderStringState(PLACEHOLDER_CONDITION, IF_CONDITION)
         }
         return lexer.tokenize(text)
-            .filter {
-                it.tokenType != Tokens.QUOTE &&
-                        it.tokenType != Tokens.COMMENT &&
-                        it.tokenType != Tokens.IF_CONDITION_END
-            } //Filter out unused and wasted tokens
-//            .filter { it.tokenType != Tokens.NEWLINE }
             .map { token ->
                 TokenWithPosition(
                     token,
