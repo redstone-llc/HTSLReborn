@@ -19,6 +19,14 @@
 
 HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode easier. With the help of [SystemsAPI](https://github.com/redstone-llc/SystemsAPI), we ported HTSL's syntax to latest versions. Now that we're based on a more modern loader, there's a large possibility for extra QoL features to come in the future!
 
+## Download build
+
+Itisyan patch v2 (0.2.0.itisyan.patch2):
+https://github.com/Itisyan/HTSLReborn/releases/tag/patch2
+
+redstone-llc original (0.2.0): 
+https://modrinth.com/mod/htslreborn/version/0.2.0
+
 ## Features
 
 - [x] Language parity with HTSL (your HTSL scripts will work flawlessly!)
@@ -32,6 +40,18 @@ HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode
 - [x] Exporting to code
 - [x] File browser hot-reloading
 - [x] Item support
+
+## Itisyan fork (Patch2)
+
+- Fix Incorrect export of OR conditions: They were being exported as AND. Fixed in HTSLExporter.kt line 185.
+- Fix Color + placeholder stuck together in actionBar imports: Only the color was being imported. Fixed.
+- Fix StatValue with commas: 1,234, 2,345L, and 3,456.5 were sometimes parsed as text instead of numbers. Fixed in ActionParser.kt line 118 and ConditionParser.kt line 85.
+- Fix Conditions with color + placeholder stuck together: Same issue as actionBar, but inside conditions. Fixed in ConditionParser.kt line 65.
+- Fix Custom coordinates: launchTarget "custom_coordinates" 1 2 3 could consume 3 as the force value instead of keeping the default value. Fixed in LocationParser.kt line 27.
+- File explorer: More robust folder creation with createDirectories, stricter extension filtering .htsl, .nbt, and watcher fixed to target the correct folder.
+- /htsl commands: Path resolution now uses the import folder, automatic .htsl / .nbt extension completion added, absolute paths are supported, and item deletion no longer crashes when the file is missing.
+- Import: Temporarily reduced the fixed SystemsAPI delay from 50 ms to 25 ms during imports, then automatically restores it after the import.
+- Import: Added menu-close detection after the vanilla close to avoid an unnecessary timeout during hidden chat inputs.
 
 ## Demo
 
