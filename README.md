@@ -20,7 +20,7 @@
 HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode easier. With the help of [SystemsAPI](https://github.com/redstone-llc/SystemsAPI), we ported HTSL's syntax to latest versions. Now that we're based on a more modern loader, there's a large possibility for extra QoL features to come in the future!
 
 ## Download build
-Warning: HTSLReborn identifies Hypixel menu names, so you must configure the Hypixel language to English.
+<b>Warning:</b> <i>HTSLReborn identifies Hypixel menu names, so you must configure the Hypixel language to <b>English</b>.</i>
 
 Itisyan patch v4 (0.2.0.itisyan.patch4):
 https://github.com/Itisyan/HTSLReborn/releases/tag/patch4
