@@ -12,6 +12,9 @@ import llc.redstone.htslreborn.utils.UIErrorToast
 import llc.redstone.htslreborn.utils.UISuccessToast
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.api.Event
+import llc.redstone.systemsapi.api.Command as HousingCommand
+import llc.redstone.systemsapi.api.Function as HousingFunction
+import llc.redstone.systemsapi.api.Menu as HousingMenu
 import llc.redstone.systemsdata.Action
 import llc.redstone.systemsapi.importer.ActionContainer
 import llc.redstone.systemsapi.util.CommandUtils
@@ -24,6 +27,14 @@ import java.nio.file.Path
 import kotlin.io.path.name
 
 object HTSLImporter {
+    private fun mergeCompiledCode(compiledCode: List<Pair<String, List<Action>>>): List<Pair<String, List<Action>>> {
+        val merged = linkedMapOf<String, MutableList<Action>>()
+        for ((goto, actions) in compiledCode) {
+            merged.getOrPut(goto) { mutableListOf() }.addAll(actions)
+        }
+        return merged.map { (goto, actions) -> goto to actions.toList() }
+    }
+
     fun importFile(
         path: Path,
         method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions,
@@ -52,57 +63,80 @@ object HTSLImporter {
         supportsBase: Boolean = true,
         onComplete: () -> Unit = {}
     ) {
-        if (compiledCode.any { it.first == "base" && it.second.isNotEmpty() } && !supportsBase) {
+        val preparedCode = mergeCompiledCode(compiledCode)
+
+        if (preparedCode.any { it.first == "base" && it.second.isNotEmpty() } && !supportsBase) {
             MinecraftClient.getInstance().player?.sendMessage(
                 Text.of("Couldn't use actions before a goto call.").copy().withColor(Colors.RED), false
             )
+            onComplete()
+            return
         }
 
         if (supportsBase) {
-            if (MC.currentScreen?.title?.string?.contains(Regex("Edit Actions|Actions: ")) == false) {
+            if (MC.currentScreen?.title?.string?.contains(Regex("Edit Actions|Actions: ")) != true) {
                 MinecraftClient.getInstance().player?.sendMessage(
                     Text.of("You must have an action gui open to import HTSL code.").copy().withColor(Colors.RED), false
                 )
+                onComplete()
                 return
             }
         }
 
-        if (MC.player?.gameMode != GameMode.CREATIVE) CommandUtils.runCommand("gmc")
+        val player = MC.player ?: run {
+            UIErrorToast.report("Cannot import without a player.")
+            onComplete()
+            return
+        }
+
+        if (player.gameMode != GameMode.CREATIVE) CommandUtils.runCommand("gmc")
 
         //TODO: go through the compiled code and look for anything that doesnt exist yet and prompt the user to create it first
         SystemsAPI.launch {
+            val importTuning = SystemsApiImportTuning.apply()
             try {
                 importingFile = path
                 importing = true
 
-                for ((goto, actions) in compiledCode) {
+                val housingImporter = SystemsAPI.getHousingImporter()
+                val functions = mutableMapOf<String, HousingFunction>()
+                val createdFunctions = mutableSetOf<String>()
+                val commands = mutableMapOf<String, HousingCommand>()
+                val createdCommands = mutableSetOf<String>()
+                val menus = mutableMapOf<String, HousingMenu>()
+
+                for ((goto, actions) in preparedCode) {
                     val type = goto.split(" ").first()
                     val args = goto.substringAfter(" ")
                     when (type) {
                         "base" -> {
                             if (actions.isNotEmpty()) {
-                                SystemsAPI.getHousingImporter().getOpenActionContainer()
+                                housingImporter.getOpenActionContainer()
                                     ?.let { method(it, actions) }
+                                    ?: error("No action GUI is open for base actions")
                             }
                         }
 
                         "function" -> {
-                            val function = SystemsAPI.getHousingImporter().getFunction(args)
-                                ?: SystemsAPI.getHousingImporter().createFunction(args)
-                            SystemsAPI.scaledDelay(4.0)
+                            val function = functions.getOrPut(args) {
+                                housingImporter.getFunction(args)
+                                    ?: housingImporter.createFunction(args).also { createdFunctions.add(args) }
+                            }
                             if (actions.isNotEmpty()) {
-                                MC.player?.closeScreen()
+                                if (args !in createdFunctions) MC.player?.closeScreen()
                                 val actionContainer = function.getActionContainer()
                                 method(actionContainer, actions)
                             }
                         }
 
                         "command" -> {
-                            val command = SystemsAPI.getHousingImporter().getCommand(args)
-                                ?: SystemsAPI.getHousingImporter().createCommand(args)
+                            val command = commands.getOrPut(args) {
+                                housingImporter.getCommand(args)
+                                    ?: housingImporter.createCommand(args).also { createdCommands.add(args) }
+                            }
 
                             if (actions.isNotEmpty()) {
-                                MC.player?.closeScreen()
+                                if (args !in createdCommands) MC.player?.closeScreen()
                                 val actionContainer = command.getActionContainer()
                                 method(actionContainer, actions)
                             }
@@ -110,7 +144,7 @@ object HTSLImporter {
 
                         "event" -> {
                             if (actions.isNotEmpty()) {
-                                SystemsAPI.getHousingImporter().getEvent(
+                                housingImporter.getEvent(
                                     Event.Events.entries.find {
                                         it.name.equals(args, false) ||
                                                 it.label.equals(args, false)
@@ -123,14 +157,18 @@ object HTSLImporter {
                             val name = args.substringBeforeLast(" ")
                             val slot =
                                 args.substringAfterLast(" ").toIntOrNull() ?: error("Invalid slot number in goto $goto")
-                            val menu = SystemsAPI.getHousingImporter().getMenu(name)
-                                ?: SystemsAPI.getHousingImporter().createMenu(name)
+                            val menu = menus.getOrPut(name) {
+                                housingImporter.getMenu(name)
+                                    ?: housingImporter.createMenu(name)
+                            }
 
                             if (actions.isNotEmpty()) {
                                 menu.getMenuElement(slot).getActionContainer()
                                     ?.let { method(it, actions) } ?: error("Slot $slot does not exist in menu $name")
                             }
                         }
+
+                        else -> error("Unknown goto type '$type'")
                     }
                 }
 
@@ -163,6 +201,7 @@ object HTSLImporter {
                 e.printStackTrace()
                 onComplete()
             } finally {
+                importTuning.restore()
                 importing = false
                 importingFile = null
             }

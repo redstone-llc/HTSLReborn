@@ -4,9 +4,6 @@ import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.htslreborn.htslio.HTSLImporter
-import llc.redstone.htslreborn.parser.Parser
-import llc.redstone.htslreborn.parser.PreProcess
-import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.htslreborn.ui.FileHandler
 import llc.redstone.htslreborn.utils.ItemUtils.giveItem
 import llc.redstone.htslreborn.utils.ItemUtils.saveItem
@@ -14,9 +11,17 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.text.Text
+import java.nio.file.Path
 import kotlin.io.path.*
 
 object HTSLCommand {
+    private fun resolveBaseFile(fileArg: String, extension: String): Path {
+        val trimmed = fileArg.trim()
+        val pathWithExtension = if (trimmed.endsWith(".$extension", ignoreCase = true)) trimmed else "$trimmed.$extension"
+        val path = kotlin.io.path.Path(pathWithExtension)
+        return if (path.isAbsolute) path else FileHandler.baseDir.resolve(path)
+    }
+
     fun register(dispatcher: CommandDispatcher<FabricClientCommandSource>) {
         dispatcher.register(
             literal("htsl")
@@ -46,8 +51,7 @@ object HTSLCommand {
 
     fun import(context: CommandContext<FabricClientCommandSource>): Int {
         val fileArg = StringArgumentType.getString(context, "file") ?: return -1
-
-        val file = Path(fileArg)
+        val file = resolveBaseFile(fileArg, "htsl")
 
         HTSLImporter.importFile(file, supportsBase = false)
 
@@ -55,9 +59,8 @@ object HTSLCommand {
     }
 
     fun giveItem(context: CommandContext<FabricClientCommandSource>): Int {
-        var fileArg = StringArgumentType.getString(context, "file").trim()
-        if(!fileArg.endsWith(".nbt")) fileArg += ".nbt"
-        val file = FileHandler.baseDir.resolve(fileArg)
+        val fileArg = StringArgumentType.getString(context, "file")
+        val file = resolveBaseFile(fileArg, "nbt")
 
         try {
             val item = context.source.player.giveItem(file)
@@ -77,9 +80,8 @@ object HTSLCommand {
     }
 
     fun saveItem(context: CommandContext<FabricClientCommandSource>): Int {
-        var fileArg = StringArgumentType.getString(context, "file").trim()
-        if(!fileArg.endsWith(".nbt")) fileArg += ".nbt"
-        val file = FileHandler.baseDir.resolve(fileArg)
+        val fileArg = StringArgumentType.getString(context, "file")
+        val file = resolveBaseFile(fileArg, "nbt")
 
         try {
             val item = context.source.player.saveItem(file)
@@ -99,9 +101,8 @@ object HTSLCommand {
     }
 
     fun deleteItem(context: CommandContext<FabricClientCommandSource>): Int {
-        var fileArg = StringArgumentType.getString(context, "file").trim()
-        if(!fileArg.endsWith(".nbt")) fileArg += ".nbt"
-        val file = FileHandler.baseDir.resolve(fileArg)
+        val fileArg = StringArgumentType.getString(context, "file")
+        val file = resolveBaseFile(fileArg, "nbt")
 
         try {
             file.deleteExisting()
@@ -110,7 +111,7 @@ object HTSLCommand {
                 file.pathString
             ))
             return 1
-        } catch (e: IllegalStateException) {
+        } catch (e: Exception) {
             context.source.sendError(Text.translatable(
                 "htslreborn.command.item.delete.fail",
                 file.pathString

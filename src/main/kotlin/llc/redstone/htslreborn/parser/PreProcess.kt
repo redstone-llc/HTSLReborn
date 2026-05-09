@@ -10,6 +10,22 @@ import org.mozilla.javascript.Context
 import org.mozilla.javascript.ScriptableObject
 
 object PreProcess {
+    private fun retokenizeAtOriginalPosition(text: String, originalToken: TokenWithPosition): List<TokenWithPosition> {
+        return Tokenizer.tokenize(text).map { token ->
+            TokenWithPosition(
+                Token(
+                    token.string,
+                    originalToken.startsAt + token.startsAt,
+                    originalToken.startsAt + token.endsAt,
+                    token.tokenType
+                ),
+                originalToken.line,
+                originalToken.column + token.startsAt,
+                token.quoted
+            )
+        }
+    }
+
     fun preProcess(
         tokens: List<TokenWithPosition>,
         loopVarName: String? = null,
@@ -27,6 +43,7 @@ object PreProcess {
             scope.put(loopVarName, scope, index)
         }
 
+        try {
         val iterator = tokens.listIterator()
 
         var loopAmount: Int
@@ -53,7 +70,6 @@ object PreProcess {
                         PlaceholderShortcuts.LOC_Y -> "%player.pos.y%"
                         PlaceholderShortcuts.LOC_Z -> "%player.pos.z%"
                         PlaceholderShortcuts.UNIX -> "%date.unix%"
-                        else -> error("Unknown placeholder shortcut ${token.tokenType}")
                     }
 
                     processedTokens.add(
@@ -107,7 +123,7 @@ object PreProcess {
                             Token(
                                 "%$placeholder%",
                                 token.startsAt,
-                                token.endsAt,
+                                closingToken.endsAt,
                                 Tokens.PLACEHOLDER_STRING,
                             ),
                             token.line,
@@ -120,7 +136,7 @@ object PreProcess {
                     // Replace defined variables
                     var processedString = token.string
                     for ((key, value) in defineList) {
-                        val regex = Regex("(?<!\")\\b$key\\b(?!\")") // Match whole words not inside quotes
+                        val regex = Regex("(?<!\")\\b${Regex.escape(key)}\\b(?!\")") // Match whole words not inside quotes
                         processedString = processedString.replace(regex, value)
                     }
 
@@ -130,7 +146,16 @@ object PreProcess {
                         result = "\"$result\""
                     }
 
-                    processedTokens.addAll(preProcess(Tokenizer.tokenize(result.toString())))
+                    processedTokens.addAll(
+                        preProcess(
+                            Tokenizer.tokenize(result.toString()),
+                            loopVarName,
+                            loopIndex,
+                            defineList,
+                            context,
+                            scope
+                        )
+                    )
                 }
 
                 Tokens.DEFINE_KEYWORD -> {
@@ -221,16 +246,16 @@ object PreProcess {
                     }
 
                     for ((key, value) in defineList) {
-                        val regex = Regex("(?<!\")\\b$key\\b(?!\")") // Match whole words not inside quotes
+                        val regex = Regex("(?<!\")\\b${Regex.escape(key)}\\b(?!\")") // Match whole words not inside quotes
                         processedString = processedString.replace(regex, value)
                     }
-                    val loopVarNameRegex = loopVarName?.let { Regex("(?<!\")\\b$it\\b(?!\")") }
+                    val loopVarNameRegex = loopVarName?.let { Regex("(?<!\")\\b${Regex.escape(it)}\\b(?!\")") }
                     if (loopVarNameRegex != null) {
                         processedString = processedString.replace(loopVarNameRegex, loopIndex.toString())
                     }
 
 
-                    processedTokens.addAll(Tokenizer.tokenize(processedString))
+                    processedTokens.addAll(retokenizeAtOriginalPosition(processedString, token))
                 }
 
                 else -> {
@@ -240,5 +265,10 @@ object PreProcess {
         }
 
         return processedTokens
+        } finally {
+            if (reusedContext == null) {
+                Context.exit()
+            }
+        }
     }
 }

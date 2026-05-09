@@ -91,6 +91,43 @@ object ActionParser {
         if (clazz == TeamVariable::class) swapParams("teamName", "variable")
     }
 
+    private fun isStringLike(token: TokenWithPosition): Boolean {
+        return token.tokenType == Tokens.STRING || token.tokenType == Tokens.PLACEHOLDER_STRING || token.tokenType == Tokens.NULL
+    }
+
+    private fun readStringArgument(firstToken: TokenWithPosition, iterator: ListIterator<TokenWithPosition>): String {
+        if (firstToken.quoted) return firstToken.string
+
+        val value = StringBuilder(firstToken.string)
+        var end = firstToken.endsAt
+
+        while (iterator.hasNext()) {
+            val next = iterator.next()
+            if (!isStringLike(next) || next.startsAt != end) {
+                iterator.previous()
+                break
+            }
+
+            value.append(next.string)
+            end = next.endsAt
+        }
+
+        return value.toString()
+    }
+
+    private fun parseStatValue(token: TokenWithPosition): StatValue {
+        return when (token.tokenType) {
+            Tokens.STRING -> if (!token.quoted) {
+                StatValue.UnquotedStr(token.string)
+            } else {
+                StatValue.Str(token.string)
+            }
+
+            Tokens.INT, Tokens.LONG, Tokens.DOUBLE -> StatValue.fromString(token.string.replace(",", ""))
+            else -> StatValue.fromString(token.string)
+        }
+    }
+
     fun createAction(keyword: String, iterator: ListIterator<TokenWithPosition>, path: Path?): Action? {
         //Get the action class
         val clazz = keywords[keyword] ?: return null
@@ -111,24 +148,19 @@ object ActionParser {
                 //End of action
                 if (token.tokenType == Tokens.NEWLINE) break
 
+                if (token.tokenType == Tokens.NULL && prop.returnType.isMarkedNullable) {
+                    args[param] = null
+                    continue
+                }
+
                 try {
                     args[param] = when (prop.returnType.classifier) {
-                        String::class -> token.string
-                        Int::class -> token.string.toInt()
-                        Long::class -> token.string.removeSuffix("L").toLong()
-                        Double::class -> token.string.removeSuffix("D").toDouble()
+                        String::class -> readStringArgument(token, iterator)
+                        Int::class -> token.string.replace(",", "").toInt()
+                        Long::class -> token.string.replace(",", "").removeSuffix("L").toLong()
+                        Double::class -> token.string.replace(",", "").removeSuffix("D").toDouble()
                         Boolean::class -> token.string.toBoolean()
-                        StatValue::class -> {
-                            when (token.tokenType) {
-                                Tokens.STRING -> if (!token.quoted) {
-                                    StatValue.UnquotedStr(token.string)
-                                } else {
-                                    StatValue.Str(token.string)
-                                }
-
-                                else -> StatValue.fromString(token.string)
-                            }
-                        }
+                        StatValue::class -> parseStatValue(token)
 
                         Location::class -> LocationParser.parse(token.string, iterator)
 
@@ -195,11 +227,6 @@ object ActionParser {
 
                         InventorySlot::class -> InventorySlot.fromKey(token.string)
                         else -> null
-                    }
-
-                    if (token.tokenType == Tokens.NULL) {
-                        args[param] = null
-                        continue
                     }
 
                     if (args.containsKey(param) && args[param] != null) {

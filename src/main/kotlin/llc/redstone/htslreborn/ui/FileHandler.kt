@@ -22,7 +22,7 @@ object FileHandler {
     fun refreshFiles(live: Boolean = false) {
         var live = live
         if (!currentDir.exists()) {
-            currentDir.createDirectory()
+            currentDir.createDirectories()
             live = true
         }
 
@@ -31,8 +31,8 @@ object FileHandler {
                 true
             } else {
                 val name = it.name.lowercase()
-                itemExtensions.any { ext -> name.endsWith(ext) } ||
-                htslExtensions.any { ext -> name.endsWith(ext) }
+                itemExtensions.any { ext -> name.endsWith(".$ext") } ||
+                htslExtensions.any { ext -> name.endsWith(".$ext") }
             }
         }.sortedWith(compareBy(
             { !it.isDirectory() },

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "id": "${id}",
-  "version": "${version}",
-  "name": "${name}",
-  "description": "Fabric mod that makes programming in Hypixel Housing easier.",
+  "version": "0.2.0.itisyan.patch2",
+  "name": "HTSL Reborn (Patched)",
+  "description": "Fabric mod that makes programming in Hypixel Housing easier.\n\nPatch2:\n- Fix OR condition in export.\n- Fix color+placeholder in import issue\n- Import time optimization and others bug fix",
   "authors": [
     "Wekend",
     "Sin_ender"

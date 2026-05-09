@@ -14,10 +14,11 @@ import llc.redstone.systemsdata.*
 import net.minecraft.sound.SoundEvents
 import java.nio.file.Path
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.io.path.createDirectory
+import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.writeText
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubtypeOf
@@ -27,17 +28,64 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.withNullability
 
 object HTSLExporter {
+    private val actionKeywords = ActionParser.keywords.entries.associate { (keyword, actionClass) -> actionClass to keyword }
+    private val conditionKeywords = ConditionParser.keywords.entries.associate { (keyword, conditionClass) -> conditionClass to keyword }
+    private val actionPropertyCache = mutableMapOf<KClass<out Action>, List<KProperty1<Action, *>>>()
+    private val conditionPropertyCache = mutableMapOf<KClass<out Condition>, List<KProperty1<Condition, *>>>()
+
+    @Suppress("UNCHECKED_CAST")
+    private fun orderedActionProperties(actionClass: KClass<out Action>): List<KProperty1<Action, *>> {
+        return actionPropertyCache.getOrPut(actionClass) {
+            val constructor = actionClass.primaryConstructor ?: return@getOrPut emptyList()
+            val parameters = constructor.parameters.toMutableList()
+            handleSwaps(parameters, actionClass)
+            val propertiesByName = actionClass.memberProperties.associateBy { it.name }
+
+            parameters.mapNotNull { parameter ->
+                propertiesByName[parameter.name] as? KProperty1<Action, *>
+            }
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun orderedConditionProperties(conditionClass: KClass<out Condition>): List<KProperty1<Condition, *>> {
+        return conditionPropertyCache.getOrPut(conditionClass) {
+            val constructor = conditionClass.primaryConstructor ?: return@getOrPut emptyList()
+            val propertiesByName = conditionClass.memberProperties.associateBy { it.name }
+
+            constructor.parameters.mapNotNull { parameter ->
+                propertiesByName[parameter.name] as? KProperty1<Condition, *>
+            }
+        }
+    }
+
+    private fun quoteIfNeeded(value: String): String {
+        val escaped = value.replace("\"", "\\\"")
+        return if (escaped.isEmpty() || escaped.any { it.isWhitespace() } || escaped == "null" || escaped.contains("\\\"")) {
+            "\"$escaped\""
+        } else {
+            escaped
+        }
+    }
+
     fun exportFile(path: Path, onComplete: (Boolean) -> Unit = {}) {
         SystemsAPI.launch {
             exportingFile = path
             exporting = true
 
             try {
-                val actions = SystemsAPI.getHousingImporter().getOpenActionContainer()?.getActions() ?: return@launch
+                val actionContainer = SystemsAPI.getHousingImporter().getOpenActionContainer()
+                if (actionContainer == null) {
+                    UIErrorToast.report("You must have an action gui open to export HTSL code.")
+                    onComplete(false)
+                    return@launch
+                }
+
+                val actions = actionContainer.getActions()
                 val lines = export(actions)
                 path.parent?.let {
                     if (!it.exists()) {
-                        it.createDirectory()
+                        it.createDirectories()
                     }
                 }
                 path.writeText(lines.joinToString("\n"))
@@ -49,8 +97,13 @@ object HTSLExporter {
                 )
                 UISuccessToast.report("Successfully exported HTSL code to ${path.name}")
                 onComplete(true)
+            } catch (e: CancellationException) {
+                onComplete(false)
             } catch (e: Exception) {
-                if (e.cause is CancellationException) return@launch
+                if (e.cause is CancellationException) {
+                    onComplete(false)
+                    return@launch
+                }
 
                 if (HTSLReborn.CONFIG.playCompleteSound) MC.player?.playSound(
                     SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(),
@@ -82,23 +135,13 @@ object HTSLExporter {
                     properties.add("null")
                     return properties
                 }
-                val value = (value as String).replace("\"", "\\\"")
-                if (value.contains(" ")) {
-                    properties.add("\"$value\"")
-                } else {
-                    properties.add(value)
-                }
+                properties.add(quoteIfNeeded(value as String))
             }
 
             StatValue::class -> {
                 when (value) {
-                    null -> properties.add("null")
                     is StatValue.Str -> properties.add("\"${value.value.replace("\"", "\\\"")}\"")
-                    is StatValue.UnquotedStr -> if (value.value.contains(" ")) {
-                        properties.add("\"${value.value.replace("\"", "\\\"")}\"")
-                    } else {
-                        properties.add(value.value)
-                    }
+                    is StatValue.UnquotedStr -> properties.add(quoteIfNeeded(value.value))
                     else -> properties.add(value.toString())
                 }
             }
@@ -176,18 +219,18 @@ object HTSLExporter {
         return properties
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun export(actions: List<Action>): List<String> {
         val lines = mutableListOf<String>()
         for (action in actions) {
             if (action is Action.Conditional) {
-                val conditional = action as Action.Conditional
-                val exportedConditions = exportConditions(conditional.conditions)
-                lines.add("if${if (conditional.matchAnyCondition) " and" else ""} (${exportedConditions.joinToString(", ")}) {")
-                val exportedActions = export(conditional.ifActions)
+                val exportedConditions = exportConditions(action.conditions)
+                lines.add("if${if (action.matchAnyCondition) " or" else ""} (${exportedConditions.joinToString(", ")}) {")
+                val exportedActions = export(action.ifActions)
                 lines.addAll(exportedActions.map { "    $it" })
-                if (conditional.elseActions.isNotEmpty()) {
+                if (action.elseActions.isNotEmpty()) {
                     lines.add("} else {")
-                    val exportedElseActions = export(conditional.elseActions)
+                    val exportedElseActions = export(action.elseActions)
                     lines.addAll(exportedElseActions.map { "    $it" })
                 }
                 lines.add("}")
@@ -195,35 +238,22 @@ object HTSLExporter {
             }
 
             if (action is Action.RandomAction) {
-                val randomAction = action as Action.RandomAction
                 lines.add("random {")
-                val exportedActions = export(randomAction.actions)
+                val exportedActions = export(action.actions)
                 lines.addAll(exportedActions.map { "    $it" })
                 lines.add("}")
                 continue
             }
 
             val actionClass = action::class
-            val constructor = actionClass.primaryConstructor!!
-            val parameters = constructor.parameters.toMutableList()
-
-            handleSwaps(parameters, actionClass)
-
-            val actionProperties = actionClass.memberProperties
-            val newActionProperties = mutableListOf<KProperty1<Action, *>>()
-
-            for (parm in parameters) {
-                newActionProperties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *>)
-            }
-
-            val keyword = ActionParser.keywords.entries.find { it.value == action::class }?.key ?: continue
+            val newActionProperties = orderedActionProperties(actionClass)
+            val keyword = actionKeywords[actionClass] ?: continue
             val properties = mutableListOf<String>()
 
             for (property in newActionProperties) {
                 if (property.name == "actionName") continue
-                val value = property.getter.call(action)
-                // Add only the first string, because only conditionals and random actions should have lists
-                properties.add(handleProperty(property as KProperty1<PropertyHolder, *>, value).first())
+                val value = property.get(action)
+                properties.addAll(handleProperty(property as KProperty1<PropertyHolder, *>, value))
                 if (value == StatOp.UnSet) break
             }
 
@@ -237,27 +267,19 @@ object HTSLExporter {
         return lines
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun exportConditions(conditions: List<Condition>): List<String> {
         val conditionStrings = mutableListOf<String>()
         for (condition in conditions) {
             val conditionClass = condition::class
-            val constructor = conditionClass.primaryConstructor!!
-            val parameters = constructor.parameters.toMutableList()
-
-            val conditionProperties = conditionClass.memberProperties
-            val newConditionProperties = mutableListOf<KProperty1<Condition, *>>()
-
-            for (parm in parameters) {
-                newConditionProperties.add(conditionProperties.find { it.name == parm.name } as KProperty1<Condition, *>)
-            }
-            val keyword = ConditionParser.keywords.entries.find { it.value == condition::class }?.key ?: continue
+            val newConditionProperties = orderedConditionProperties(conditionClass)
+            val keyword = conditionKeywords[conditionClass] ?: continue
             val properties = mutableListOf<String>()
 
             for (property in newConditionProperties) {
                 if (property.name == "conditionName" || property.name == "inverted") continue
-                val value = property.getter.call(condition)
-                // Add only the first string, because only conditionals and random actions should have lists
-                properties.add(handleProperty(property as KProperty1<PropertyHolder, *>, value).first())
+                val value = property.get(condition)
+                properties.addAll(handleProperty(property as KProperty1<PropertyHolder, *>, value))
             }
 
             val conditionString = "${if (condition.inverted) "!" else ""}${

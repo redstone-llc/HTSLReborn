@@ -28,14 +28,14 @@ object LocationParser {
                     pitch = if (pitchToken != null && pitchToken.tokenType != Tokens.BOOLEAN && pitchToken.tokenType != Tokens.NEWLINE) {
                         pitchToken.string
                     } else {
-                        iterator.previous()
+                        if (pitchToken != null) iterator.previous()
                         null
                     }
                     val yawToken = if (iterator.hasNext()) iterator.next() else null
                     yaw = if (yawToken != null && yawToken.tokenType != Tokens.BOOLEAN && yawToken.tokenType != Tokens.NEWLINE) {
                         yawToken.string
                     } else {
-                        iterator.previous()
+                        if (yawToken != null) iterator.previous()
                         null
                     }
 
