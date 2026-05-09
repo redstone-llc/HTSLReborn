@@ -10,7 +10,10 @@ import llc.redstone.htslreborn.parser.ConditionParser
 import llc.redstone.htslreborn.utils.UIErrorToast
 import llc.redstone.htslreborn.utils.UISuccessToast
 import llc.redstone.systemsapi.SystemsAPI
+import llc.redstone.systemsapi.importer.ActionContainer
+import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsdata.*
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.sound.SoundEvents
 import java.nio.file.Path
 import kotlin.coroutines.cancellation.CancellationException
@@ -32,6 +35,7 @@ object HTSLExporter {
     private val conditionKeywords = ConditionParser.keywords.entries.associate { (keyword, conditionClass) -> conditionClass to keyword }
     private val actionPropertyCache = mutableMapOf<KClass<out Action>, List<KProperty1<Action, *>>>()
     private val conditionPropertyCache = mutableMapOf<KClass<out Condition>, List<KProperty1<Condition, *>>>()
+    private const val EXPORT_MENU_RETRY_COUNT = 2
 
     @Suppress("UNCHECKED_CAST")
     private fun orderedActionProperties(actionClass: KClass<out Action>): List<KProperty1<Action, *>> {
@@ -81,7 +85,7 @@ object HTSLExporter {
                     return@launch
                 }
 
-                val actions = actionContainer.getActions()
+                val actions = actionContainer.getActionsWithMenuRetry()
                 val lines = export(actions)
                 path.parent?.let {
                     if (!it.exists()) {
@@ -117,6 +121,79 @@ object HTSLExporter {
                 exporting = false
                 exportingFile = null
             }
+        }
+    }
+
+    private suspend fun ActionContainer.getActionsWithMenuRetry(): List<Action> {
+        var lastFailure: Exception? = null
+
+        repeat(EXPORT_MENU_RETRY_COUNT + 1) { attempt ->
+            try {
+                return getActions()
+            } catch (e: Exception) {
+                if (!e.isTransientMenuClose() || attempt == EXPORT_MENU_RETRY_COUNT) {
+                    throw e
+                }
+
+                lastFailure = e
+                HTSLReborn.LOGGER.warn("Export read hit a transient menu close while reading '$title'; recovering and retrying.")
+                recoverActionMenu(title)
+            }
+        }
+
+        throw lastFailure ?: IllegalStateException("Export failed before reading actions")
+    }
+
+    private fun Throwable.isTransientMenuClose(): Boolean {
+        if (this is ClassCastException && message?.contains("Expected GenericContainerScreen but found null") == true) {
+            return true
+        }
+        return cause?.isTransientMenuClose() == true
+    }
+
+    private suspend fun recoverActionMenu(title: String) {
+        repeat(6) {
+            val currentTitle = waitForContainerMenu()?.title?.string
+
+            if (currentTitle != null && currentTitle.contains(title)) {
+                rewindToFirstActionPage(title)
+                return
+            }
+
+            if (currentTitle == "Action Settings" || currentTitle == "Settings" || currentTitle == "Edit Conditions") {
+                runCatching { MenuUtils.clickItems(ActionContainer.MenuItems.BACK) }
+                SystemsAPI.scaledDelay(2.0)
+            }
+
+            val returnedTitle = waitForContainerMenu()?.title?.string
+            if (returnedTitle != null && returnedTitle.contains(title)) {
+                rewindToFirstActionPage(title)
+                return
+            }
+
+            SystemsAPI.scaledDelay(2.0)
+        }
+    }
+
+    private suspend fun waitForContainerMenu(): GenericContainerScreen? {
+        repeat(20) {
+            (MC.currentScreen as? GenericContainerScreen)?.let { return it }
+            SystemsAPI.scaledDelay()
+        }
+        return MC.currentScreen as? GenericContainerScreen
+    }
+
+    private suspend fun rewindToFirstActionPage(title: String) {
+        repeat(10) {
+            val currentTitle = (MC.currentScreen as? GenericContainerScreen)?.title?.string ?: return
+            if (!currentTitle.contains(title)) return
+
+            val previousPageSlot = runCatching {
+                MenuUtils.findSlots(MenuUtils.GlobalMenuItems.PREVIOUS_PAGE).firstOrNull()
+            }.getOrNull() ?: return
+
+            MenuUtils.packetClick(previousPageSlot.id, button = 1)
+            SystemsAPI.scaledDelay(2.0)
         }
     }
 

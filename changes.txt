@@ -1,4 +1,4 @@
-Itisyan Patch2 build:
+Itisyan Patch2:
 
 - Incorrect export of OR conditions: They were being exported as AND. Fixed in HTSLExporter.kt line 185.
 - Color + placeholder stuck together in actionBar imports: Only the color was being imported. Fixed.
@@ -9,3 +9,6 @@ Itisyan Patch2 build:
 - /htsl commands: Path resolution now uses the import folder, automatic .htsl / .nbt extension completion added, absolute paths are supported, and item deletion no longer crashes when the file is missing.
 - Import: Temporarily reduced the fixed SystemsAPI delay from 50 ms to 25 ms during imports, then automatically restores it after the import.
 - Import: Added menu-close detection after the vanilla close to avoid an unnecessary timeout during hidden chat inputs.
+
+Itisyan Patch3:
+- Export: Added a targeted retry/recovery for the transient SystemsAPI menu race where reading a chat-backed value can briefly leave currentScreen null and trigger "Expected GenericContainerScreen but found null".
