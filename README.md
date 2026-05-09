@@ -21,8 +21,8 @@ HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode
 
 ## Download build
 
-Itisyan patch v2 (0.2.0.itisyan.patch2):
-https://github.com/Itisyan/HTSLReborn/releases/tag/patch2
+Itisyan patch v3 (0.2.0.itisyan.patch2):
+https://github.com/Itisyan/HTSLReborn/releases/tag/patch3
 
 redstone-llc original (0.2.0): 
 https://modrinth.com/mod/htslreborn/version/0.2.0
@@ -41,8 +41,11 @@ https://modrinth.com/mod/htslreborn/version/0.2.0
 - [x] File browser hot-reloading
 - [x] Item support
 
-## Itisyan fork (Patch2)
+## Itisyan fork
+Patch3:
+- Export: Added a targeted retry/recovery for the transient SystemsAPI menu race where reading a chat-backed value can briefly leave currentScreen null and trigger "Expected GenericContainerScreen but found null".
 
+Patch2:
 - Fix Incorrect export of OR conditions: They were being exported as AND. Fixed in HTSLExporter.kt line 185.
 - Fix Color + placeholder stuck together in actionBar imports: Only the color was being imported. Fixed.
 - Fix StatValue with commas: 1,234, 2,345L, and 3,456.5 were sometimes parsed as text instead of numbers. Fixed in ActionParser.kt line 118 and ConditionParser.kt line 85.
