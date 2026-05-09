@@ -12,7 +12,6 @@ import llc.redstone.htslreborn.htslio.HTSLExporter
 import llc.redstone.htslreborn.htslio.HTSLImporter
 import llc.redstone.htslreborn.ui.FileExplorer
 import llc.redstone.htslreborn.ui.FileHandler
-import llc.redstone.systemsapi.importer.ActionContainer
 import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
@@ -91,8 +90,8 @@ class ScriptEntryComponent(
 
     fun handleScriptClick() {
         val method = when (CONFIG.defaultImportStrategy) {
-            HtslConfigModel.ImportStrategy.APPEND -> ActionContainer::addActions
-            HtslConfigModel.ImportStrategy.REPLACE -> ActionContainer::setActions
+            HtslConfigModel.ImportStrategy.APPEND -> HTSLImporter.APPEND_ACTIONS
+            HtslConfigModel.ImportStrategy.REPLACE -> HTSLImporter.REPLACE_ACTIONS
 //            HtslConfigModel.ImportStrategy.UPDATE -> ActionContainer::updateActions
         }
 

@@ -7,13 +7,12 @@ import llc.redstone.htslreborn.HTSLReborn.exportingFile
 import llc.redstone.htslreborn.parser.ActionParser
 import llc.redstone.htslreborn.parser.ActionParser.handleSwaps
 import llc.redstone.htslreborn.parser.ConditionParser
+import llc.redstone.htslreborn.htslio.ActionMenuRecovery.isRecoverableActionMenuFailure
 import llc.redstone.htslreborn.utils.UIErrorToast
 import llc.redstone.htslreborn.utils.UISuccessToast
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.importer.ActionContainer
-import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsdata.*
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.sound.SoundEvents
 import java.nio.file.Path
 import kotlin.coroutines.cancellation.CancellationException
@@ -31,8 +30,21 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.withNullability
 
 object HTSLExporter {
-    private val actionKeywords = ActionParser.keywords.entries.associate { (keyword, actionClass) -> actionClass to keyword }
-    private val conditionKeywords = ConditionParser.keywords.entries.associate { (keyword, conditionClass) -> conditionClass to keyword }
+    private val actionKeywords = ActionParser.keywords.entries.associate { (keyword, actionClass) -> actionClass to keyword } +
+        mapOf<KClass<out Action>, String>(
+            Action.GlobalVariable::class to "globalvar",
+            Action.PlayerVariable::class to "var",
+            Action.TeamVariable::class to "teamvar",
+        )
+    private val conditionKeywords = ConditionParser.keywords.entries.associate { (keyword, conditionClass) -> conditionClass to keyword } +
+        mapOf<KClass<out Condition>, String>(
+            Condition.GlobalVariableRequirement::class to "globalvar",
+            Condition.PlayerVariableRequirement::class to "var",
+            Condition.TeamVariableRequirement::class to "teamvar",
+            Condition.RequiredGroup::class to "hasGroup",
+            Condition.RequiredTeam::class to "hasTeam",
+            Condition.InRegion::class to "inRegion",
+        )
     private val actionPropertyCache = mutableMapOf<KClass<out Action>, List<KProperty1<Action, *>>>()
     private val conditionPropertyCache = mutableMapOf<KClass<out Condition>, List<KProperty1<Condition, *>>>()
     private const val EXPORT_MENU_RETRY_COUNT = 2
@@ -131,70 +143,17 @@ object HTSLExporter {
             try {
                 return getActions()
             } catch (e: Exception) {
-                if (!e.isTransientMenuClose() || attempt == EXPORT_MENU_RETRY_COUNT) {
+                if (!e.isRecoverableActionMenuFailure(title) || attempt == EXPORT_MENU_RETRY_COUNT) {
                     throw e
                 }
 
                 lastFailure = e
                 HTSLReborn.LOGGER.warn("Export read hit a transient menu close while reading '$title'; recovering and retrying.")
-                recoverActionMenu(title)
+                ActionMenuRecovery.recover(title)
             }
         }
 
         throw lastFailure ?: IllegalStateException("Export failed before reading actions")
-    }
-
-    private fun Throwable.isTransientMenuClose(): Boolean {
-        if (this is ClassCastException && message?.contains("Expected GenericContainerScreen but found null") == true) {
-            return true
-        }
-        return cause?.isTransientMenuClose() == true
-    }
-
-    private suspend fun recoverActionMenu(title: String) {
-        repeat(6) {
-            val currentTitle = waitForContainerMenu()?.title?.string
-
-            if (currentTitle != null && currentTitle.contains(title)) {
-                rewindToFirstActionPage(title)
-                return
-            }
-
-            if (currentTitle == "Action Settings" || currentTitle == "Settings" || currentTitle == "Edit Conditions") {
-                runCatching { MenuUtils.clickItems(ActionContainer.MenuItems.BACK) }
-                SystemsAPI.scaledDelay(2.0)
-            }
-
-            val returnedTitle = waitForContainerMenu()?.title?.string
-            if (returnedTitle != null && returnedTitle.contains(title)) {
-                rewindToFirstActionPage(title)
-                return
-            }
-
-            SystemsAPI.scaledDelay(2.0)
-        }
-    }
-
-    private suspend fun waitForContainerMenu(): GenericContainerScreen? {
-        repeat(20) {
-            (MC.currentScreen as? GenericContainerScreen)?.let { return it }
-            SystemsAPI.scaledDelay()
-        }
-        return MC.currentScreen as? GenericContainerScreen
-    }
-
-    private suspend fun rewindToFirstActionPage(title: String) {
-        repeat(10) {
-            val currentTitle = (MC.currentScreen as? GenericContainerScreen)?.title?.string ?: return
-            if (!currentTitle.contains(title)) return
-
-            val previousPageSlot = runCatching {
-                MenuUtils.findSlots(MenuUtils.GlobalMenuItems.PREVIOUS_PAGE).firstOrNull()
-            }.getOrNull() ?: return
-
-            MenuUtils.packetClick(previousPageSlot.id, button = 1)
-            SystemsAPI.scaledDelay(2.0)
-        }
     }
 
     //This class is a little gross :)

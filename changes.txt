@@ -12,3 +12,10 @@ Itisyan Patch2:
 
 Itisyan Patch3:
 - Export: Added a targeted retry/recovery for the transient SystemsAPI menu race where reading a chat-backed value can briefly leave currentScreen null and trigger "Expected GenericContainerScreen but found null".
+
+Itisyan Patch4:
+- Export/import: Treat the return-to-actions timeout after chat-backed text values as recoverable.
+- Export: Variable actions and conditions now export with var/globalvar/teamvar while still accepting stat/globalstat/teamstat on import; placeholder strings are left unchanged.
+- Export: Group/team/region conditions now prefer hasGroup/hasTeam/inRegion while still accepting inGroup/inTeam/hasRegion aliases on import.
+- Import: Temporarily raises menu timeouts during imports and restores them afterward.
+- Import: Added recovery for transient Action Settings/Settings timeouts after paginated choices such as function, menu, layout, team, group, and region selectors.

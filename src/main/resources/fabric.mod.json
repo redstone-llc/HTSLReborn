@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "${id}",
-  "version": "0.2.0.itisyan.patch3",
+  "version": "0.2.0.itisyan.patch4",
   "name": "HTSL Reborn (Patched)",
   "description": "Fabric mod that makes programming in Hypixel Housing easier.\n\nChanges in this patch:\nhttps://github.com/Itisyan/HTSLReborn",
   "authors": [

@@ -8,6 +8,9 @@ import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.parser.Parser
 import llc.redstone.htslreborn.parser.PreProcess
 import llc.redstone.htslreborn.tokenizer.Tokenizer
+import llc.redstone.htslreborn.htslio.ActionMenuRecovery.isActionMenuTimeout
+import llc.redstone.htslreborn.htslio.ActionMenuRecovery.isActionSettingsTimeout
+import llc.redstone.htslreborn.htslio.ActionMenuRecovery.isSettingsTimeout
 import llc.redstone.htslreborn.utils.UIErrorToast
 import llc.redstone.htslreborn.utils.UISuccessToast
 import llc.redstone.systemsapi.SystemsAPI
@@ -16,8 +19,11 @@ import llc.redstone.systemsapi.api.Command as HousingCommand
 import llc.redstone.systemsapi.api.Function as HousingFunction
 import llc.redstone.systemsapi.api.Menu as HousingMenu
 import llc.redstone.systemsdata.Action
+import llc.redstone.systemsdata.Condition
+import llc.redstone.systemsdata.Pagination
 import llc.redstone.systemsapi.importer.ActionContainer
 import llc.redstone.systemsapi.util.CommandUtils
+import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.client.MinecraftClient
 import net.minecraft.sound.SoundEvents
 import net.minecraft.text.Text
@@ -25,8 +31,19 @@ import net.minecraft.util.Colors
 import net.minecraft.world.GameMode
 import java.nio.file.Path
 import kotlin.io.path.name
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.memberProperties
 
 object HTSLImporter {
+    val APPEND_ACTIONS: suspend (ActionContainer, List<Action>) -> Unit = { actionContainer, actions ->
+        appendActionsSafely(actionContainer, actions)
+    }
+
+    val REPLACE_ACTIONS: suspend (ActionContainer, List<Action>) -> Unit = { actionContainer, actions ->
+        replaceActionsSafely(actionContainer, actions)
+    }
+
     private fun mergeCompiledCode(compiledCode: List<Pair<String, List<Action>>>): List<Pair<String, List<Action>>> {
         val merged = linkedMapOf<String, MutableList<Action>>()
         for ((goto, actions) in compiledCode) {
@@ -37,7 +54,7 @@ object HTSLImporter {
 
     fun importFile(
         path: Path,
-        method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions,
+        method: suspend (ActionContainer, List<Action>) -> Unit = APPEND_ACTIONS,
         supportsBase: Boolean = true,
         onComplete: () -> Unit = {}
     ) {
@@ -59,7 +76,7 @@ object HTSLImporter {
     fun import(
         path: Path,
         compiledCode: MutableList<Pair<String, List<Action>>>,
-        method: suspend (ActionContainer, List<Action>) -> Unit = ActionContainer::addActions,
+        method: suspend (ActionContainer, List<Action>) -> Unit = APPEND_ACTIONS,
         supportsBase: Boolean = true,
         onComplete: () -> Unit = {}
     ) {
@@ -206,5 +223,100 @@ object HTSLImporter {
                 importingFile = null
             }
         }
+    }
+
+    suspend fun appendActionsSafely(actionContainer: ActionContainer, actions: List<Action>) {
+        if (actions.isEmpty()) return
+
+        MenuUtils.onOpen(actionContainer.title)
+        for (action in actions) {
+            try {
+                MenuUtils.onOpen(actionContainer.title)
+                actionContainer.addActions(listOf(action))
+            } catch (e: Exception) {
+                if (!e.isActionMenuTimeout(actionContainer.title)) {
+                    if (e.isActionSettingsTimeout() && recoverFromSettingsTimeout(actionContainer.title, action, "Action Settings")) {
+                        continue
+                    }
+                    if (e.isSettingsTimeout() && recoverFromSettingsTimeout(actionContainer.title, action, "Settings")) {
+                        continue
+                    }
+                    throw e
+                }
+
+                HTSLReborn.LOGGER.warn("Import hit a transient action menu return timeout for '${actionContainer.title}'; recovering and continuing.")
+                if (!ActionMenuRecovery.recover(actionContainer.title)) {
+                    throw e
+                }
+            }
+        }
+    }
+
+    suspend fun replaceActionsSafely(actionContainer: ActionContainer, actions: List<Action>) {
+        try {
+            actionContainer.setActions(emptyList())
+        } finally {
+            SystemsAPI.getHousingImporter().setImporting(false)
+        }
+
+        appendActionsSafely(actionContainer, actions)
+    }
+
+    private suspend fun recoverFromSettingsTimeout(actionContainerTitle: String, action: Action, menuName: String): Boolean {
+        HTSLReborn.LOGGER.warn("Import hit a transient $menuName timeout while configuring ${action::class.simpleName}; recovering and continuing.")
+
+        completePaginatedSelectionIfStillOpen(paginatedSelections(action))
+
+        return ActionMenuRecovery.recover(actionContainerTitle)
+    }
+
+    private suspend fun completePaginatedSelectionIfStillOpen(selections: List<String>) {
+        val currentTitle = MC.currentScreen?.title?.string ?: return
+        if (!currentTitle.contains("Select Option")) return
+
+        val candidates = selections.distinct()
+        if (candidates.isEmpty()) return
+
+        var visibleSelection: String? = null
+        for (candidate in candidates) {
+            if (runCatching { MenuUtils.findSlots(candidate).isNotEmpty() }.getOrDefault(false)) {
+                visibleSelection = candidate
+                break
+            }
+        }
+
+        val selection = visibleSelection ?: candidates.singleOrNull() ?: return
+
+        runCatching {
+            MenuUtils.clickItems(selection, paginated = visibleSelection == null)
+            SystemsAPI.scaledDelay(4.0)
+        }.onFailure {
+            HTSLReborn.LOGGER.warn("Could not finish selecting paginated option '$selection' during import recovery.")
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun paginatedSelections(value: Any?): List<String> {
+        val selections = mutableListOf<String>()
+
+        fun collect(current: Any?) {
+            when (current) {
+                is Action, is Condition -> {
+                    for (property in current::class.memberProperties) {
+                        val propertyValue = (property as KProperty1<Any, *>).get(current)
+                        if (property.hasAnnotation<Pagination>() && propertyValue is String) {
+                            selections.add(propertyValue)
+                        }
+
+                        if (propertyValue is Iterable<*>) {
+                            propertyValue.forEach(::collect)
+                        }
+                    }
+                }
+            }
+        }
+
+        collect(value)
+        return selections
     }
 }

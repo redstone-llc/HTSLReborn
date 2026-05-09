@@ -48,6 +48,7 @@ object ConditionParser {
         "inTeam" to RequiredTeam::class,
         "teamvar" to TeamVariableRequirement::class,
         "teamstat" to TeamVariableRequirement::class,
+        "hasRegion" to InRegion::class,
         "inRegion" to InRegion::class,
     )
 

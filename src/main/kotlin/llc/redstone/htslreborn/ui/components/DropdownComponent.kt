@@ -11,7 +11,6 @@ import io.wispforest.owo.ui.core.Surface
 import llc.redstone.htslreborn.HTSLReborn.importingFile
 import llc.redstone.htslreborn.htslio.HTSLImporter
 import llc.redstone.htslreborn.ui.FileExplorer
-import llc.redstone.systemsapi.importer.ActionContainer
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.text.Text
 import kotlin.io.path.name
@@ -62,8 +61,8 @@ class DropdownComponent(
             if (FileExplorer.INSTANCE.focus !is ScriptEntryComponent) return
 
             val method = when (button.id()) {
-                "add" -> ActionContainer::addActions
-                "replace" -> ActionContainer::setActions
+                "add" -> HTSLImporter.APPEND_ACTIONS
+                "replace" -> HTSLImporter.REPLACE_ACTIONS
 //                "update" -> ActionContainer::updateActions
                 else -> throw IllegalStateException("Unknown import type: ${button.id()}")
             }

@@ -1,7 +1,11 @@
 package llc.redstone.htslreborn.htslio
 
 import llc.redstone.systemsdata.Action
+import llc.redstone.systemsdata.Comparison
+import llc.redstone.systemsdata.Condition
 import llc.redstone.systemsdata.Location
+import llc.redstone.systemsdata.StatOp
+import llc.redstone.systemsdata.StatValue
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -13,6 +17,7 @@ class HTSLExporterTest {
                 Action.SendMessage("hello world"),
                 Action.SendMessage(""),
                 Action.SendMessage("null"),
+                Action.SendMessage("type=join;name=%var.global/join/name%;playerid=%var.global/join/playerid%"),
             )
         )
 
@@ -21,8 +26,62 @@ class HTSLExporterTest {
                 "chat \"hello world\"",
                 "chat \"\"",
                 "chat \"null\"",
+                "chat type=join;name=%var.global/join/name%;playerid=%var.global/join/playerid%",
             ),
             exported
+        )
+    }
+
+    @Test
+    fun testVariableAliasesExportAsVarAndPreservePlaceholders() {
+        val exportedActions = HTSLExporter.export(
+            listOf(
+                Action.PlayerVariable("Kills", StatOp.Set, StatValue.UnquotedStr("%stat.player/Kills%")),
+                Action.GlobalVariable("Total", StatOp.Inc, StatValue.I32(1)),
+            )
+        )
+
+        assertEquals(
+            listOf(
+                "var Kills = %stat.player/Kills% false",
+                "globalvar Total += 1 false",
+            ),
+            exportedActions
+        )
+
+        val exportedConditions = HTSLExporter.exportConditions(
+            listOf(
+                Condition.PlayerVariableRequirement("Kills", Comparison.Ge, StatValue.UnquotedStr("%stat.player/Kills%")),
+                Condition.GlobalVariableRequirement("Total", Comparison.Eq, StatValue.I32(1)),
+            )
+        )
+
+        assertEquals(
+            listOf(
+                "var Kills >= %stat.player/Kills% null",
+                "globalvar Total == 1 null",
+            ),
+            exportedConditions
+        )
+    }
+
+    @Test
+    fun testReadableConditionAliasesArePreferredOnExport() {
+        val exportedConditions = HTSLExporter.exportConditions(
+            listOf(
+                Condition.RequiredGroup("default", true),
+                Condition.RequiredTeam("red"),
+                Condition.InRegion("spawn"),
+            )
+        )
+
+        assertEquals(
+            listOf(
+                "hasGroup default true",
+                "hasTeam red",
+                "inRegion spawn",
+            ),
+            exportedConditions
         )
     }
 

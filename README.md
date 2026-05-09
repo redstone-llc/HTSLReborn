@@ -20,9 +20,10 @@
 HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode easier. With the help of [SystemsAPI](https://github.com/redstone-llc/SystemsAPI), we ported HTSL's syntax to latest versions. Now that we're based on a more modern loader, there's a large possibility for extra QoL features to come in the future!
 
 ## Download build
+Warning: HTSLReborn identifies Hypixel menu names, so you must configure the Hypixel language to English.
 
-Itisyan patch v2 (0.2.0.itisyan.patch2):
-https://github.com/Itisyan/HTSLReborn/releases/tag/patch2
+Itisyan patch v4 (0.2.0.itisyan.patch4):
+https://github.com/Itisyan/HTSLReborn/releases/tag/patch4
 
 redstone-llc original (0.2.0): 
 https://modrinth.com/mod/htslreborn/version/0.2.0
@@ -41,8 +42,18 @@ https://modrinth.com/mod/htslreborn/version/0.2.0
 - [x] File browser hot-reloading
 - [x] Item support
 
-## Itisyan fork (Patch2)
+## Itisyan fork
+Patch4:
+- Export/import: Treat the return-to-actions timeout after chat-backed text values as recoverable.
+- Export: Variable actions and conditions now export with var/globalvar/teamvar while still accepting stat/globalstat/teamstat on import.
+- Export: Group/team/region conditions now prefer hasGroup/hasTeam/inRegion while still accepting inGroup/inTeam/hasRegion aliases on import.
+- Import: Temporarily raises menu timeouts during imports and restores them afterward.
+- Import: Added recovery for transient Action Settings/Settings timeouts after paginated choices such as function, menu, layout, team, group, and region selectors.
 
+Patch3:
+- Export: Added a targeted retry/recovery for the transient SystemsAPI menu race where reading a chat-backed value can briefly leave currentScreen null and trigger "Expected GenericContainerScreen but found null".
+
+Patch2:
 - Fix Incorrect export of OR conditions: They were being exported as AND. Fixed in HTSLExporter.kt line 185.
 - Fix Color + placeholder stuck together in actionBar imports: Only the color was being imported. Fixed.
 - Fix StatValue with commas: 1,234, 2,345L, and 3,456.5 were sometimes parsed as text instead of numbers. Fixed in ActionParser.kt line 118 and ConditionParser.kt line 85.
