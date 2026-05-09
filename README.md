@@ -38,7 +38,7 @@ HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode
 - Fix Incorrect export of OR conditions: They were being exported as AND. Fixed in HTSLExporter.kt line 185.
 - Fix Color + placeholder stuck together in actionBar imports: Only the color was being imported. Fixed.
 - Fix StatValue with commas: 1,234, 2,345L, and 3,456.5 were sometimes parsed as text instead of numbers. Fixed in ActionParser.kt line 118 and ConditionParser.kt line 85.
-- Fix Conditions with color + placeholder stuck together: Same issue as actionBar, but inside conditions, for example placeholder &e%stat.player/tpsdistv2% >= 1,234. Fixed in ConditionParser.kt line 65.
+- Fix Conditions with color + placeholder stuck together: Same issue as actionBar, but inside conditions. Fixed in ConditionParser.kt line 65.
 - Fix Custom coordinates: launchTarget "custom_coordinates" 1 2 3 could consume 3 as the force value instead of keeping the default value. Fixed in LocationParser.kt line 27.
 - File explorer: More robust folder creation with createDirectories, stricter extension filtering .htsl, .nbt, and watcher fixed to target the correct folder.
 - /htsl commands: Path resolution now uses the import folder, automatic .htsl / .nbt extension completion added, absolute paths are supported, and item deletion no longer crashes when the file is missing.
