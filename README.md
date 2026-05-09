@@ -14,6 +14,9 @@
         <img alt="By Redstone Studios" src="https://img.shields.io/badge/By-Redstone%20Studios-red?style=for-the-badge&labelColor=%23363a4f&color=%23e64553">
     </a>
 </h1>
+<h4 align="center">
+    <b>Patch Fork</b> - <b>Itisyan</b>
+</h4>
 
 ## Overview
 
@@ -22,27 +25,13 @@ HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode
 ## Download build
 <b>Warning:</b> <i>HTSLReborn identifies Hypixel menu names, so you must configure the Hypixel language to <b>English</b>.</i>
 
-Itisyan patch v4 (0.2.0.itisyan.patch4):
+Itisyan fork v4 (0.2.0.itisyan.patch4):
 https://github.com/Itisyan/HTSLReborn/releases/tag/patch4
 
 redstone-llc original (0.2.0): 
 https://modrinth.com/mod/htslreborn/version/0.2.0
 
-## Features
-
-- [x] Language parity with HTSL (your HTSL scripts will work flawlessly!)
-  - [x] Expressions (Javascript math, etc.)
-  - [x] Compiler shortcuts (define statements)
-  - [x] Loops
-- [x] Importing to Housing (with multiple methods:)
-  - [x] Add: adds new actions after existing ones
-  - [x] Replace: automatically replaces old actions with new
-  - [ ] Update: optimally adjust existing actions so import takes less time (soon!)
-- [x] Exporting to code
-- [x] File browser hot-reloading
-- [x] Item support
-
-## Itisyan fork
+## Itisyan fork changes
 Patch4:
 - Export/import: Treat the return-to-actions timeout after chat-backed text values as recoverable.
 - Export: Variable actions and conditions now export with var/globalvar/teamvar while still accepting stat/globalstat/teamstat on import.
@@ -63,6 +52,20 @@ Patch2:
 - /htsl commands: Path resolution now uses the import folder, automatic .htsl / .nbt extension completion added, absolute paths are supported, and item deletion no longer crashes when the file is missing.
 - Import: Temporarily reduced the fixed SystemsAPI delay from 50 ms to 25 ms during imports, then automatically restores it after the import.
 - Import: Added menu-close detection after the vanilla close to avoid an unnecessary timeout during hidden chat inputs.
+
+## Features
+
+- [x] Language parity with HTSL (your HTSL scripts will work flawlessly!)
+  - [x] Expressions (Javascript math, etc.)
+  - [x] Compiler shortcuts (define statements)
+  - [x] Loops
+- [x] Importing to Housing (with multiple methods:)
+  - [x] Add: adds new actions after existing ones
+  - [x] Replace: automatically replaces old actions with new
+  - [ ] Update: optimally adjust existing actions so import takes less time (soon!)
+- [x] Exporting to code
+- [x] File browser hot-reloading
+- [x] Item support
 
 ## Demo
 
