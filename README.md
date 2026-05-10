@@ -3,13 +3,6 @@
     <br>
     HTSL Reborn
     <br>
-    <a href="https://github.com/redstone-llc/HTSLReborn/commits/main/">
-        <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/redstone-llc/HTSLReborn?style=for-the-badge&logo=github&logoColor=%23cad3f5&labelColor=%23363a4f&color=%2340a02b">
-    </a>
-    <a href="https://modrinth.com/mod/htslreborn">
-        <img alt="Static Badge" src="https://img.shields.io/badge/-Modrinth-green?style=for-the-badge&logo=modrinth&logoColor=%23c6d0f5&labelColor=%23363A4F&color=%2340a02b">
-    </a>
-    <br>
     <a href="https://discord.gg/pCcpqzU4He">
         <img alt="By Redstone Studios" src="https://img.shields.io/badge/By-Redstone%20Studios-red?style=for-the-badge&labelColor=%23363a4f&color=%23e64553">
     </a>
@@ -22,16 +15,30 @@
 
 HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode easier. With the help of [SystemsAPI](https://github.com/redstone-llc/SystemsAPI), we ported HTSL's syntax to latest versions. Now that we're based on a more modern loader, there's a large possibility for extra QoL features to come in the future!
 
-## Download build
+This fork is a derivative of HTSL Reborn 0.2.0 that fixes bugs and improves speed of imports.
+
+## Original version
+
+<b>HTSLReborn - Redstone Studios : </b><br>
+https://github.com/redstone-llc/HTSLReborn<br>
+https://modrinth.com/mod/htslreborn
+
+## Download patched build
 <b>Warning:</b> <i>HTSLReborn identifies Hypixel menu names, so you must configure the Hypixel language to <b>English</b>.</i>
 
-Itisyan fork v4 (0.2.0.itisyan.patch4):
+<b>HTSLReborn - Itisyan Fork (0.2.0.itisyan.patch4) download: </b><br>
 https://github.com/Itisyan/HTSLReborn/releases/tag/patch4
 
-redstone-llc original (0.2.0): 
-https://modrinth.com/mod/htslreborn/version/0.2.0
+<b>Dependencies:</b>
+- Fabric API: https://modrinth.com/mod/fabric-api/version/0.141.3+1.21.11 (Required)
+- oωo (owo-lib) : https://modrinth.com/mod/owo-lib/version/0.13.0+1.21.11 (Required)
+- SystemsAPI : https://modrinth.com/mod/systemsapi/version/jqOWChWz (Required)
+- Fabric Language Kotlin : https://modrinth.com/mod/fabric-language-kotlin/version/1.13.11+kotlin.2.3.21 (Required)
 
-## Itisyan fork changes
+<b><i>If you want to use the patched version, delete any other version of HTSL from your mods folder.</i></b>
+
+## Itisyan fork (patched version) changes
+
 Patch4:
 - Export/import: Treat the return-to-actions timeout after chat-backed text values as recoverable.
 - Export: Variable actions and conditions now export with var/globalvar/teamvar while still accepting stat/globalstat/teamstat on import.
@@ -53,56 +60,15 @@ Patch2:
 - Import: Temporarily reduced the fixed SystemsAPI delay from 50 ms to 25 ms during imports, then automatically restores it after the import.
 - Import: Added menu-close detection after the vanilla close to avoid an unnecessary timeout during hidden chat inputs.
 
-## Features
-
-- [x] Language parity with HTSL (your HTSL scripts will work flawlessly!)
-  - [x] Expressions (Javascript math, etc.)
-  - [x] Compiler shortcuts (define statements)
-  - [x] Loops
-- [x] Importing to Housing (with multiple methods:)
-  - [x] Add: adds new actions after existing ones
-  - [x] Replace: automatically replaces old actions with new
-  - [ ] Update: optimally adjust existing actions so import takes less time (soon!)
-- [x] Exporting to code
-- [x] File browser hot-reloading
-- [x] Item support
-
-## Demo
-
-https://github.com/user-attachments/assets/a7a782d7-e7f4-42f0-a898-65cadbcea64b
-
 ## Questions
 
-<details>
-<summary><b>How do I migrate?</b></summary>
-
-To migrate from HTSL to HTSL Reborn, just copy all your imports into the new HTSL folder, located in the root of your Minecraft instance. You should be good to go once things have been moved over.
-    
-</details>
-
-<details>
-<summary><b>What's better about this compared to the ChatTriggers module?</b></summary>
-
-There are a couple of reasons why we abandoned HTSL to make this new mod.
-* We wanted to update to the latest version of Minecraft.
-* We wanted to leave the ChatTriggers ecosystem, opting for the power an actual modding framework gives us.
-* We wanted to start fresh with a clean codebase (the old one was starting to get out of hand).
-
-What does that mean for you?
-* Fewer bugs (in the long term)
-* Latest-version (and multi-version) support
-* More features!
-    
-</details>
-
-<details>
-<summary><b>I need help!</b></summary>
-
-If you need help figuring out the syntax of HTSL or aren't sure how to use it, check out our [wiki](https://github.com/redstone-llc/HTSLReborn/wiki)!
-If you think you may have found a bug, please [create an issue](https://github.com/redstone-llc/HTSLReborn/issues). Otherwise, feel free to join our [discord](https://discord.gg/pCcpqzU4He) or [create a discussion post](https://github.com/redstone-llc/HTSLReborn/discussions).
-    
-</details>
+If you have any issues with this patched version, you can DM me on Discord: <b>itisyan</b> (Skorp#5135)
 
 ## Credits
 
 Thank you, primarially, to [@BusterBrown1218](https://github.com/BusterBrown1218), the creator of the original HTSL ChatTriggers module.
+
+HTSLReborn creators and contributors:
+- [@sinender](https://github.com/sinender)
+- [@Wekendd](https://github.com/Wekendd)
+- [@PixelBedrock](https://github.com/PixelBedrock)
