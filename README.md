@@ -29,11 +29,14 @@ https://modrinth.com/mod/htslreborn
 <b>HTSLReborn - Itisyan Fork (0.2.0.itisyan.patch4) download: </b><br>
 https://github.com/Itisyan/HTSLReborn/releases/tag/patch4
 
-<b>Dependencies:</b>
-- Fabric API: https://modrinth.com/mod/fabric-api/version/0.141.3+1.21.11 (Required)
-- oωo (owo-lib) : https://modrinth.com/mod/owo-lib/version/0.13.0+1.21.11 (Required)
-- SystemsAPI : https://modrinth.com/mod/systemsapi/version/jqOWChWz (Required)
-- Fabric Language Kotlin : https://modrinth.com/mod/fabric-language-kotlin/version/1.13.11+kotlin.2.3.21 (Required)
+Minecraft version: 1.21.11<br>
+Loader: [Fabric](https://fabricmc.net/use/installer)
+
+<b>Dependencies: (Required)</b>
+- Fabric API: https://modrinth.com/mod/fabric-api/version/0.141.3+1.21.11
+- oωo (owo-lib) : https://modrinth.com/mod/owo-lib/version/0.13.0+1.21.11
+- SystemsAPI : https://modrinth.com/mod/systemsapi/version/jqOWChWz
+- Fabric Language Kotlin : https://modrinth.com/mod/fabric-language-kotlin/version/1.13.11+kotlin.2.3.21
 
 <b><i>If you want to use the patched version, delete any other version of HTSL from your mods folder.</i></b>
 
