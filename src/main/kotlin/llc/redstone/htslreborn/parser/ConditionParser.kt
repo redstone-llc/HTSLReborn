@@ -19,7 +19,7 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.full.*
 
 object ConditionParser {
-    val keywords = mapOf(
+    val keywords = linkedMapOf(
         "blockType" to BlockType::class,
         "damageAmount" to RequiredDamageAmount::class,
         "damageCause" to DamageCause::class,
@@ -58,8 +58,35 @@ object ConditionParser {
         return "$keyword $params"
     }
 
+    private fun isStringLike(token: TokenWithPosition): Boolean {
+        return token.tokenType == Tokens.STRING || token.tokenType == Tokens.PLACEHOLDER_STRING || token.tokenType == Tokens.NULL
+    }
+
+    private fun readStringArgument(firstToken: TokenWithPosition, iterator: ListIterator<TokenWithPosition>): String {
+        if (firstToken.quoted) return firstToken.string
+
+        val value = StringBuilder(firstToken.string)
+        var end = firstToken.endsAt
+
+        while (iterator.hasNext()) {
+            val next = iterator.next()
+            if (!isStringLike(next) || next.startsAt != end) {
+                iterator.previous()
+                break
+            }
+
+            value.append(next.string)
+            end = next.endsAt
+        }
+
+        return value.toString()
+    }
+
     fun createCondition(keyword: String, iterator: ListIterator<TokenWithPosition>, path: Path?, inverted: Boolean = false): Condition? {
-        val clazz = keywords[keyword] ?: return null
+        val clazz = keywords[keyword] ?: run {
+            println("Unknown condition keyword: $keyword")
+            return null
+        }
 
         val constructor = clazz.primaryConstructor ?: return null
 
@@ -74,11 +101,16 @@ object ConditionParser {
                 break
             }
 
+            if (token.tokenType == Tokens.NULL && prop.returnType.isMarkedNullable) {
+                args[param] = null
+                continue
+            }
+
             args[param] = when (prop.returnType.classifier) {
-                String::class -> token.string
-                Int::class -> token.string.toInt()
-                Long::class -> token.string.removeSuffix("L").toLong()
-                Double::class -> token.string.removeSuffix("D").toDouble()
+                String::class -> readStringArgument(token, iterator)
+                Int::class -> token.string.replace(",", "").toInt()
+                Long::class -> token.string.replace(",", "").removeSuffix("L").toLong()
+                Double::class -> token.string.replace(",", "").removeSuffix("D").toDouble()
                 Boolean::class -> token.string.toBoolean()
                 StatValue::class -> {
                     when (token.tokenType) {
@@ -142,10 +174,6 @@ object ConditionParser {
                     else -> null
                 }
                 else -> null
-            }
-
-            if (token.tokenType == Tokens.NULL) {
-                args[param] = null
             }
 
             if (args.containsKey(param) && args[param] != null) {

@@ -14,6 +14,7 @@ import llc.redstone.systemsdata.*
 import net.minecraft.sound.SoundEvents
 import java.nio.file.Path
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.io.path.createDirectories
 import kotlin.io.path.createDirectory
 import kotlin.io.path.exists
 import kotlin.io.path.name
@@ -33,11 +34,19 @@ object HTSLExporter {
             exporting = true
 
             try {
-                val actions = SystemsAPI.getHousingImporter().getOpenActionContainer()?.getActions() ?: return@launch
+                val actionContainer = SystemsAPI.getHousingImporter().getOpenActionContainer()
+
+                if (actionContainer == null) {
+                    UIErrorToast.report("You must have an action gui open to export HTSL code.")
+                    onComplete(false)
+                    return@launch
+                }
+
+                val actions = actionContainer.getActions()
                 val lines = export(actions)
                 path.parent?.let {
                     if (!it.exists()) {
-                        it.createDirectory()
+                        it.createDirectories()
                     }
                 }
                 path.writeText(lines.joinToString("\n"))
@@ -49,9 +58,10 @@ object HTSLExporter {
                 )
                 UISuccessToast.report("Successfully exported HTSL code to ${path.name}")
                 onComplete(true)
+            }
+            catch (e: CancellationException) {
+                onComplete(false)
             } catch (e: Exception) {
-                if (e.cause is CancellationException) return@launch
-
                 if (HTSLReborn.CONFIG.playCompleteSound) MC.player?.playSound(
                     SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(),
                     1.0f,
@@ -64,6 +74,15 @@ object HTSLExporter {
                 exporting = false
                 exportingFile = null
             }
+        }
+    }
+
+    private fun quoteIfNeeded(value: String): String {
+        val escaped = value.replace("\"", "\\\"")
+        return if (escaped.isEmpty() || escaped.any { it.isWhitespace() } || escaped == "null" || escaped.contains("\\\"")) {
+            "\"$escaped\""
+        } else {
+            escaped
         }
     }
 
@@ -82,23 +101,14 @@ object HTSLExporter {
                     properties.add("null")
                     return properties
                 }
-                val value = (value as String).replace("\"", "\\\"")
-                if (value.contains(" ")) {
-                    properties.add("\"$value\"")
-                } else {
-                    properties.add(value)
-                }
+                properties.add(quoteIfNeeded(value as String))
             }
 
             StatValue::class -> {
                 when (value) {
                     null -> properties.add("null")
                     is StatValue.Str -> properties.add("\"${value.value.replace("\"", "\\\"")}\"")
-                    is StatValue.UnquotedStr -> if (value.value.contains(" ")) {
-                        properties.add("\"${value.value.replace("\"", "\\\"")}\"")
-                    } else {
-                        properties.add(value.value)
-                    }
+                    is StatValue.UnquotedStr -> properties.add(quoteIfNeeded(value.value))
                     else -> properties.add(value.toString())
                 }
             }
@@ -182,7 +192,7 @@ object HTSLExporter {
             if (action is Action.Conditional) {
                 val conditional = action as Action.Conditional
                 val exportedConditions = exportConditions(conditional.conditions)
-                lines.add("if${if (conditional.matchAnyCondition) " and" else ""} (${exportedConditions.joinToString(", ")}) {")
+                lines.add("if${if (conditional.matchAnyCondition) " or" else ""} (${exportedConditions.joinToString(", ")}) {")
                 val exportedActions = export(conditional.ifActions)
                 lines.addAll(exportedActions.map { "    $it" })
                 if (conditional.elseActions.isNotEmpty()) {

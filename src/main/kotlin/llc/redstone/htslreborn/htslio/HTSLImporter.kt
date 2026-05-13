@@ -56,6 +56,8 @@ object HTSLImporter {
             MinecraftClient.getInstance().player?.sendMessage(
                 Text.of("Couldn't use actions before a goto call.").copy().withColor(Colors.RED), false
             )
+            onComplete()
+            return
         }
 
         if (supportsBase) {
@@ -63,6 +65,7 @@ object HTSLImporter {
                 MinecraftClient.getInstance().player?.sendMessage(
                     Text.of("You must have an action gui open to import HTSL code.").copy().withColor(Colors.RED), false
                 )
+                onComplete()
                 return
             }
         }
@@ -75,20 +78,22 @@ object HTSLImporter {
                 importingFile = path
                 importing = true
 
+                val housingImporter = SystemsAPI.getHousingImporter()
+
                 for ((goto, actions) in compiledCode) {
                     val type = goto.split(" ").first()
                     val args = goto.substringAfter(" ")
                     when (type) {
                         "base" -> {
                             if (actions.isNotEmpty()) {
-                                SystemsAPI.getHousingImporter().getOpenActionContainer()
+                                housingImporter.getOpenActionContainer()
                                     ?.let { method(it, actions) }
                             }
                         }
 
                         "function" -> {
-                            val function = SystemsAPI.getHousingImporter().getFunction(args)
-                                ?: SystemsAPI.getHousingImporter().createFunction(args)
+                            val function = housingImporter.getFunction(args)
+                                ?: housingImporter.createFunction(args)
                             SystemsAPI.scaledDelay(4.0)
                             if (actions.isNotEmpty()) {
                                 MC.player?.closeScreen()
@@ -98,8 +103,8 @@ object HTSLImporter {
                         }
 
                         "command" -> {
-                            val command = SystemsAPI.getHousingImporter().getCommand(args)
-                                ?: SystemsAPI.getHousingImporter().createCommand(args)
+                            val command = housingImporter.getCommand(args)
+                                ?: housingImporter.createCommand(args)
 
                             if (actions.isNotEmpty()) {
                                 MC.player?.closeScreen()
@@ -110,7 +115,7 @@ object HTSLImporter {
 
                         "event" -> {
                             if (actions.isNotEmpty()) {
-                                SystemsAPI.getHousingImporter().getEvent(
+                                housingImporter.getEvent(
                                     Event.Events.entries.find {
                                         it.name.equals(args, false) ||
                                                 it.label.equals(args, false)
@@ -123,8 +128,8 @@ object HTSLImporter {
                             val name = args.substringBeforeLast(" ")
                             val slot =
                                 args.substringAfterLast(" ").toIntOrNull() ?: error("Invalid slot number in goto $goto")
-                            val menu = SystemsAPI.getHousingImporter().getMenu(name)
-                                ?: SystemsAPI.getHousingImporter().createMenu(name)
+                            val menu = housingImporter.getMenu(name)
+                                ?: housingImporter.createMenu(name)
 
                             if (actions.isNotEmpty()) {
                                 menu.getMenuElement(slot).getActionContainer()

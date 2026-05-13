@@ -83,10 +83,14 @@ object FileExplorerHandler {
 
         try {
             val current = FileHandler.currentDir
+            val relative = FileHandler.baseDir.relativize(current)
             FileHandler.currentDir = if (index <= -1) {
+                FileHandler.baseDir
+            } else if (index <= 0 || relative.nameCount == 0) {
                 FileHandler.baseDir
             } else {
                 current.subpath(0, index + offset)
+                FileHandler.baseDir.resolve(relative.subpath(0, index.coerceAtMost(relative.nameCount))).normalize()
             }
 
             FileHandler.refreshFiles()

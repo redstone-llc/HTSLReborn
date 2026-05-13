@@ -15,7 +15,7 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.full.*
 
 object ActionParser {
-    val keywords = mapOf(
+    val keywords = linkedMapOf(
         "applyLayout" to ApplyInventoryLayout::class,
         "applyPotion" to ApplyPotionEffect::class,
         "cancelEvent" to CancelEvent::class,
@@ -91,6 +91,30 @@ object ActionParser {
         if (clazz == TeamVariable::class) swapParams("teamName", "variable")
     }
 
+    private fun isStringLike(token: TokenWithPosition): Boolean {
+        return token.tokenType == Tokens.STRING || token.tokenType == Tokens.PLACEHOLDER_STRING || token.tokenType == Tokens.NULL
+    }
+
+    private fun readStringArgument(firstToken: TokenWithPosition, iterator: ListIterator<TokenWithPosition>): String {
+        if (firstToken.quoted) return firstToken.string
+
+        val value = StringBuilder(firstToken.string)
+        var end = firstToken.endsAt
+
+        while (iterator.hasNext()) {
+            val next = iterator.next()
+            if (!isStringLike(next) || next.startsAt != end) {
+                iterator.previous()
+                break
+            }
+
+            value.append(next.string)
+            end = next.endsAt
+        }
+
+        return value.toString()
+    }
+
     fun createAction(keyword: String, iterator: ListIterator<TokenWithPosition>, path: Path?): Action? {
         //Get the action class
         val clazz = keywords[keyword] ?: return null
@@ -111,12 +135,17 @@ object ActionParser {
                 //End of action
                 if (token.tokenType == Tokens.NEWLINE) break
 
+                if (token.tokenType == Tokens.NULL && prop.returnType.isMarkedNullable) {
+                    args[param] = null
+                    continue
+                }
+
                 try {
                     args[param] = when (prop.returnType.classifier) {
-                        String::class -> token.string
-                        Int::class -> token.string.toInt()
-                        Long::class -> token.string.removeSuffix("L").toLong()
-                        Double::class -> token.string.removeSuffix("D").toDouble()
+                        String::class -> readStringArgument(token, iterator)
+                        Int::class -> token.string.replace(",", "").toInt()
+                        Long::class -> token.string.replace(",", "").removeSuffix("L").toLong()
+                        Double::class -> token.string.replace(",", "").removeSuffix("D").toDouble()
                         Boolean::class -> token.string.toBoolean()
                         StatValue::class -> {
                             when (token.tokenType) {
@@ -195,11 +224,6 @@ object ActionParser {
 
                         InventorySlot::class -> InventorySlot.fromKey(token.string)
                         else -> null
-                    }
-
-                    if (token.tokenType == Tokens.NULL) {
-                        args[param] = null
-                        continue
                     }
 
                     if (args.containsKey(param) && args[param] != null) {

@@ -8,10 +8,7 @@ import kotlin.io.path.Path
 // Used primarily for testing the tokenizer and preprocessor
 fun main(args: Array<String>) {
     val input = """
-        /*
-        test of multi-line comment
-         */
-        chat "Hello, World!"
+        chat type=join;name=%var.global/join/name%;playerid=%var.global/join/playerid%
     """.split("\n").joinToString("\n") { it.trim() }
     val tokens = Tokenizer.tokenize(input)
     println("Tokens:")
@@ -19,7 +16,7 @@ fun main(args: Array<String>) {
 
     val preProcessedTokens = PreProcess.preProcess(tokens)
     println("\nPre-Processed Tokens:")
-    preProcessedTokens.forEach { println("${it.tokenType} -> ${it.string}") }
+    preProcessedTokens.forEach { println("${it.tokenType} -> ${it.string} (${it.startsAt}-${it.endsAt})") }
 
     val parser = Parser.parse(preProcessedTokens, Path("test.htsl"))
     println("\nParsed Actions:")

@@ -11,6 +11,7 @@ base.archivesName = property("mod.id") as String
 
 repositories {
     mavenLocal()
+    maven("https://repo.redstone.llc/snapshots")
     maven("https://repo.redstone.llc/releases")
     maven("https://maven.kosmx.dev") //IDK why I couldnt make this a strict maven :shrug:
     maven { url = uri("https://jitpack.io") }
@@ -48,7 +49,7 @@ dependencies {
     implementation(include("guru.zoroark.tegral:tegral-niwen-lexer:0.0.4")!!)
     implementation(include("guru.zoroark.tegral:tegral-core:0.0.4")!!)
 
-    implementation(include("llc.redstone:SystemsData:1.1.5")!!)
+    implementation(include("llc.redstone:SystemsData:1.2.1")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 
