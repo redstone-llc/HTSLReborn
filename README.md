@@ -17,7 +17,7 @@
 
 ## Overview
 
-HTSL Reborn is a fabric mod that makes programming in Hypixel's Housing gamemode easier. With the help of [SystemsAPI](https://github.com/redstone-llc/SystemsAPI), we ported HTSL's syntax to latest versions. Now that we're based on a more modern loader, there's a large possibility for extra QoL features to come in the future!
+HTSL Reborn is a Fabric mod that makes programming in Hypixel's Housing gamemode easier. With the help of [SystemsAPI](https://github.com/redstone-llc/SystemsAPI), we ported HTSL's syntax to latest versions. Now that we're based on a more modern loader, there's a large possibility for extra QoL features to come in the future!
 
 ## Features
 
@@ -65,10 +65,10 @@ What does that mean for you?
 <summary><b>I need help!</b></summary>
 
 If you need help figuring out the syntax of HTSL or aren't sure how to use it, check out our [wiki](https://github.com/redstone-llc/HTSLReborn/wiki)!
-If you think you may have found a bug, please [create an issue](https://github.com/redstone-llc/HTSLReborn/issues). Otherwise, feel free to join our [discord](https://discord.gg/pCcpqzU4He) or [create a discussion post](https://github.com/redstone-llc/HTSLReborn/discussions).
+If you think you may have found a bug, please [create an issue](https://github.com/redstone-llc/HTSLReborn/issues). Otherwise, feel free to join our [Discord](https://discord.gg/pCcpqzU4He) or [create a discussion post](https://github.com/redstone-llc/HTSLReborn/discussions).
     
 </details>
 
 ## Credits
 
-Thank you, primarially, to [@BusterBrown1218](https://github.com/BusterBrown1218), the creator of the original HTSL ChatTriggers module.
+Thank you, primarily, to [@BusterBrown1218](https://github.com/BusterBrown1218), the creator of the original HTSL ChatTriggers module.
