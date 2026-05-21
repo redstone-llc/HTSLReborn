@@ -69,6 +69,7 @@ object Tokenizer {
 
 
             IF_CONDITION state {
+                if (shortcut) placeholderShortcuts()
                 anyOf(*conditionKeywords.toTypedArray()) isToken Tokens.CONDITION_KEYWORD
 
                 comparatorTokens()

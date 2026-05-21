@@ -264,4 +264,24 @@ class ParserTest {
         assertEquals(false, conditional.conditions[0].inverted)
         assertEquals(true, conditional.conditions[1].inverted)
     }
+
+    @Test
+    fun testConditionWithPlaceholderShortcut() {
+        val input = """
+            if and (globalvar test = var test) {
+                chat "Hello World"
+            }
+        """.trimIndent()
+
+        val tokens = Tokenizer.tokenize(input)
+        val preProcessedTokens = PreProcess.preProcess(tokens)
+        val actions = Parser.parse(preProcessedTokens, Path("test.htsl")).toMap()["base"] ?: emptyList()
+
+        val conditional = actions.single() as Action.Conditional
+        assertEquals(1, conditional.conditions.size)
+        val condition = conditional.conditions.single() as Condition.GlobalVariableRequirement
+        assertEquals("test", condition.variable)
+        assertEquals(Comparison.Eq, condition.op)
+        assertEquals(StatValue.UnquotedStr("%var.player/test%"), condition.value)
+    }
 }

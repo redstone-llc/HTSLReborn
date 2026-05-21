@@ -8,7 +8,9 @@ import kotlin.io.path.Path
 // Used primarily for testing the tokenizer and preprocessor
 fun main(args: Array<String>) {
     val input = """
-        chat type=join;name=%var.global/join/name%;playerid=%var.global/join/playerid%
+        if and (globalvar route/rotd = var route/selected) {
+            chat "Hello World"
+        }
     """.split("\n").joinToString("\n") { it.trim() }
     val tokens = Tokenizer.tokenize(input)
     println("Tokens:")
