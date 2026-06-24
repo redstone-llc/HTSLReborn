@@ -27,7 +27,9 @@ public class UIErrorToast implements Toast {
 
     public UIErrorToast(Throwable error) {
         this.textRenderer = MinecraftClient.getInstance().textRenderer;
-        var texts = this.initText(String.valueOf(error.getMessage()), (consumer) -> {
+        System.out.println(error.getMessage());
+
+        var texts = this.initText(error.getMessage(), (consumer) -> {
             try {
                 var stackTop = error.getStackTrace()[0];
                 var errorLocation = stackTop.getClassName().split("\\.");
@@ -118,7 +120,7 @@ public class UIErrorToast implements Toast {
         contextAppender.accept(texts::add);
         texts.add(Text.literal(" "));
 
-        texts.add(Text.literal(errorMessage));
+        texts.add(Text.literal(errorMessage.substring(0, Math.min(errorMessage.length(), 250))).formatted(Formatting.GRAY));
 
         texts.add(Text.literal(" "));
         texts.add(Text.literal("Check your log for details").formatted(Formatting.GRAY));

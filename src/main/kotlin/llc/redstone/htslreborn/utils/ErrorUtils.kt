@@ -10,7 +10,6 @@ object ErrorUtils {
 
     class HTSLCompileException(message: String) : Exception(message) {
         override fun printStackTrace() {
-            System.err.println(message)
                 // Don't print stack trace for compile errors to avoid spamming the console with irrelevant information
         }
     }

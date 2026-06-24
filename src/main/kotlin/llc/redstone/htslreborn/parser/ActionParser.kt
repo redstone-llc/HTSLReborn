@@ -242,7 +242,6 @@ object ActionParser {
                     }
 
                 } catch (e: Exception) {
-                    e.printStackTrace()
                     htslCompileError(
                         "Failed to parse action parameter '${param.name}': ${e.message} in file ${path?.name}",
                         token
@@ -265,7 +264,6 @@ object ActionParser {
                 constructor.callBy(newArgs)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
             htslCompileError(
                 "Failed to create action instance: ${e.message} in file ${path?.name}",
                 iterator.previous()
