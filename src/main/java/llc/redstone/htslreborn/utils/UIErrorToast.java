@@ -27,7 +27,6 @@ public class UIErrorToast implements Toast {
 
     public UIErrorToast(Throwable error) {
         this.textRenderer = MinecraftClient.getInstance().textRenderer;
-        System.out.println(error.getMessage());
 
         var texts = this.initText(error.getMessage(), (consumer) -> {
             try {
