@@ -149,5 +149,5 @@ fun StateBuilder.word(word: String): TokenRecognizer {
 }
 
 fun StateBuilder.placeholderShortcuts(@Language("RegExp") placeholderWithParameters: String): TokenRecognizer {
-    return matches("(=|>|<|set|dec|mult|div|ment|inc|multiply|divide|equal|Less Than|Less Than or Equal|Greater Than|Greater Than or Equal) +$placeholderWithParameters")
+    return matches("(\\*=|=|/=|\\+=|-=|>|<|set|dec|mult|div|ment|inc|multiply|divide|equal|Less Than|Less Than or Equal|Greater Than|Greater Than or Equal) +$placeholderWithParameters")
 }
