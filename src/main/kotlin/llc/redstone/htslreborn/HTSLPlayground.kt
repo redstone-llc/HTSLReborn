@@ -8,7 +8,9 @@ import kotlin.io.path.Path
 // Used primarily for testing the tokenizer and preprocessor
 fun main(args: Array<String>) {
     val input = """
-        globalvar lookZ *= var cosYaw 0
+        if (var runner1 != 1) {
+           chat "hello world!"
+        }
     """.split("\n").joinToString("\n") { it.trim() }
     val tokens = Tokenizer.tokenize(input)
     println("Tokens:")

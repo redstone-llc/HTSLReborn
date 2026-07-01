@@ -97,6 +97,32 @@ class ParserTest {
     }
 
     @Test
+    fun testInvertedConditionComparatorImport() {
+        val input = """
+            if (var Kills != 1, !var Kills != 1) {
+                chat ok
+            }
+        """.trimIndent()
+
+        val tokens = Tokenizer.tokenize(input)
+        val preProcessedTokens = PreProcess.preProcess(tokens)
+        val actions = Parser.parse(preProcessedTokens, Path("test.htsl")).toMap()["base"] ?: emptyList()
+
+        val conditional = actions.single() as Action.Conditional
+
+        val condition1 = Condition.PlayerVariableRequirement("Kills", Comparison.Eq, StatValue.I32(1))
+        condition1.inverted = true
+
+        assertEquals(
+            listOf(
+                condition1,
+                Condition.PlayerVariableRequirement("Kills", Comparison.Eq, StatValue.I32(1)),
+            ),
+            conditional.conditions
+        )
+    }
+
+    @Test
     fun testReadableConditionAliasesImport() {
         val input = """
             if (hasGroup default true, inGroup default true, hasTeam red, inTeam red) {

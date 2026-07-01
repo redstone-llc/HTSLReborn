@@ -126,6 +126,7 @@ enum class Comparators : TokenType {
     LESS_THAN_OR_EQUAL,
     GREATER_THAN,
     GREATER_THAN_OR_EQUAL,
+    NOT_EQUALS
 }
 
 fun StateBuilder.comparatorTokens() {
@@ -134,6 +135,7 @@ fun StateBuilder.comparatorTokens() {
     anyOf("<", "lessThan") isToken Comparators.LESS_THAN
     anyOf(">=", "greaterThanOrEquals") isToken Comparators.GREATER_THAN_OR_EQUAL
     anyOf(">", "greaterThan") isToken Comparators.GREATER_THAN
+    anyOf("!=", "notEquals") isToken Comparators.NOT_EQUALS
 }
 
 enum class States : StateLabel {

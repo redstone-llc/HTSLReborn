@@ -87,6 +87,7 @@ object ConditionParser {
             println("Unknown condition keyword: $keyword")
             return null
         }
+        var inverted = inverted
 
         val constructor = clazz.primaryConstructor ?: return null
 
@@ -171,6 +172,10 @@ object ConditionParser {
                     Comparators.LESS_THAN -> Comparison.Lt
                     Comparators.LESS_THAN_OR_EQUAL -> Comparison.Le
                     Comparators.GREATER_THAN_OR_EQUAL -> Comparison.Ge
+                    Comparators.NOT_EQUALS -> {
+                        inverted = !inverted
+                        Comparison.Eq
+                    }
                     else -> null
                 }
                 else -> null
