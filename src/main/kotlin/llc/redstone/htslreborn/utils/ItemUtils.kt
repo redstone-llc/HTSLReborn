@@ -1,14 +1,12 @@
 package llc.redstone.htslreborn.utils
 
-import llc.redstone.htslreborn.ui.FileHandler
-import llc.redstone.systemsapi.util.CommandUtils
-import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
-import llc.redstone.systemsapi.util.NbtHelper
+import llc.redstone.htslreborn.utils.ItemStackUtils.giveItem
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.world.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.TagParser
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.GameType
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -20,17 +18,18 @@ import kotlin.io.path.name
 import kotlin.jvm.optionals.getOrNull
 
 object ItemUtils {
+    internal val cachedItems = mutableMapOf<String, ItemStack?>()
 
-    fun LocalPlayer.giveItem(path: Path): ItemStack {
+    fun Player.giveItem(path: Path): ItemStack {
         if (this.gameMode() != GameType.CREATIVE) CommandUtils.runCommand("gmc")
-        val item = FileHandler.getItemForFile(path) ?: throw IllegalStateException("Could not find item at $path.")
+        val item = getItemForFile(path) ?: throw IllegalStateException("Could not find item at $path.")
         val slot = convertSlot(this.inventory.freeSlot) ?: throw IllegalStateException("No empty inventory slot!")
         item.giveItem(slot)
         return item
     }
 
-    fun LocalPlayer.saveItem(path: Path): ItemStack {
-        val item = this.inventory.selectedItem ?: throw IllegalStateException("Could not find held item.")
+    fun Player.saveItem(path: Path): ItemStack {
+        val item = this.inventory.selectedItem
         itemStackToFile(item, path.toFile())
         return item
     }
@@ -67,4 +66,14 @@ object ItemUtils {
     fun fileToItemStack(path: Path) =
         NbtHelper.deserializeItemStack(fileToNbtCompound(path)).getOrNull()
 
+    fun getItemForFile(path: Path): ItemStack? {
+        return cachedItems.getOrPut(path.name) {
+            try {
+                return@getOrPut ItemUtils.fileToItemStack(path)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return null
+            }
+        }
+    }
 }

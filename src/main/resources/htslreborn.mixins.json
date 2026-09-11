@@ -4,11 +4,7 @@
   "package": "llc.redstone.htslreborn.mixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ChatSilencerMixin",
-    "KeyboardMixin",
-    "ScreenCloseMixin",
-    "ScreenHandlerMixin",
-    "SoundSilencerMixin"
+    "MinecraftMixin"
   ],
   "injectors": {
     "defaultRequire": 1

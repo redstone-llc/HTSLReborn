@@ -31,8 +31,6 @@
     "fabricloader": ">=${fabric_loader}",
     "minecraft": "${minecraft}",
     "fabric-api": ">=${fabric_api}",
-    "fabric-language-kotlin": ">=${fabric_language_kotlin}",
-    "systemsapi": ">=${systemsapi}",
-    "owo-lib": ">=${owo_lib}"
+    "fabric-language-kotlin": ">=${fabric_language_kotlin}"
   }
 }

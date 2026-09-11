@@ -1,9 +1,10 @@
+import com.strumenta.antlrkotlin.gradle.AntlrKotlinTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm") version "2.3.0"
     id("dev.kikugie.loom-back-compat")
-    id("com.google.devtools.ksp") version "2.3.4"
+    id("com.strumenta.antlr-kotlin") version "1.0.13"
     `maven-publish`
 }
 
@@ -49,24 +50,11 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
+    modCompileOnly("maven.modrinth:dynamic-fps:${property("deps.dynamic_fps")}")
 
-    modImplementation("io.wispforest:owo-lib:${property("deps.owo")}")
-    ksp("dev.kosmx.kowoconfig:ksp-owo-config:0.2.0")
-    modImplementation("llc.redstone:SystemsAPI:${property("deps.systemsapi")}") {
-        exclude(module = "dynamic-fps")
-    }
-
-    implementation(include("org.mozilla:rhino:1.9.0")!!)
-    implementation(include("guru.zoroark.tegral:tegral-niwen-lexer:0.0.4")!!)
-    implementation(include("guru.zoroark.tegral:tegral-core:0.0.4")!!)
-
-    implementation(include("llc.redstone:SystemsData:1.2.1")!!)
+    implementation(include("org.mozilla:rhino:1.9.1")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
-
-    testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 loom {
@@ -87,13 +75,32 @@ java {
     sourceCompatibility = requiredJava
 }
 
+val generateKotlinGrammarSource = tasks.register<AntlrKotlinTask>("generateKotlinGrammarSource") {
+    dependsOn("cleanGenerateKotlinGrammarSource")
+
+    source = fileTree(rootDir.resolve("antlr")) {
+        include("**/*.g4")
+    }
+
+    val pkgName = "com.strumenta.antlrkotlin.parsers.generated"
+    packageName = pkgName
+
+    arguments = listOf("-visitor")
+
+    val outDir = "generatedAntlr/${pkgName.replace(".", "/")}"
+    outputDirectory = layout.buildDirectory.dir(outDir).get().asFile
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.fromTarget(requiredJava.majorVersion))
     }
     sourceSets {
-        val test by getting {
-            kotlin.srcDir("../../src/test/kotlin")
+        main {
+            dependencies {
+                implementation("com.strumenta:antlr-kotlin-runtime:1.0.13")
+            }
+            kotlin.srcDir(generateKotlinGrammarSource)
         }
     }
 }
@@ -139,8 +146,6 @@ tasks {
             "fabric_loader" to project.property("deps.fabric_loader"),
             "fabric_language_kotlin" to project.property("deps.fabric_language_kotlin"),
             "fabric_api" to project.property("deps.fabric_api"),
-            "systemsapi" to project.property("deps.systemsapi"),
-            "owo_lib" to project.property("deps.owo")
         )
 
         filesMatching("fabric.mod.json") { expand(props) }

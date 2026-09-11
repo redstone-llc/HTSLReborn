@@ -28,7 +28,7 @@ HTSL Reborn is a Fabric mod that makes programming in Hypixel's Housing gamemode
 - [x] Importing to Housing (with multiple methods:)
   - [x] Add: adds new actions after existing ones
   - [x] Replace: automatically replaces old actions with new
-  - [ ] Update: optimally adjust existing actions so import takes less time (soon!)
+  - [x] Update: sequential in-place patch (skip unchanged, edit/add/delete the rest)
 - [x] Exporting to code
 - [x] File browser hot-reloading
 - [x] Item support
