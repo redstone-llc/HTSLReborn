@@ -1,9 +1,6 @@
 package llc.redstone.htslreborn
 
-//? if <26.1 {
-//?} else {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
-*///?}
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -14,7 +11,11 @@ import llc.redstone.htslreborn.overlay.DebugHud
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
 import net.fabricmc.api.ClientModInitializer
+//? if <26.1 {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
+//?} else {
+/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
+*///?}
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.minecraft.client.Minecraft
