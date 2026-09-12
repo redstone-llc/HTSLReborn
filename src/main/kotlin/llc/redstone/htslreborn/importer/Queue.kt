@@ -19,7 +19,7 @@ object Queue {
     var current: Operation? = null
         private set
 
-    var hasRun = false
+    var executing = false
         private set
 
     val isIdle get() = current == null && queue.isEmpty()
@@ -39,17 +39,19 @@ object Queue {
     suspend fun onTick() {
         if (current == null) current = queue.removeFirstOrNull()
         val op = current ?: return
-        if (hasRun) return
+        if (executing) return
+
         val done = try {
-            hasRun = true
+            executing = true
             op.execute(MC)
         } catch (e: Exception) {
             LOGGER.error("Error executing menu navigation: ${e.message}")
             clear() // or error correction or summin
             return
         }
+
         if (done) {
-            hasRun = false
+            executing = false
             current = null
         }
     }
@@ -57,6 +59,6 @@ object Queue {
     fun clear() {
         queue.clear()
         current = null
-        hasRun = false
+        executing = false
     }
 }
