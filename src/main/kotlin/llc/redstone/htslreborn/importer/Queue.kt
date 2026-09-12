@@ -24,6 +24,8 @@ object Queue {
 
     val isIdle get() = current == null && queue.isEmpty()
 
+    val isActive get() = current != null || queue.isNotEmpty() || executing
+
     fun enqueue(block: OperationBuilder.() -> Unit) {
         queue.addAll(OperationBuilder().apply(block).ops)
     }
@@ -50,8 +52,8 @@ object Queue {
             return
         }
 
+        executing = false
         if (done) {
-            executing = false
             current = null
         }
     }
@@ -60,5 +62,9 @@ object Queue {
         queue.clear()
         current = null
         executing = false
+    }
+
+    fun size(): Int {
+        return queue.size + if (current != null) 1 else 0
     }
 }

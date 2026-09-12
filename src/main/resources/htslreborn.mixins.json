@@ -4,8 +4,10 @@
   "package": "llc.redstone.htslreborn.mixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "ChatSilencerMixin",
     "GuiMixin",
-    "MinecraftMixin"
+    "MinecraftMixin",
+    "ScreenCloseMixin"
   ],
   "injectors": {
     "defaultRequire": 1
