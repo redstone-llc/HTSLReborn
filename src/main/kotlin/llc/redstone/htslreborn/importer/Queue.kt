@@ -39,23 +39,21 @@ object Queue {
     }
 
     suspend fun onTick() {
+        if (executing) return
         if (current == null) current = queue.removeFirstOrNull()
         val op = current ?: return
-        if (executing) return
 
+        executing = true
         val done = try {
-            executing = true
             op.execute(MC)
         } catch (e: Exception) {
-            LOGGER.error("Error executing menu navigation: ${e.message}")
-            clear() // or error correction or summin
-            return
+            LOGGER.error("Error executing $op", e)
+            false
+        } finally {
+            executing = false
         }
 
-        executing = false
-        if (done) {
-            current = null
-        }
+        if (done) current = null
     }
 
     fun clear() {
