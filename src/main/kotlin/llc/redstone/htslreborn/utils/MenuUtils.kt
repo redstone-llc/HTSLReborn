@@ -56,7 +56,6 @@ object MenuUtils {
         val pending = pendingScreen ?: return
         val nameMatch = pendingNameMatch
 
-        println("Screen opened: ${screen.title.string}, pending name match: $nameMatch")
         if (nameMatch == null || nameMatch.matches(screen.title.string)) {
             pendingScreen = null
             pendingNameMatch = null

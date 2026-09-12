@@ -5,6 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import llc.redstone.htslreborn.importer.Operation
+import llc.redstone.htslreborn.importer.Operation.Chat
+import llc.redstone.htslreborn.importer.Operation.OpenMenu
 import llc.redstone.htslreborn.importer.Queue
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.*
 import net.fabricmc.api.ClientModInitializer
@@ -61,11 +63,12 @@ object HTSLReborn : ClientModInitializer {
             dispatcher.register(literal("htsl")
                 .executes {
                     Queue.clear()
-                    Queue.addAll(listOf(
-                        Operation.Chat("function edit test", command = true),
-                        Operation.OpenMenu(NameContains("Actions")),
-                        Operation.OpenMenu(NameExact("Add Action"), slot = 50)
-                    ))
+                    Queue.enqueue {
+                        +Chat("function edit test", command=true)
+                        +OpenMenu(NameContains("Actions"))
+                        +OpenMenu(NameExact("Add Action"), slot = 50)
+                        +OpenMenu(NameContains("Action Settings"), slot = 10)
+                    }
                     1
                 }
             )

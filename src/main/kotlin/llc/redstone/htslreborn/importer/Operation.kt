@@ -23,7 +23,12 @@ sealed interface Operation {
         }
     }
 
-    data class Click(val slot: Int, val button: Int = 0) : Operation
+    data class Click(val slot: Int, val button: Int = 0) : Operation {
+        override suspend fun execute(mc: Minecraft): Boolean {
+            MenuUtils.packetClick(slot, button)
+            return true
+        }
+    }
 
     data class ClickByName(
         val name: String,
