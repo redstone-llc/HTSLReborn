@@ -1,35 +1,49 @@
 package llc.redstone.htslreborn.importer
 
+import llc.redstone.htslreborn.HTSLReborn.LOGGER
 import llc.redstone.htslreborn.HTSLReborn.MC
-import kotlin.collections.mutableListOf
 
+
+@DslMarker
+annotation class OperationDsl
+
+@OperationDsl
+class OperationBuilder {
+    val ops = mutableListOf<Operation>()
+    operator fun Operation.unaryPlus() { ops += this }
+}
 
 object Queue {
-    var queue = mutableListOf<Operation>()
+    private val queue = ArrayDeque<Operation>()
+
     var current: Operation? = null
+        private set
 
-    suspend fun onTick() {
-        if (current == null) {
-            next()
-        }
+    val isIdle get() = current == null && queue.isEmpty()
 
-        if (current?.execute(MC) == true) {
-            current = null
-            next()
-        }
+    fun enqueue(block: OperationBuilder.() -> Unit) {
+        queue.addAll(OperationBuilder().apply(block).ops)
     }
 
-    fun next(): Operation? {
-        if (queue.isNotEmpty()) {
-            val operation = queue.removeAt(0)
-            current = operation
-            return operation
-        }
-        return null
+    operator fun plusAssign(operation: Operation) {
+        queue += operation
     }
 
     fun addAll(operations: List<Operation>) {
         queue.addAll(operations)
+    }
+
+    suspend fun onTick() {
+        if (current == null) current = queue.removeFirstOrNull()
+        val op = current ?: return
+        val done = try {
+            op.execute(MC)
+        } catch (e: Exception) {
+            LOGGER.error("Error executing menu navigation: ${e.message}")
+            clear() // or error correction or summin
+            return
+        }
+        if (done) current = null
     }
 
     fun clear() {
