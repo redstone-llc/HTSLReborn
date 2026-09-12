@@ -5,7 +5,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import llc.redstone.htslreborn.HTSLReborn.MC
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AnvilScreen
 import net.minecraft.network.protocol.game.ServerboundRenameItemPacket
 import kotlin.time.Duration.Companion.milliseconds

@@ -4,12 +4,15 @@ package llc.redstone.htslreborn.utils
 /*import llc.redstone.htslreborn.screen
 *///?}
 
+//? if >=26.1 {
+/*import net.minecraft.world.inventory.ContainerInput
+*///?} else {
+//?}
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.utils.InputUtils.Type
-import llc.redstone.htslreborn.utils.PredicateUtils.ItemMatch
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemSelector
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch
@@ -20,16 +23,11 @@ import net.minecraft.client.gui.screens.inventory.AnvilScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.network.HashedStack
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
-//? if >=26.1 {
-/*import net.minecraft.world.inventory.ContainerInput
-*///?} else {
 import net.minecraft.world.inventory.ClickType
-//?}
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import kotlin.collections.forEach
 import kotlin.time.Duration.Companion.milliseconds
 
 object MenuUtils {
@@ -54,7 +52,7 @@ object MenuUtils {
         } else {
             try {
                 return withTimeout(5000.milliseconds) {
-                     deferred.await()
+                    deferred.await()
                 }
             } catch (e: Exception) {
                 pendingScreen = null
@@ -190,7 +188,13 @@ object MenuUtils {
         )
     }
 
-    suspend fun clickItems(name: String, item: Item, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
+    suspend fun clickItems(
+        name: String,
+        item: Item,
+        packet: Boolean = true,
+        button: Int = 0,
+        paginated: Boolean = false
+    ) {
         clickItems(
             {
                 it.hoverName.string == name &&
@@ -203,7 +207,12 @@ object MenuUtils {
         )
     }
 
-    suspend fun clickItems(selector: ItemSelector, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
+    suspend fun clickItems(
+        selector: ItemSelector,
+        packet: Boolean = true,
+        button: Int = 0,
+        paginated: Boolean = false
+    ) {
         clickItems(
             selector.toPredicate(),
             packet,

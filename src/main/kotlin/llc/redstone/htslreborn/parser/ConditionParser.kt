@@ -4,7 +4,6 @@ import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.ArgumentContext
 import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.ConditionStatementContext
 import llc.redstone.htslreborn.data.Condition
 import llc.redstone.htslreborn.data.Condition.*
-import llc.redstone.htslreborn.parser.ActionParser.handleSwaps
 import llc.redstone.htslreborn.utils.ErrorUtils
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import java.nio.file.Path
@@ -46,7 +45,12 @@ object ConditionParser {
     )
 
 
-    fun parse(keyword: String, condition: ConditionStatementContext, statementArgs: List<ArgumentContext>, path: Path): Condition? {
+    fun parse(
+        keyword: String,
+        condition: ConditionStatementContext,
+        statementArgs: List<ArgumentContext>,
+        path: Path
+    ): Condition? {
         val conditionClass = keywords[keyword]
             ?: htslCompileError("Unknown condition: $keyword", condition)
         val constructor = conditionClass.primaryConstructor
@@ -67,7 +71,10 @@ object ConditionParser {
         } catch (e: ErrorUtils.HTSLCompileException) {
             throw e
         } catch (e: Exception) {
-            htslCompileError("Error parsing arguments for condition: ${conditionClass.simpleName}. ${e.message}", condition)
+            htslCompileError(
+                "Error parsing arguments for condition: ${conditionClass.simpleName}. ${e.message}",
+                condition
+            )
         }
 
         val newArgs = args.filterValues { it != null }.toMutableMap()

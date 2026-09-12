@@ -4,14 +4,11 @@ import kotlinx.coroutines.delay
 import llc.redstone.htslreborn.utils.CommandUtils
 import llc.redstone.htslreborn.utils.InputUtils
 import llc.redstone.htslreborn.utils.MenuUtils
-import llc.redstone.htslreborn.utils.PredicateUtils
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemSelector
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch
-import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import kotlin.time.Duration.Companion.milliseconds

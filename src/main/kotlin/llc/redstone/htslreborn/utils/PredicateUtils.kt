@@ -29,7 +29,7 @@ object PredicateUtils {
 
     sealed interface NameMatch {
         data class NameExact(val value: String) : NameMatch
-        data class NameWithin(val values: List<String>): NameMatch
+        data class NameWithin(val values: List<String>) : NameMatch
         data class NameContains(val value: String) : NameMatch
         data class NameRegex(@param:RegExp val value: String) : NameMatch {
             val regex: Regex = Regex(value)

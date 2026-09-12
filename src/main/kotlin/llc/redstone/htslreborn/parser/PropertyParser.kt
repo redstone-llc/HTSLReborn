@@ -1,18 +1,10 @@
 package llc.redstone.htslreborn.parser
 
 import com.strumenta.antlrkotlin.parsers.generated.HTSLParser
-import llc.redstone.htslreborn.data.Action
-import llc.redstone.htslreborn.data.Comparator
-import llc.redstone.htslreborn.data.InventorySlot
-import llc.redstone.htslreborn.data.ItemStack
-import llc.redstone.htslreborn.data.Keyed
-import llc.redstone.htslreborn.data.Location
-import llc.redstone.htslreborn.data.Operator
-import llc.redstone.htslreborn.data.PropertyHolder
+import llc.redstone.htslreborn.data.*
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import llc.redstone.htslreborn.utils.ItemUtils
 import java.nio.file.Path
-import kotlin.collections.set
 import kotlin.io.path.isDirectory
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter

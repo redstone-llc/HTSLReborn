@@ -1,5 +1,9 @@
 package llc.redstone.htslreborn
 
+//? if <26.1 {
+//?} else {
+/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
+*///?}
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -7,17 +11,12 @@ import kotlinx.coroutines.launch
 import llc.redstone.htslreborn.importer.Operation.*
 import llc.redstone.htslreborn.importer.Queue
 import llc.redstone.htslreborn.overlay.DebugHud
-import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.*
+import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
+import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
 import net.fabricmc.api.ClientModInitializer
-//? if <26.1 {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument
-//?} else {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
-*///?}
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
-import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Player
@@ -61,20 +60,21 @@ object HTSLReborn : ClientModInitializer {
         DebugHud.register()
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, context ->
-            dispatcher.register(literal("htsl")
-                .executes {
-                    Queue.clear()
-                    Queue.enqueue {
-                        +Chat("function edit test", command=true)
-                        +DeleteActions
-                        +OpenMenu(NameContains("Actions"))
-                        +OpenMenu(NameExact("Add Action"), slot = 50)
-                        +OpenMenu(NameContains("Action Settings"), slot = 30)
-                        +Click(13)
-                        +Input("test")
+            dispatcher.register(
+                literal("htsl")
+                    .executes {
+                        Queue.clear()
+                        Queue.enqueue {
+                            +Chat("function edit test", command = true)
+                            +DeleteActions
+                            +OpenMenu(NameContains("Actions"))
+                            +OpenMenu(NameExact("Add Action"), slot = 50)
+                            +OpenMenu(NameContains("Action Settings"), slot = 30)
+                            +Click(13)
+                            +Input("test")
+                        }
+                        1
                     }
-                    1
-                }
             )
         }
 

@@ -1,22 +1,18 @@
 package llc.redstone.htslreborn.utils
 
-import org.antlr.v4.kotlinruntime.BaseErrorListener
-import org.antlr.v4.kotlinruntime.Lexer
-import org.antlr.v4.kotlinruntime.Parser
-import org.antlr.v4.kotlinruntime.ParserRuleContext
-import org.antlr.v4.kotlinruntime.RecognitionException
-import org.antlr.v4.kotlinruntime.Recognizer
+import org.antlr.v4.kotlinruntime.*
 
 
 object ErrorUtils {
     fun htslCompileError(message: String, token: ParserRuleContext): Nothing {
-        val errorMessage = "HTSL Compile Error at line ${token.position?.start?.line}, column ${token.position?.start?.column}\n- $message"
+        val errorMessage =
+            "HTSL Compile Error at line ${token.position?.start?.line}, column ${token.position?.start?.column}\n- $message"
         throw HTSLCompileException(errorMessage)
     }
 
     class HTSLCompileException(message: String) : Exception(message) {
         override fun printStackTrace() {
-                // Don't print stack trace for compile errors to avoid spamming the console with irrelevant information
+            // Don't print stack trace for compile errors to avoid spamming the console with irrelevant information
         }
     }
 

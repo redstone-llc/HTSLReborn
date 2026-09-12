@@ -1,12 +1,11 @@
 package llc.redstone.htslreborn.utils
 
 import llc.redstone.htslreborn.utils.ItemStackUtils.giveItem
-import net.minecraft.client.player.LocalPlayer
-import net.minecraft.world.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.TagParser
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.GameType
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -59,6 +58,7 @@ object ItemUtils {
         NbtIo.write(nbtCompound ?: CompoundTag(), dataOut)
         dataOut.close()
     }
+
     fun stringToNbtCompound(nbtString: String): CompoundTag {
         return TagParser.parseCompoundFully(nbtString)
     }

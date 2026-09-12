@@ -1,28 +1,16 @@
 package llc.redstone.htslreborn.parser
 
-import com.strumenta.antlrkotlin.parsers.generated.HTSLParser
 import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.ActionStatementContext
 import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.ArgumentContext
 import llc.redstone.htslreborn.data.Action
 import llc.redstone.htslreborn.data.Action.*
-import llc.redstone.htslreborn.data.InventorySlot
-import llc.redstone.htslreborn.data.ItemStack
-import llc.redstone.htslreborn.data.Keyed
-import llc.redstone.htslreborn.data.Location
-import llc.redstone.htslreborn.data.Operator
 import llc.redstone.htslreborn.utils.ErrorUtils
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
-import llc.redstone.htslreborn.utils.ItemUtils
 import java.nio.file.Path
-import kotlin.io.path.isDirectory
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.companionObjectInstance
-import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
-import kotlin.reflect.full.starProjectedType
-import kotlin.reflect.full.withNullability
 
 object ActionParser {
     val keywords = linkedMapOf(
@@ -84,7 +72,10 @@ object ActionParser {
             }
         }
 
-        if (clazz == ChangeHunger::class || clazz == ChangeMaxHealth::class || clazz == ChangeHealth::class) swapParams("amount", "op")
+        if (clazz == ChangeHunger::class || clazz == ChangeMaxHealth::class || clazz == ChangeHealth::class) swapParams(
+            "amount",
+            "op"
+        )
         if (clazz == TeamVariable::class) swapParams("teamName", "variable")
         if (clazz == DropItem::class) {
             swapParams("despawnDurationTicks", "prioritizePlayer")
@@ -92,7 +83,12 @@ object ActionParser {
         }
     }
 
-    fun parse(keyword: String, statement: ActionStatementContext, statementArgs: List<ArgumentContext>, path: Path): Action {
+    fun parse(
+        keyword: String,
+        statement: ActionStatementContext,
+        statementArgs: List<ArgumentContext>,
+        path: Path
+    ): Action {
         val actionClass = keywords[keyword]
             ?: htslCompileError("Unknown action: $keyword", statement)
         val constructor = actionClass.primaryConstructor

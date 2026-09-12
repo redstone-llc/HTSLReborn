@@ -23,7 +23,7 @@ object TextUtils {
                     /*if (color.value == TextColor.fromLegacyFormat(format)?.value) {
                     *///?} else {
                     if (color.value == format.color) {
-                    //?}
+                        //?}
                         part = (format.toString() + part).replace("§", "&")
                     }
                 }

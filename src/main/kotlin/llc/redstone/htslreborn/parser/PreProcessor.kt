@@ -2,18 +2,8 @@ package llc.redstone.htslreborn.parser
 
 import com.strumenta.antlrkotlin.parsers.generated.HTSLLexer
 import com.strumenta.antlrkotlin.parsers.generated.HTSLParser
-import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.ArgumentContext
-import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.ConditionStatementContext
-import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.GotoStatementContext
-import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.JsCodeStatementContext
-import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.StatementContext
-import llc.redstone.htslreborn.data.Action
-import llc.redstone.htslreborn.data.Comparator
-import llc.redstone.htslreborn.data.Condition
-import llc.redstone.htslreborn.data.ContextTarget
-import llc.redstone.htslreborn.data.ImportContext
-import llc.redstone.htslreborn.data.Operator
-import llc.redstone.htslreborn.data.ScriptContainer
+import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.*
+import llc.redstone.htslreborn.data.*
 import llc.redstone.htslreborn.parser.ast.HtslAstBuilder
 import llc.redstone.htslreborn.utils.ErrorUtils.htslCompileError
 import llc.redstone.htslreborn.utils.ErrorUtils.throwOnError
@@ -78,6 +68,7 @@ class PreProcessor(
                     context = unit.context
                     target = unit.target
                 }
+
                 is PreprocessedUnit.IncludedContainers -> {
                     flush()
                     containers.addAll(unit.containers)
@@ -97,7 +88,10 @@ class PreProcessor(
                 keyword = replacement.firstOrNull()?.text ?: keyword
                 args = replacement.drop(1) + args
             }
-            ConditionParser.parse(keyword, condition, args, path) ?: htslCompileError("Unknown condition: $keyword", condition)
+            ConditionParser.parse(keyword, condition, args, path) ?: htslCompileError(
+                "Unknown condition: $keyword",
+                condition
+            )
         }
     }
 
@@ -267,11 +261,13 @@ class PreProcessor(
                     handlePlaceholderShortcuts(iterator, newArguments)
                     continue
                 }
+
                 (Comparator.fromSymbol(arg.text) != null) -> {
                     newArguments.add(arg)
                     handlePlaceholderShortcuts(iterator, newArguments)
                     continue
                 }
+
                 arg.IDENTIFIER() != null -> {
                     val replacement = definedReplacements[arg.text]
                     if (replacement != null) {
@@ -280,6 +276,7 @@ class PreProcessor(
                         newArguments.add(arg)
                     }
                 }
+
                 arg.jsCodeStatement() != null -> {
                     val jsCode = arg.jsCodeStatement()?.text ?: ""
                     val result = handleJsCode(jsCode, arg.jsCodeStatement()!!)
@@ -289,6 +286,7 @@ class PreProcessor(
                         newArguments.add(arg)
                     }
                 }
+
                 else -> {
                     newArguments.add(arg)
                 }
@@ -298,7 +296,10 @@ class PreProcessor(
         return newArguments
     }
 
-    private fun handlePlaceholderShortcuts(iterator: ListIterator<ArgumentContext>, newArguments: MutableList<ArgumentContext>) {
+    private fun handlePlaceholderShortcuts(
+        iterator: ListIterator<ArgumentContext>,
+        newArguments: MutableList<ArgumentContext>
+    ) {
         //Placeholder shortcuts
         if (iterator.hasNext()) {
             val nextArg = iterator.next()

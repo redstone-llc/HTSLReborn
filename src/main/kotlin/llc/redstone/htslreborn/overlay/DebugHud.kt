@@ -1,6 +1,5 @@
 package llc.redstone.htslreborn.overlay
 
-import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.importer.Queue
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
