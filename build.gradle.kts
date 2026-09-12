@@ -50,7 +50,7 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
-    modCompileOnly("maven.modrinth:dynamic-fps:${property("deps.dynamic_fps")}")
+    modCompileOnly("maven.modrinth:LQ3K71Q1:${property("deps.dynamic_fps")}")
 
     implementation(include("org.mozilla:rhino:1.9.1")!!)
 

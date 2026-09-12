@@ -1,5 +1,9 @@
 package llc.redstone.htslreborn.utils
 
+//? if >=26.2 {
+/*import llc.redstone.htslreborn.screen
+*///?}
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
@@ -9,8 +13,11 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.HashedStack
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
+//? if >=26.1 {
+/*import net.minecraft.world.inventory.ContainerInput
+*///?} else {
 import net.minecraft.world.inventory.ClickType
-import kotlin.text.matches
+//?}
 import kotlin.time.Duration.Companion.milliseconds
 
 object MenuUtils {
