@@ -2,6 +2,7 @@ package llc.redstone.htslreborn.parser
 
 import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.ArgumentContext
 import com.strumenta.antlrkotlin.parsers.generated.HTSLParser.ConditionStatementContext
+import llc.redstone.htslreborn.data.Comparator
 import llc.redstone.htslreborn.data.Condition
 import llc.redstone.htslreborn.data.Condition.*
 import llc.redstone.htslreborn.utils.ErrorUtils
@@ -49,6 +50,7 @@ object ConditionParser {
         keyword: String,
         condition: ConditionStatementContext,
         statementArgs: List<ArgumentContext>,
+        inverted: Boolean,
         path: Path
     ): Condition? {
         val conditionClass = keywords[keyword]
@@ -58,7 +60,7 @@ object ConditionParser {
 
         val args: MutableMap<KParameter, Any?> = mutableMapOf()
         val parameters = constructor.parameters.toMutableList()
-
+        var inverted = inverted
         try {
             val iterator = statementArgs.listIterator()
             for (param in parameters) {
@@ -67,6 +69,10 @@ object ConditionParser {
 
                 val parsedValue = PropertyParser.parse(prop, param, arg, iterator, path)
                 args[param] = parsedValue
+                if (parsedValue == Comparator.NOT_EQUALS) {
+                    args[param] = Comparator.EQUALS
+                    inverted = !inverted
+                }
             }
         } catch (e: ErrorUtils.HTSLCompileException) {
             throw e
@@ -87,9 +93,13 @@ object ConditionParser {
             }
         }
         return try {
-            constructor.callBy(args)
+            constructor.callBy(args).apply {
+                this.inverted = inverted
+            }
         } catch (_: Exception) {
-            constructor.callBy(newArgs)
+            constructor.callBy(newArgs).apply {
+                this.inverted = inverted
+            }
         }
     }
 }

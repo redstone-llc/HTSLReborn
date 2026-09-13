@@ -33,9 +33,8 @@ object PropertyParser {
                 ?: error("No companion object for keyed enum: ${prop.returnType}")
 
             val getByKeyMethod = companion::class.members.find { it.name == "fromKey" }
-                ?: error("No getByKey method for keyed enum: ${prop.returnType}")
 
-            val result = getByKeyMethod.call(companion, arg.text.replace("\"", ""))
+            val result = getByKeyMethod?.call(companion, arg.text.replace("\"", ""))
             if (result != null) {
                 return result
             }

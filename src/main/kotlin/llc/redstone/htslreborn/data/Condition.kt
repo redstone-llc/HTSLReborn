@@ -4,22 +4,21 @@ package llc.redstone.htslreborn.data
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import llc.redstone.htslreborn.data.DamageCause
+import llc.redstone.htslreborn.data.FishingEnvironment
+import llc.redstone.htslreborn.data.PortalType
 import llc.redstone.htslreborn.data.enums.Permission
 import llc.redstone.htslreborn.data.enums.PotionEffect
-
+import llc.redstone.htslreborn.data.DamageCause as Damage
 import llc.redstone.htslreborn.data.FishingEnvironment as FishingEnv
 import llc.redstone.htslreborn.data.PortalType as Portal
-import llc.redstone.htslreborn.data.DamageCause as Damage
 
 
 @Serializable
 sealed class Condition(
     @Transient private val conditionName: String = ""
 ) : PropertyHolder {
-    /**
-     * Extra invert toggle on every condition editor at [HousingSlots.CONDITION_INVERT].
-     * Housing default is not inverted; click only when this is true.
-     */
+
     var inverted = false
 
     @DisplayName("Required Group")

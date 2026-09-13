@@ -81,6 +81,7 @@ class PreProcessor(
 
     fun preprocessConditions(conditions: List<ConditionStatementContext>, path: Path): List<Condition> {
         return conditions.map { condition ->
+            val inverted = condition.text.startsWith("!")
             var keyword = condition.IDENTIFIER().text
             var args = processArguments(condition.argument())
             if (definedReplacements[keyword] != null) {
@@ -88,7 +89,7 @@ class PreProcessor(
                 keyword = replacement.firstOrNull()?.text ?: keyword
                 args = replacement.drop(1) + args
             }
-            ConditionParser.parse(keyword, condition, args, path) ?: htslCompileError(
+            ConditionParser.parse(keyword, condition, args, inverted, path) ?: htslCompileError(
                 "Unknown condition: $keyword",
                 condition
             )
