@@ -6,12 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import llc.redstone.htslreborn.data.ScopeType.*
-import llc.redstone.htslreborn.data.enums.Enchantment
-import llc.redstone.htslreborn.data.enums.Events
-import llc.redstone.htslreborn.data.enums.Lobby
-import llc.redstone.htslreborn.data.enums.PotionEffect
-import llc.redstone.htslreborn.data.enums.Sound
-import net.minecraft.nbt.CompoundTag
+import llc.redstone.htslreborn.data.enums.*
 
 sealed class Action(
     @Transient private val actionName: String = ""
@@ -1037,19 +1032,25 @@ sealed class Action(
 
 interface Keyed {
     val key: String
+
+    fun entries(): List<Keyed> {
+        return this::class.java.enumConstants?.toList() ?: emptyList()
+    }
 }
 
 annotation class CustomKey
 annotation class Pagination
 
-interface KeyedCycle : Keyed
+interface KeyedCycle : Keyed {
+    fun getOrdinal(): Int
+}
 
 interface KeyedLabeled : Keyed {
     val label: String
 }
 
 data class ItemStack(
-    val nbt: CompoundTag? = null,
+    val stack: net.minecraft.world.item.ItemStack? = null,
     val slot: Int? = null,
     val relativeFileLocation: String,
 )
@@ -1102,13 +1103,17 @@ enum class GameMode(override val key: String) : KeyedCycle {
     Survival("Survival"),
     Creative("Creative");
 
+    override fun getOrdinal(): Int {
+        return ordinal
+    }
+
     companion object {
         fun fromKey(key: String): GameMode? = entries.find { it.key.equals(key, true) }
     }
 }
 
 enum class Operator(vararg val symbol: String, val advanced: Boolean = false, override val key: String): Keyed {
-    UINSET("unset", key = "Unset"),
+    UNSET("unset", key = "Unset"),
     SET("=", "set", key = "Set"),
     INCREMENT("+=", "increment", "inc", key = "Increment"),
     DECREMENT("-=", "decrement", "dec", key = "Decrement"),
@@ -1179,6 +1184,10 @@ enum class Weather(override val key: String) : KeyedCycle {
     SUNNY("Sunny"),
     RAINING("Raining");
 
+    override fun getOrdinal(): Int {
+        return ordinal
+    }
+
     companion object {
         fun fromKey(key: String): Weather? = entries.find { it.key.equals(key, true) }
     }
@@ -1216,6 +1225,10 @@ enum class VariableHolder(override val key: String) : KeyedCycle {
     Player("Player"),
     Global("Global"),
     Team("Team");
+
+    override fun getOrdinal(): Int {
+        return ordinal
+    }
 
     companion object {
         fun fromKey(key: String): VariableHolder? = entries.find { it.key.equals(key, true) }

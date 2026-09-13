@@ -88,19 +88,19 @@ object PropertyParser {
                 relativeFileLocation = argValue,
             )
         }
-        val nbt = try {
+        val stack = try {
             val parent = if (path.isDirectory()) path else path.parent
             if (!argValue.endsWith(".nbt")) {
                 argValue += ".nbt"
             }
             val file = parent.resolve(argValue)
-            ItemUtils.fileToNbtCompound(file)
+            ItemUtils.fileToItemStack(file)
         } catch (_: Exception) {
             htslCompileError("Error reading NBT file: $argValue", arg)
         }
 
         return ItemStack(
-            nbt = nbt,
+            stack = stack,
             relativeFileLocation = argValue,
         )
     }

@@ -1,6 +1,5 @@
 package llc.redstone.htslreborn.importer
 
-import llc.redstone.htslreborn.HTSLReborn.LOGGER
 import llc.redstone.htslreborn.HTSLReborn.MC
 
 
@@ -14,13 +13,19 @@ class OperationBuilder {
 }
 
 object Queue {
-    private val queue = ArrayDeque<Operation>()
+    val queue = ArrayDeque<Operation>()
 
     var current: Operation? = null
         private set
 
     var executing = false
         private set
+
+    var attempts: Int = 0
+        private set
+
+    var guiContext: String? = null
+
 
     val isIdle get() = current == null && queue.isEmpty()
 
@@ -47,13 +52,26 @@ object Queue {
         val done = try {
             op.execute(MC)
         } catch (e: Exception) {
-            LOGGER.error("Error executing $op", e)
-            false
+            Status.Failure("Error executing $op: ${e.message}")
         } finally {
             executing = false
+            attempts++
         }
 
-        if (done) current = null
+        if (done == Status.Success) {
+            current = null
+            attempts = 0
+            return
+        }
+
+        if (done is Status.Failure) {
+            if (attempts >= 3) {
+                current = null
+                attempts = 0
+                clear()
+                throw IllegalStateException("Operation failed after 3 attempts: ${done.reason}")
+            }
+        }
     }
 
     fun clear() {

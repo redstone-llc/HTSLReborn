@@ -50,14 +50,15 @@ object MenuUtils {
             pendingNameMatch = null
             return alreadyOpen
         } else {
-            try {
-                return withTimeout(5000.milliseconds) {
+            return try {
+                withTimeout(5000.milliseconds) {
                     deferred.await()
                 }
             } catch (e: Exception) {
+                null
+            } finally {
                 pendingScreen = null
                 pendingNameMatch = null
-                return null
             }
         }
     }
@@ -79,7 +80,6 @@ object MenuUtils {
 
     fun packetClick(slot: Int, button: Int = 0) {
         val gui = MC.screen as? AbstractContainerScreen<*> ?: return
-
         val pkt = ServerboundContainerClickPacket(
             gui.menu.containerId,
             gui.menu.stateId,
@@ -120,7 +120,21 @@ object MenuUtils {
         //?}
     }
 
+    fun clickPlayerSlot(slot: Int, button: Int = 0) {
+        val gui = currentMenu() ?: return
+        val playerSlot = when (slot) {
+            in 0..8 -> slot + gui.menu.slots.size - 9
+            in 9..35 -> {
+                slot + gui.menu.slots.size - 45
+            }
+            else -> throw IllegalArgumentException("Invalid player slot index: $slot")
+        }
+        packetClick(playerSlot, button)
+    }
+
     fun currentMenu() = MC.screen as? ContainerScreen
+
+    fun isActionContainerOpen() = currentMenu()?.title?.string?.contains("Actions", ignoreCase = true) == true
 
     suspend fun findSlots(
         predicate: (ItemStack) -> Boolean,

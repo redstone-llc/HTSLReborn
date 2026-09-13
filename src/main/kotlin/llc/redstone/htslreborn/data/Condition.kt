@@ -182,6 +182,10 @@ enum class ItemCheck(override val key: String) : KeyedCycle {
     ItemType("Item Type"),
     Metadata("Metadata");
 
+    override fun getOrdinal(): Int {
+        return ordinal
+    }
+
     companion object {
         fun fromKey(key: String): ItemCheck? {
             return entries.find { it.key.equals(key, ignoreCase = true) }
@@ -192,6 +196,10 @@ enum class ItemCheck(override val key: String) : KeyedCycle {
 enum class ItemAmount(override val key: String) : KeyedCycle {
     Any("Any Amount"),
     Ge("Equal or Greater Amount");
+
+    override fun getOrdinal(): Int {
+        return ordinal
+    }
 
     companion object {
         fun fromKey(key: String): ItemAmount? {

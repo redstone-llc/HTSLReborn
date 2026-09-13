@@ -1,21 +1,20 @@
 package llc.redstone.htslreborn
 
 
+//? if <26.1 {
+//?} else {
+/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
+*///?}
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import llc.redstone.htslreborn.importer.Operation.*
+import llc.redstone.htslreborn.importer.ParserToQueue
 import llc.redstone.htslreborn.importer.Queue
 import llc.redstone.htslreborn.overlay.DebugHud
-import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
-import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
+import llc.redstone.htslreborn.parser.ast.HtslAstBuilder
 import net.fabricmc.api.ClientModInitializer
-//? if <26.1 {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
-//?} else {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
-*///?}
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.minecraft.client.Minecraft
@@ -24,6 +23,7 @@ import net.minecraft.world.entity.player.Player
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
+import java.nio.file.Paths
 
 //? if >=26.2 {
 /*val Minecraft.screen: net.minecraft.client.gui.screens.Screen?
@@ -64,18 +64,20 @@ object HTSLReborn : ClientModInitializer {
             dispatcher.register(
                 literal("htsl")
                     .executes {
-                        Queue.clear()
-                        Queue.enqueue {
-                            +Chat("function edit test", command = true)
-                            +DeleteActions
-                            +OpenMenu(NameContains("Actions"))
-                            +OpenMenu(NameExact("Add Action"), slot = 50)
-                            +OpenMenu(NameContains("Action Settings"), slot = 30)
-                            +Click(13)
-                            +Input("test")
+                        val home = Paths.get(System.getProperty("user.home"))
+                        val htslFile = home.resolve("Desktop/htsl/test.htsl")
+                        val ast = HtslAstBuilder.parseFile(htslFile)
+                        ParserToQueue.process(ast)
+                        val size = Queue.queue.size
+                        for ((index, op) in Queue.queue.withIndex()) {
+                            println("[${size-index}] $op")
                         }
                         1
                     }
+                    .then(literal("clear").executes {
+                        Queue.clear()
+                        1
+                    })
             )
         }
 
