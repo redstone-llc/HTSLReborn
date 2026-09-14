@@ -1,5 +1,9 @@
 package llc.redstone.htslreborn.utils
 
+//? if >=26.2 {
+/*import llc.redstone.htslreborn.screen
+*///?}
+
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
@@ -19,7 +23,6 @@ object InputUtils {
         pendingInput = CompletableDeferred()
 
         return try {
-            println("Waiting for input type for input: $input current type: $type")
             if (type != null) {
                 return handleInput(input, type!!)
             }
@@ -35,13 +38,13 @@ object InputUtils {
     }
 
     suspend fun handleInput(input: String, type: Type): Boolean {
-        println("Handling input of type $type: $input")
         try {
             return when (type) {
                 Type.CHAT -> {
-                    delay(50.milliseconds)
-                    Minecraft.getInstance().connection
-                        ?.sendChat(input) ?: error("Failed to send chat message")
+                    ClientThread.send {
+                        Minecraft.getInstance().connection
+                            ?.sendChat(input) ?: error("Failed to send chat message")
+                    }
                     this.type = null
                     true
                 }
@@ -50,8 +53,8 @@ object InputUtils {
                     val screen = MC.screen as? AnvilScreen ?: return false
                     delay(200.milliseconds)
 
-                    if (screen.menu.setItemName(input)) {
-                        MC.connection?.send(ServerboundRenameItemPacket(input))
+                    if (ClientThread.run { screen.menu.setItemName(input) }) {
+                        ClientThread.send { MC.connection?.send(ServerboundRenameItemPacket(input)) }
                     }
                     MenuUtils.interactionClick(2)
                     awaitScreen("Failed to close anvil screen") { it !is AnvilScreen }

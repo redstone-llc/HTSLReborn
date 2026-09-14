@@ -92,7 +92,7 @@ object MenuUtils {
             }
         } finally {
             if (pendingLoaded === deferred) pendingLoaded = null
-//            delay((50 + InputUtils.getClientPing()).milliseconds)
+            ClientThread.settleMenu()
         }
     }
 
@@ -141,8 +141,8 @@ object MenuUtils {
         }
     }
 
-    fun packetClick(slot: Int, button: Int = 0) {
-        val gui = MC.screen as? AbstractContainerScreen<*> ?: return
+    suspend fun packetClick(slot: Int, button: Int = 0) = ClientThread.send {
+        val gui = MC.screen as? AbstractContainerScreen<*> ?: return@send
         val pkt = ServerboundContainerClickPacket(
             gui.menu.containerId,
             gui.menu.stateId,
@@ -160,10 +160,10 @@ object MenuUtils {
         MC.connection?.send(pkt) ?: error("Failed to send click packet")
     }
 
-    fun interactionClick(slot: Int, button: Int = 0) {
-        val gui = MC.screen as? AbstractContainerScreen<*> ?: return
+    suspend fun interactionClick(slot: Int, button: Int = 0) = ClientThread.send {
+        val gui = MC.screen as? AbstractContainerScreen<*> ?: return@send
 
-        val player = MC.player ?: return
+        val player = MC.player ?: return@send
         //? if >=26.1 {
         /*MC.gameMode?.handleContainerInput(
             gui.menu.containerId,
@@ -183,7 +183,7 @@ object MenuUtils {
         //?}
     }
 
-    fun clickPlayerSlot(slot: Int, button: Int = 0) {
+    suspend fun clickPlayerSlot(slot: Int, button: Int = 0) {
         val gui = currentMenu() ?: return
         val playerSlot = when (slot) {
             in 0..8 -> slot + gui.menu.slots.size - 9
@@ -217,6 +217,43 @@ object MenuUtils {
             slots = currentSlots()
         }
         return slots
+    }
+
+    // PAGINATION + ACTION COUNTING
+    val ACTION_SLOTS = ((10..16) + (19..25) + (28..34)).toSet()
+    private val NO_ACTIONS = ItemSelector(
+        name = NameMatch.NameExact("No Actions!"),
+        item = ItemExact(Items.BEDROCK)
+    ).toPredicate()
+
+    suspend fun nextPage(): Boolean {
+        val next = findSlots(GlobalMenuItems.NEXT_PAGE).firstOrNull() ?: return false
+        markScreenConsumed()
+        interactionClick(next.index)
+        onOpen(null, checkIfOpened = false)
+        return true
+    }
+
+    suspend fun goToFirstPage() {
+        while (true) {
+            val prev = findSlots(GlobalMenuItems.PREVIOUS_PAGE).firstOrNull() ?: return
+            markScreenConsumed()
+            interactionClick(prev.index)
+            onOpen(null, checkIfOpened = false)
+        }
+    }
+
+    fun actionSlotsOnPage(): List<Slot> =
+        currentMenu()?.menu?.slots?.filter {
+            it.index in ACTION_SLOTS && !it.item.isEmpty && !NO_ACTIONS(it.item)
+        } ?: emptyList()
+
+    /** Walks every page; leaves the menu on the last page. */
+    suspend fun countActions(): Int {
+        goToFirstPage()
+        var count = actionSlotsOnPage().size
+        while (nextPage()) count += actionSlotsOnPage().size
+        return count
     }
 
     suspend fun findSlots(name: String, paginated: Boolean = false, partial: Boolean = false): List<Slot> {

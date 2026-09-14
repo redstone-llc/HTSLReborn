@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.GameType
 
 object ItemStackUtils {
-    fun ItemStack.giveItem(slot: Int) {
+    suspend fun ItemStack.giveItem(slot: Int) {
         val gameMode = MC.player
             ?.let { MC.gameMode?.playerMode } ?: throw IllegalStateException("Could not determine player's game mode")
         if (gameMode != GameType.CREATIVE) CommandUtils.runCommand("/gmc")
@@ -16,8 +16,10 @@ object ItemStackUtils {
             slot,
             this
         )
-        MC.connection?.send(pkt)
-            ?: throw IllegalStateException("Something went wrong while creating item ${item.getName(this)}")
+        ClientThread.send {
+            MC.connection?.send(pkt)
+                ?: throw IllegalStateException("Something went wrong while creating item ${item.getName(this)}")
+        }
 
         when (gameMode) {
             GameType.SURVIVAL -> CommandUtils.runCommand("/gms")

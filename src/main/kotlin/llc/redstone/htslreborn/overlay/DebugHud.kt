@@ -1,6 +1,8 @@
 package llc.redstone.htslreborn.overlay
 
 import llc.redstone.htslreborn.HTSLReborn.MC
+import llc.redstone.htslreborn.importer.ImportProgress
+import llc.redstone.htslreborn.importer.ImportSession
 import llc.redstone.htslreborn.importer.Queue
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.minecraft.client.gui.GuiGraphics
@@ -17,11 +19,29 @@ object DebugHud {
 
     fun render(context: GuiGraphics) {
         val font = MC.font
+        var y = 10
+        fun line(text: String) {
+            context.drawString(font, text, 10, y, 0xFFFFFFFF.toInt())
+            y += 15
+        }
 
-        context.drawString(font, "HTSL Reborn Debug HUD", 10, 10, 0xFFFFFFFF.toInt())
-        context.drawString(font, "Queue: ${Queue.size()}", 10, 25, 0xFFFFFFFF.toInt())
-        context.drawString(font, "Current Operation: ${Queue.current}", 10, 40, 0xFFFFFFFF.toInt())
-        context.drawString(font, "Gui Context: ${Queue.guiContext}", 10, 55, 0xFFFFFFFF.toInt())
-        context.drawString(font, "Attempted: ${Queue.attempted}", 10, 70, 0xFFFFFFFF.toInt())
+        line("HTSL Reborn Debug HUD")
+        line("Queue: ${Queue.size()}")
+        line("Current Operation: ${Queue.current}")
+        line("Gui Context: ${Queue.guiContext}")
+        line("Attempts: ${Queue.attempts}")
+        if (Queue.paused) line("PAUSED")
+        line("Checkpoint: ${ImportSession.checkpoint?.path} (base ${ImportSession.checkpointBase})")
+
+        if (ImportProgress.active) {
+            val p = ImportProgress
+            line("Progress: ${p.completedOps}/${p.totalOps} (${(p.fraction * 100).toInt()}%)")
+            line("Elapsed: ${p.format(p.elapsedMs)}")
+            line("ETA: ${p.format(p.displayRemainingMs, p.indeterminate)}")
+        }
+
+        for ((key, avg) in ImportProgress.averages.entries.sortedBy { it.key }) {
+            line("  $key: ${avg.toInt()}ms")
+        }
     }
 }

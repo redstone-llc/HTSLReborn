@@ -16,7 +16,7 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.withNullability
 
 object ParserToQueue {
-    private val slots = mutableMapOf(
+    internal val slots = mutableMapOf(
         0 to 10,
         1 to 11,
         2 to 12,
@@ -41,33 +41,76 @@ object ParserToQueue {
     )
 
     fun process(containers: List<ScriptContainer>) {
-        for (container in containers) {
+        Queue.addAll(build(containers))
+    }
+
+    fun build(containers: List<ScriptContainer>): List<Operation> {
+        val builder = OperationBuilder()
+        for ((index, container) in containers.withIndex()) {
             if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
                 ToastUtils.send("§cSkipping ${container.context.name}", "§7No action container is open.")
                 continue
             }
-            Queue.enqueue {
-                when (container.context) {
-                    ImportContext.FUNCTION -> {
-                        +Chat("/function edit ${container.target.name}")
-                        +OpenMenu(NameContains("Actions: "))
-                    }
-
-                    else -> {}
-                }
-
+            builder.container = index
+            builder.apply {
+                enterContext(container)
+                +CountActions
                 handleActions(container.actions)
             }
+        }
+        return builder.ops
+    }
+
+    /** Ops that navigate back to [checkpoint], repair partial state, then continue from it. */
+    fun buildResume(containers: List<ScriptContainer>, checkpoint: Checkpoint, baseCount: Int): List<Operation> {
+        val target = containers[checkpoint.container]
+        if (target.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
+            error("Open the action container you were importing into first")
+        }
+        val all = build(containers)
+        val start = all.indexOf(checkpoint)
+        if (start < 0) error("Checkpoint $checkpoint not found in regenerated queue")
+
+        val path = checkpoint.path
+        val preamble = OperationBuilder().apply {
+            enterContext(target)
+            +OpenMenu(NameContains("Actions"), checkIfOpened = true)
+            for (i in 0 until path.size - 1 step 2) {
+                val action = path[i]
+                val property = path[i + 1]
+                +GotoPage(action / slots.size)
+                +OpenMenu(NameExact("Action Settings"), slot = slots.getValue(action % slots.size))
+                +Click(slots.getValue(property))
+                +OpenMenu(NameExact("Edit Actions"))
+            }
+            val base = if (path.size == 1) baseCount else 0
+            +TrimActions(base + path.last())
+        }.ops
+
+        return preamble + all.drop(start)
+    }
+
+    private fun OperationBuilder.enterContext(container: ScriptContainer) {
+        when (container.context) {
+            ImportContext.FUNCTION -> {
+                +Chat("/function edit ${container.target.name}")
+                +OpenMenu(NameContains("Actions: "))
+            }
+
+            else -> {}
         }
     }
 
     fun OperationBuilder.handleActions(actions: List<Action>) {
-        for (action in actions) {
+        for ((actionIndex, action) in actions.withIndex()) {
             val displayName =
                 (action::class.annotations.find { it is ActionDefinition } as ActionDefinition).displayName
             val defaultInstance = PropertyReflection.defaultInstance(action::class) as? Action
                 ?: throw IllegalStateException("No default instance found for ${action::class.simpleName}")
             val properties = PropertyReflection.propertiesOf(action)
+
+            path += actionIndex
+            +Checkpoint(container, path.toList())
 
             //Start in the action container, if not already there
             +OpenMenu(NameContains("Actions"), checkIfOpened = true)
@@ -96,7 +139,7 @@ object ParserToQueue {
 
                 +OpenMenu(NameExact("Action Settings"), checkIfOpened = true)
 
-                handleProperty(property, value, defaultValue, slot)
+                handleProperty(property, value, defaultValue, slot, index)
                 +OpenMenu(NameExact("Action Settings"))
             }
 
@@ -104,6 +147,7 @@ object ParserToQueue {
                 +OpenMenu(NameExact("Action Settings"), checkIfOpened = true)
                 +ClickItem(MenuItems.BACK)
             }
+            path.removeLast()
         }
     }
 
@@ -127,7 +171,7 @@ object ParserToQueue {
 
                 +OpenMenu(NameExact("Settings"), checkIfOpened = true)
 
-                handleProperty(property, value, defaultValue, slot)
+                handleProperty(property, value, defaultValue, slot, index)
                 +OpenMenu(NameExact("Settings"))
             }
 
@@ -138,7 +182,7 @@ object ParserToQueue {
         }
     }
 
-    fun OperationBuilder.handleProperty(property: KProperty1<*, *>, value: Any?, defaultValue: Any?, slot: Int) {
+    fun OperationBuilder.handleProperty(property: KProperty1<*, *>, value: Any?, defaultValue: Any?, slot: Int, index: Int) {
 
         when (property.returnType.classifier) {
             String::class -> {
@@ -167,7 +211,9 @@ object ParserToQueue {
                     val actions = value.filterIsInstance<Action>()
                     if (actions.size != value.size) error("List contains non-action entries")
                     +Click(slot)
+                    path += index
                     handleActions(actions)
+                    path.removeLast()
                     +OpenMenu(NameExact("Edit Actions"), checkIfOpened = true)
                     +ClickItem(MenuItems.BACK)
                 } else if (value.first() is Condition) {

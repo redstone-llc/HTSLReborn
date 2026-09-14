@@ -19,7 +19,7 @@ import kotlin.jvm.optionals.getOrNull
 object ItemUtils {
     internal val cachedItems = mutableMapOf<String, ItemStack?>()
 
-    fun Player.giveItem(path: Path): ItemStack {
+    suspend fun Player.giveItem(path: Path): ItemStack {
         if (this.gameMode() != GameType.CREATIVE) CommandUtils.runCommand("gmc")
         val item = getItemForFile(path) ?: throw IllegalStateException("Could not find item at $path.")
         val slot = convertSlot(this.inventory.freeSlot) ?: throw IllegalStateException("No empty inventory slot!")
