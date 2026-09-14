@@ -8,7 +8,6 @@ package llc.redstone.htslreborn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import llc.redstone.htslreborn.importer.ParserToQueue
 import llc.redstone.htslreborn.importer.Queue
 import llc.redstone.htslreborn.overlay.DebugHud
@@ -52,10 +51,8 @@ object HTSLReborn : ClientModInitializer {
     override fun onInitializeClient() {
         LOGGER.info("Loaded HTSL Reborn v$VERSION for Minecraft $MINECRAFT.")
 
-        ClientTickEvents.END_CLIENT_TICK.register {
-            SCOPE.launch {
-                Queue.onTick()
-            }
+        ClientTickEvents.START_CLIENT_TICK.register {
+            Queue.onTick()
         }
 
         DebugHud.register()
@@ -68,10 +65,11 @@ object HTSLReborn : ClientModInitializer {
                         val htslFile = home.resolve("Desktop/htsl/test.htsl")
                         val ast = HtslAstBuilder.parseFile(htslFile)
                         ParserToQueue.process(ast)
+                        val queueFile = home.resolve("Desktop/htsl/queue.txt")
                         val size = Queue.queue.size
-                        for ((index, op) in Queue.queue.withIndex()) {
-                            println("[${size-index}] $op")
-                        }
+                        Files.write(queueFile, Queue.queue.mapIndexed { index, operation ->
+                            "[${size - index}] $operation"
+                        }.toMutableList())
                         1
                     }
                     .then(literal("clear").executes {

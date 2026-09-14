@@ -21,5 +21,7 @@ object DebugHud {
         context.drawString(font, "HTSL Reborn Debug HUD", 10, 10, 0xFFFFFFFF.toInt())
         context.drawString(font, "Queue: ${Queue.size()}", 10, 25, 0xFFFFFFFF.toInt())
         context.drawString(font, "Current Operation: ${Queue.current}", 10, 40, 0xFFFFFFFF.toInt())
+        context.drawString(font, "Gui Context: ${Queue.guiContext}", 10, 55, 0xFFFFFFFF.toInt())
+        context.drawString(font, "Attempted: ${Queue.attempted}", 10, 70, 0xFFFFFFFF.toInt())
     }
 }

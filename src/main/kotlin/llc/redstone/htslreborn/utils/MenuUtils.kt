@@ -33,21 +33,30 @@ import kotlin.time.Duration.Companion.milliseconds
 object MenuUtils {
     var pendingScreen: CompletableDeferred<Screen?>? = null
     var pendingNameMatch: NameMatch? = null
+
+    private var screenGeneration = 0L
+    private var consumedGeneration = 0L
+
+    fun markScreenConsumed() {
+        consumedGeneration = screenGeneration
+    }
+
     suspend fun onOpen(nameMatch: NameMatch?, checkIfOpened: Boolean = true): Screen? {
         val deferred = CompletableDeferred<Screen?>()
         pendingScreen?.cancel()
         pendingScreen = deferred
         pendingNameMatch = nameMatch
 
-        val alreadyOpen = if (checkIfOpened) {
-            MC.screen?.takeIf { screen ->
-                pendingNameMatch?.matches(screen.title.string) != false
-            }
-        } else null
+        val alreadyOpen = MC.screen?.takeIf { screen ->
+            nameMatch?.matches(screen.title.string) != false &&
+                    (checkIfOpened || screenGeneration > consumedGeneration)
+        }
 
         if (alreadyOpen != null) {
             pendingScreen = null
             pendingNameMatch = null
+            markScreenConsumed()
+            if (!checkIfOpened) awaitUntilMenuItemsLoaded()
             return alreadyOpen
         } else {
             return try {
@@ -59,11 +68,64 @@ object MenuUtils {
             } finally {
                 pendingScreen = null
                 pendingNameMatch = null
+                awaitUntilMenuItemsLoaded()
             }
         }
     }
 
+    var isLoading = false
+    var lastItemAddedTimestamp = 0L
+    var itemsLoaded = mutableMapOf<String, ItemStack>()
+
+    var pendingLoaded: CompletableDeferred<Screen>? = null
+    private suspend fun awaitUntilMenuItemsLoaded(): Screen {
+        val deferred = CompletableDeferred<Screen>()
+        pendingLoaded?.cancel()
+        pendingLoaded = deferred
+
+        return try {
+            isLoading = true
+            itemsLoaded.clear()
+            lastItemAddedTimestamp = System.currentTimeMillis()
+            withTimeout(5000.milliseconds) {
+                deferred.await()
+            }
+        } finally {
+            if (pendingLoaded === deferred) pendingLoaded = null
+//            delay((50 + InputUtils.getClientPing()).milliseconds)
+        }
+    }
+
+    internal fun render() {
+        if (!isLoading) return
+        val screen = MC.screen as? AbstractContainerScreen<*> ?: return
+        val delay = 0L // your gui delay
+        if (System.currentTimeMillis() - lastItemAddedTimestamp < delay) return
+
+        val slots = screen.menu.slots
+        var startIndex = slots.size - 44
+        if (startIndex < 0) {
+            startIndex = 0
+        }
+        val hotbarSlots = slots.subList(startIndex, startIndex + 9)
+        if (hotbarSlots.all { it.item.isEmpty }) return
+        isLoading = false
+        val pending = pendingLoaded ?: return
+        pendingLoaded = null
+        pending.complete(screen)
+    }
+
+    internal fun renderStack(stack: ItemStack) {
+        if (!isLoading) return
+        val displayName = stack.hoverName.string
+        if (itemsLoaded.containsKey(displayName)) return
+        lastItemAddedTimestamp = System.currentTimeMillis()
+        itemsLoaded[displayName] = stack
+    }
+
     fun onScreenOpen(screen: Screen) {
+        screenGeneration++
+
         if (screen is AnvilScreen) {
             InputUtils.handleInputType(Type.ANVIL)
         }
@@ -74,6 +136,7 @@ object MenuUtils {
         if (nameMatch == null || nameMatch.matches(screen.title.string)) {
             pendingScreen = null
             pendingNameMatch = null
+            markScreenConsumed()
             pending.complete(screen)
         }
     }
@@ -146,6 +209,8 @@ object MenuUtils {
         var turns = 0
         while (slots.isEmpty() && paginated) {
             val nextPageSlot = findSlots(GlobalMenuItems.NEXT_PAGE).firstOrNull() ?: return emptyList()
+            // Make sure onOpen waits for the *next* page rather than handing back the current one.
+            markScreenConsumed()
             packetClick(nextPageSlot.index)
             onOpen(null, checkIfOpened = false)
             turns++

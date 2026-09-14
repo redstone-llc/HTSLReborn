@@ -70,7 +70,7 @@ object ParserToQueue {
             val properties = PropertyReflection.propertiesOf(action)
 
             //Start in the action container, if not already there
-            +OpenMenu(NameContains("Actions"))
+            +OpenMenu(NameContains("Actions"), checkIfOpened = true)
             +OpenMenu(NameExact("Add Action"), slot = 50)
             +Option(displayName)
 
@@ -78,13 +78,13 @@ object ParserToQueue {
                 +OpenMenu(NameExact("Action Settings"))
                 if (action.holder == VariableHolder.Global) {
                     +Click(slots[0] ?: 0)
-                    +OpenMenu(NameExact("Action Settings"), checkIfOpened = false)
+                    +OpenMenu(NameExact("Action Settings"))
                 }
                 if (action.holder == VariableHolder.Team) {
                     +Click(slots[0] ?: 0)
-                    +OpenMenu(NameExact("Action Settings"), checkIfOpened = false)
+                    +OpenMenu(NameExact("Action Settings"))
                     +Click(slots[0] ?: 0)
-                    +OpenMenu(NameExact("Action Settings"), checkIfOpened = false)
+                    +OpenMenu(NameExact("Action Settings"))
                 }
             }
 
@@ -94,13 +94,14 @@ object ParserToQueue {
                 if (value == defaultValue) continue
                 val slot = slots[index] ?: continue
 
-                +OpenMenu(NameExact("Action Settings"))
+                +OpenMenu(NameExact("Action Settings"), checkIfOpened = true)
 
                 handleProperty(property, value, defaultValue, slot)
+                +OpenMenu(NameExact("Action Settings"))
             }
 
             if (properties.isNotEmpty()) {
-                +OpenMenu(NameExact("Action Settings"), checkIfOpened = false)
+                +OpenMenu(NameExact("Action Settings"), checkIfOpened = true)
                 +ClickItem(MenuItems.BACK)
             }
         }
@@ -114,7 +115,7 @@ object ParserToQueue {
             val properties = PropertyReflection.propertiesOf(condition)
 
             //Start in the condition container, if not already there
-            +OpenMenu(NameContains("Edit Conditions"))
+            +OpenMenu(NameContains("Edit Conditions"), checkIfOpened = true)
             +OpenMenu(NameExact("Add Condition"), slot = 50)
             +Option(displayName)
 
@@ -124,13 +125,14 @@ object ParserToQueue {
                 if (value == defaultValue) continue
                 val slot = slots[index] ?: continue
 
-                +OpenMenu(NameExact("Settings"))
+                +OpenMenu(NameExact("Settings"), checkIfOpened = true)
 
                 handleProperty(property, value, defaultValue, slot)
+                +OpenMenu(NameExact("Settings"))
             }
 
             if (properties.isNotEmpty()) {
-                +OpenMenu(NameExact("Settings"), checkIfOpened = false)
+                +OpenMenu(NameExact("Settings"), checkIfOpened = true)
                 +ClickItem(MenuItems.BACK)
             }
         }
@@ -166,16 +168,15 @@ object ParserToQueue {
                     if (actions.size != value.size) error("List contains non-action entries")
                     +Click(slot)
                     handleActions(actions)
-                    +OpenMenu(NameExact("Edit Actions"))
+                    +OpenMenu(NameExact("Edit Actions"), checkIfOpened = true)
                     +ClickItem(MenuItems.BACK)
                 } else if (value.first() is Condition) {
                     val conditions = value.filterIsInstance<Condition>()
                     if (conditions.size != value.size) error("List contains non-condition entries")
                     +Click(slot)
                     handleConditions(conditions)
-                    +OpenMenu(NameExact("Edit Conditions"))
+                    +OpenMenu(NameExact("Edit Conditions"), checkIfOpened = true)
                     +ClickItem(MenuItems.BACK)
-                    +OpenMenu(NameExact("Action Settings"))
                 }
             }
 

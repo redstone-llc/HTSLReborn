@@ -1,6 +1,9 @@
 package llc.redstone.htslreborn.importer
 
+import kotlinx.coroutines.launch
+import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
+import llc.redstone.htslreborn.HTSLReborn.SCOPE
 
 
 @DslMarker
@@ -9,7 +12,9 @@ annotation class OperationDsl
 @OperationDsl
 class OperationBuilder {
     val ops = mutableListOf<Operation>()
-    operator fun Operation.unaryPlus() { ops += this }
+    operator fun Operation.unaryPlus() {
+        ops += this
+    }
 }
 
 object Queue {
@@ -18,6 +23,10 @@ object Queue {
     var current: Operation? = null
         private set
 
+    var previous: Operation? = null
+        private set
+
+    @Volatile
     var executing = false
         private set
 
@@ -25,6 +34,8 @@ object Queue {
         private set
 
     var guiContext: String? = null
+    var attempted: Int = 0
+        private set
 
 
     val isIdle get() = current == null && queue.isEmpty()
@@ -43,33 +54,50 @@ object Queue {
         queue.addAll(operations)
     }
 
-    suspend fun onTick() {
+    fun onTick() {
         if (executing) return
         if (current == null) current = queue.removeFirstOrNull()
         val op = current ?: return
 
         executing = true
-        val done = try {
-            op.execute(MC)
-        } catch (e: Exception) {
-            Status.Failure("Error executing $op: ${e.message}")
-        } finally {
-            executing = false
-            attempts++
-        }
+        SCOPE.launch {
+            try {
+                val done = try {
+                    op.execute(MC)
+                } catch (e: Exception) {
+                    Status.Failure("Error executing $op: ${e.message}")
+                }
+                attempts++
 
-        if (done == Status.Success) {
-            current = null
-            attempts = 0
-            return
-        }
+                if (done == Status.Success) {
+                    HTSLReborn.LOGGER.info("[${queue.size - 1}] Operation succeeded: {}", op)
+                    if (op !is Operation.OpenMenu) {
+                        previous = op
+                    }
+                    current = queue.removeFirstOrNull()
+                    attempts = 0
+                    return@launch
+                }
 
-        if (done is Status.Failure) {
-            if (attempts >= 3) {
-                current = null
-                attempts = 0
-                clear()
-                throw IllegalStateException("Operation failed after 3 attempts: ${done.reason}")
+                if (done is Status.Failure) {
+                    HTSLReborn.LOGGER.warn("[${queue.size - 1}] Operation failed: {}. Reason: {}", op, done.reason)
+                    if (op is Operation.OpenMenu) {
+                        op.checkIfOpened = true
+                    }
+                    if (attempts >= 3) {
+                        if (previous != null) {
+                            HTSLReborn.LOGGER.warn("[${queue.size - 1}] Retrying previous operation: {}", previous)
+                            previous?.execute(MC)
+                            previous = null
+                            attempted++
+                        } else {
+                            clear()
+                            throw IllegalStateException("Operation failed after 3 attempts: ${done.reason}")
+                        }
+                    }
+                }
+            } finally {
+                executing = false
             }
         }
     }
@@ -77,6 +105,10 @@ object Queue {
     fun clear() {
         queue.clear()
         current = null
+        previous = null
+        attempts = 0
+        attempted = 0
+        guiContext = null
         executing = false
     }
 

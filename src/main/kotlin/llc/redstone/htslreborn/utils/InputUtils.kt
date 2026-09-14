@@ -5,37 +5,27 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import llc.redstone.htslreborn.HTSLReborn.MC
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AnvilScreen
 import net.minecraft.network.protocol.game.ServerboundRenameItemPacket
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 object InputUtils {
     var pendingInput: CompletableDeferred<Type>? = null
+    var type: Type? = null
 
-    suspend fun handleInput(input: String): Boolean {
+    suspend fun doInput(input: String): Boolean {
         pendingInput = CompletableDeferred()
 
         return try {
+            println("Waiting for input type for input: $input current type: $type")
+            if (type != null) {
+                return handleInput(input, type!!)
+            }
             withTimeout(5000.milliseconds) {
                 val type = pendingInput?.await() ?: return@withTimeout false
-                return@withTimeout when (type) {
-                    Type.CHAT -> {
-                        Minecraft.getInstance().connection
-                            ?.sendChat(input) ?: error("Failed to send chat message")
-                        true
-                    }
-
-                    Type.ANVIL -> {
-                        val screen = MenuUtils.onOpen(PredicateUtils.NameMatch.NameContains("Value:")) as? AnvilScreen
-                            ?: return@withTimeout false
-                        delay((200 + getClientPing()).milliseconds)
-                        if (screen.menu.setItemName(input)) {
-                            MC.connection?.send(ServerboundRenameItemPacket(input))
-                        }
-                        MenuUtils.interactionClick(2)
-                        true
-                    }
-                }
+                return@withTimeout handleInput(input, type)
             }
         } catch (e: Exception) {
             false
@@ -44,7 +34,45 @@ object InputUtils {
         }
     }
 
+    suspend fun handleInput(input: String, type: Type): Boolean {
+        println("Handling input of type $type: $input")
+        try {
+            return when (type) {
+                Type.CHAT -> {
+                    delay(50.milliseconds)
+                    Minecraft.getInstance().connection
+                        ?.sendChat(input) ?: error("Failed to send chat message")
+                    this.type = null
+                    true
+                }
+
+                Type.ANVIL -> {
+                    val screen = MC.screen as? AnvilScreen ?: return false
+                    delay(200.milliseconds)
+
+                    if (screen.menu.setItemName(input)) {
+                        MC.connection?.send(ServerboundRenameItemPacket(input))
+                    }
+                    MenuUtils.interactionClick(2)
+                    awaitScreen("Failed to close anvil screen") { it !is AnvilScreen }
+                    this.type = null
+                    true
+                }
+            }
+        } finally {
+        }
+    }
+
+    private suspend fun awaitScreen(failure: String, timeout: Duration = 5000.milliseconds, predicate: (Screen?) -> Boolean) {
+        val deadline = System.currentTimeMillis() + timeout.inWholeMilliseconds
+        while (!predicate(MC.screen)) {
+            if (System.currentTimeMillis() > deadline) error(failure)
+            delay(50.milliseconds)
+        }
+    }
+
     fun handleInputType(type: Type) {
+        this.type = type
         pendingInput?.complete(type)
     }
 

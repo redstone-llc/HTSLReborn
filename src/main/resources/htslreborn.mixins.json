@@ -7,7 +7,8 @@
     "ChatSilencerMixin",
     "GuiMixin",
     "MinecraftMixin",
-    "ScreenCloseMixin"
+    "ScreenCloseMixin",
+    "ScreenRenderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

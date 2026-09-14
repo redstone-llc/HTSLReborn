@@ -22,16 +22,16 @@ sealed interface Operation {
         return Success
     }
 
-    data class OpenMenu(val gui: NameMatch, val slot: Int? = null, val checkIfOpened: Boolean = true) : Operation {
+    data class OpenMenu(val gui: NameMatch, val slot: Int? = null, var checkIfOpened: Boolean = false) : Operation {
         override suspend fun execute(mc: Minecraft): Status {
             if (slot != null) MenuUtils.packetClick(slot)
 
-            if (MenuUtils.onOpen(gui, checkIfOpened).also {
-                Queue.guiContext = if (it != null) gui.cacheKey else null
-            } != null) {
-                return Success
+            return if (MenuUtils.onOpen(gui, checkIfOpened).also {
+                    Queue.guiContext = if (it != null) gui.cacheKey else null
+                } != null) {
+                Success
             } else {
-                return Failure("Failed to open menu: ${gui.cacheKey}")
+                Failure("Failed to open menu: ${gui.cacheKey}")
             }
         }
     }
@@ -57,10 +57,10 @@ sealed interface Operation {
 
     data class Input(val text: String) : Operation {
         override suspend fun execute(mc: Minecraft): Status {
-            if (InputUtils.handleInput(text)) {
-                return Success
+            return if (InputUtils.doInput(text)) {
+                Success
             } else {
-                return Failure("Failed to input text: $text")
+                Failure("Failed to input text: $text")
             }
         }
     }
