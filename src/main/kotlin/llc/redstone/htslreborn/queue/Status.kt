@@ -1,4 +1,4 @@
-package llc.redstone.htslreborn.importer
+package llc.redstone.htslreborn.queue
 
 sealed interface Status {
     data object Success : Status

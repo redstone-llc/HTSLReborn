@@ -1134,6 +1134,10 @@ enum class Operator(vararg val symbol: String, val advanced: Boolean = false, ov
                 }
             }
         }
+
+        fun fromKey(key: String): Operator? {
+            return entries.find { it.key.equals(key, true) }
+        }
     }
 }
 

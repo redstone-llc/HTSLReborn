@@ -1,9 +1,10 @@
-package llc.redstone.htslreborn.importer
+package llc.redstone.htslreborn.queue
 
 import kotlinx.coroutines.launch
 import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.SCOPE
+import llc.redstone.htslreborn.queue.importer.ImportSession
 import llc.redstone.htslreborn.utils.ToastUtils
 
 
@@ -43,6 +44,9 @@ object Queue {
     var paused = false
         private set
 
+    /** What a paused queue can be rebuilt from. Set by whoever starts a run. */
+    var session: ResumableSession? = null
+
 
     val isIdle get() = current == null && queue.isEmpty()
 
@@ -51,22 +55,22 @@ object Queue {
     fun pause(): Boolean {
         if (paused || !isActive) return false
         paused = true
-        ImportProgress.onPaused()
-        HTSLReborn.LOGGER.info("Import paused at {}", ImportSession.checkpoint)
+        Progress.onPaused()
+        HTSLReborn.LOGGER.info("Queue paused: {}", session?.describe())
         return true
     }
 
     /** Rebuilds the queue from the last checkpoint. Throws with a user-facing message if it can't. */
     fun resume() {
         if (executing) error("An operation is still finishing, try again in a moment")
-        val checkpoint = ImportSession.restore()
-        val containers = ImportSession.containers ?: error("Nothing to resume")
-        val ops = ParserToQueue.buildResume(containers, checkpoint, ImportSession.checkpointBase)
+        val session = session ?: ImportSession.takeIf { it.canResume } ?: error("Nothing to resume")
+        val ops = session.buildResume()
 
         clear(discardSession = false)
         addAll(ops)
         paused = false
-        HTSLReborn.LOGGER.info("Import resumed from {} ({} ops)", checkpoint, ops.size)
+        this.session = session
+        HTSLReborn.LOGGER.info("Queue resumed: {} ({} ops)", session.describe(), ops.size)
     }
 
     fun enqueue(block: OperationBuilder.() -> Unit) {
@@ -77,9 +81,15 @@ object Queue {
         addAll(listOf(operation))
     }
 
-    fun addAll(operations: List<Operation>) {
-        queue.addAll(operations)
-        ImportProgress.onEnqueued(operations.size)
+    fun add(operation: Operation, index: Int = -1) = addAll(listOf(operation), index)
+
+    fun addAll(operations: List<Operation>, index: Int = -1) {
+        if (index == -1) {
+            queue.addAll(operations)
+        } else {
+            queue.addAll(index, operations)
+        }
+        Progress.onEnqueued(operations.size)
     }
 
     fun onTick() {
@@ -93,30 +103,32 @@ object Queue {
                 val done = try {
                     op.execute(MC)
                 } catch (e: Exception) {
+                    e.printStackTrace()
                     Status.Failure("Error executing $op: ${e.message}")
                 }
                 attempts++
 
                 if (done == Status.Success) {
                     HTSLReborn.LOGGER.info("[${queue.size - 1}] Operation succeeded: {}", op)
-                    ImportProgress.onSucceeded(op, cleanRun = attempts == 1)
+                    Progress.onSucceeded(op, cleanRun = attempts == 1)
                     if (op !is Operation.OpenMenu) {
                         previous = op
                     }
                     current = queue.removeFirstOrNull()
                     attempts = 0
                     if (current == null) {
-                        ImportProgress.reset()
-                        ImportSession.end()
+                        Progress.reset()
+                        session?.end()
+                        session = null
                     } else {
-                        ImportProgress.recompute()
+                        Progress.recompute()
                     }
                     return@launch
                 }
 
                 if (done is Status.Failure) {
                     HTSLReborn.LOGGER.warn("[${queue.size - 1}] Operation failed: {}. Reason: {}", op, done.reason)
-                    ImportProgress.onFailed()
+                    Progress.onFailed()
                     if (paused) {
                         attempts = 0
                         return@launch
@@ -131,7 +143,7 @@ object Queue {
                             previous = null
                         } else {
                             pause()
-                            ToastUtils.send("§cImport paused", "§7${done.reason}\n§7Run /htsl resume to retry from the last action.")
+                            ToastUtils.send("§cPaused", "§7${done.reason}\n§7Run /htsl resume to retry from the last action.")
                         }
                     }
                 }
@@ -149,8 +161,11 @@ object Queue {
         guiContext = null
         executing = false
         paused = false
-        ImportProgress.reset()
-        if (discardSession) ImportSession.end()
+        Progress.reset()
+        if (discardSession) {
+            session?.end()
+            session = null
+        }
     }
 
     fun size(): Int {

@@ -1,8 +1,16 @@
-package llc.redstone.htslreborn.importer
+package llc.redstone.htslreborn.queue
 
 import kotlinx.coroutines.delay
-import llc.redstone.htslreborn.importer.Status.Failure
-import llc.redstone.htslreborn.importer.Status.Success
+import llc.redstone.htslreborn.data.Action
+import llc.redstone.htslreborn.data.Condition
+import llc.redstone.htslreborn.queue.Status.Failure
+import llc.redstone.htslreborn.queue.Status.Success
+import llc.redstone.htslreborn.queue.exporter.ExportSession
+import llc.redstone.htslreborn.queue.exporter.Exporter
+import llc.redstone.htslreborn.queue.exporter.Exporter.actions
+import llc.redstone.htslreborn.queue.exporter.Exporter.args
+import llc.redstone.htslreborn.queue.exporter.Exporter.conditions
+import llc.redstone.htslreborn.queue.importer.ImportSession
 import llc.redstone.htslreborn.utils.ClientThread
 import llc.redstone.htslreborn.utils.CommandUtils
 import llc.redstone.htslreborn.utils.InputUtils
@@ -15,6 +23,11 @@ import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
 import net.minecraft.client.Minecraft
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+import kotlin.reflect.KClass
+import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.isAccessible
 import kotlin.time.Duration.Companion.milliseconds
 
 sealed interface Operation {
@@ -156,6 +169,127 @@ sealed interface Operation {
         }
     }
 
+    data object NextPage : Operation {
+        override suspend fun execute(mc: Minecraft): Status {
+            if (MenuUtils.nextPage()) {
+                return Success
+            } else {
+                return Failure("No next page available")
+            }
+        }
+    }
+
+    data object ExportActions : Operation {
+        override fun estimable() = false
+
+        override suspend fun execute(mc: Minecraft): Status {
+            Exporter.handleActions()
+            return Success
+        }
+    }
+
+    data object ExportConditions : Operation {
+        override fun estimable() = false
+
+        override suspend fun execute(mc: Minecraft): Status {
+            Exporter.handleConditions()
+            return Success
+        }
+    }
+
+    data class CompileCondition(val clazz: KClass<out Condition>, val inverted: Boolean) : Operation {
+        override fun fixedCost() = 0L
+
+        override suspend fun execute(mc: Minecraft): Status {
+            val constructor = clazz.primaryConstructor
+                ?: return Failure("No primary constructor found for condition class: ${clazz.simpleName}")
+            conditions.add(
+                if (args.size != constructor.parameters.size) {
+                    clazz.constructors.firstOrNull { it.parameters.size == constructor.parameters.size }
+                        ?.callBy(args)
+                        ?: constructor.callBy(args)
+                } else {
+                    constructor.isAccessible = true
+                    constructor.callBy(args)
+                }.apply { this.inverted = this@CompileCondition.inverted }
+            )
+            args.clear()
+            return Success
+        }
+    }
+
+    data class CompileAction(val clazz: KClass<out Action>) : Operation {
+        override fun fixedCost() = 0L
+
+        override suspend fun execute(mc: Minecraft): Status {
+            val constructor = clazz.primaryConstructor
+                ?: return Failure("No primary constructor found for action class: ${clazz.simpleName}")
+            actions.add(
+                if (args.size != constructor.parameters.size) {
+                    clazz.constructors.firstOrNull { it.parameters.size == constructor.parameters.size }
+                        ?.callBy(args)
+                        ?: constructor.callBy(args)
+                } else {
+                    constructor.isAccessible = true
+                    constructor.callBy(args)
+                }
+            )
+            args.clear()
+            return Success
+        }
+    }
+
+    data class SimpleProperty(val param: KParameter, val prop: KProperty1<Action, *>, val colorValue: String): Operation {
+        override fun fixedCost() = 0L
+
+        override suspend fun execute(mc: Minecraft): Status {
+            try {
+                Exporter.handleSimpleProperty(prop, colorValue).let { value ->
+                    args[param] = value
+                }
+            } catch (e: Exception) {
+                return Failure("Failed to handle simple property '${prop.name}': ${e.message}")
+            }
+            return Success
+        }
+    }
+
+    data class LongProperty(val param: KParameter, val prop: KProperty1<Action, *>, val colorValue: String, val propertyIndex: Int): Operation {
+        override suspend fun execute(mc: Minecraft): Status {
+            try {
+                Exporter.handleLongProperty(prop, colorValue, propertyIndex).let { value ->
+                    args[param] = value
+                }
+            } catch (e: Exception) {
+                return Failure("Failed to handle long property '${prop.name}': ${e.message}")
+            }
+            return Success
+        }
+    }
+
+    data class ItemProperty(val param: KParameter, val propertyIndex: Int): Operation {
+        override suspend fun execute(mc: Minecraft): Status {
+            try {
+                Exporter.handleItemProperty(propertyIndex).let { value ->
+                    args[param] = value
+                }
+            } catch (e: Exception) {
+                return Failure("Failed to handle item property at index $propertyIndex: ${e.message}")
+            }
+            return Success
+        }
+    }
+
+    /** Export counterpart of [Checkpoint]: the top-level action about to be read. */
+    data class ExportCheckpoint(val index: Int) : Operation {
+        override fun fixedCost() = 0L
+
+        override suspend fun execute(mc: Minecraft): Status {
+            ExportSession.record(index)
+            return Success
+        }
+    }
+
     /** Marks the start of an action; resume always restarts from the last one passed. */
     data class Checkpoint(val container: Int, val path: List<Int>) : Operation {
         override fun fixedCost() = 0L
@@ -207,17 +341,14 @@ sealed interface Operation {
         }
     }
 
-    data class SetGuiContext(val context: String) : Operation {
+    data class Callback(val run: suspend () -> Status) : Operation {
         override fun fixedCost() = 0L
+
+        override suspend fun execute(mc: Minecraft): Status {
+            return run()
+        }
     }
 
-    data class Callback(val run: () -> Unit) : Operation {
-        override fun fixedCost() = 0L
-    }
-
-    data object Done : Operation {
-        override fun fixedCost() = 0L
-    }
 
     object MenuItems {
         val NO_ACTIONS = ItemSelector(

@@ -33,7 +33,8 @@ object ItemUtils {
         return item
     }
 
-    private fun convertSlot(slot: Int): Int? {
+    /** Player inventory index -> slot index used by the creative set-slot packet. */
+    internal fun convertSlot(slot: Int): Int? {
         return when (slot) {
             in 0..8 -> slot + 36
             in 9..35 -> slot

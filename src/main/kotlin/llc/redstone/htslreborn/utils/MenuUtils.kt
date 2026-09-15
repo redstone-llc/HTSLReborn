@@ -41,7 +41,7 @@ object MenuUtils {
         consumedGeneration = screenGeneration
     }
 
-    suspend fun onOpen(nameMatch: NameMatch?, checkIfOpened: Boolean = true): Screen? {
+    suspend fun onOpen(nameMatch: NameMatch?, checkIfOpened: Boolean = false): Screen? {
         val deferred = CompletableDeferred<Screen?>()
         pendingScreen?.cancel()
         pendingScreen = deferred
@@ -220,7 +220,7 @@ object MenuUtils {
     }
 
     // PAGINATION + ACTION COUNTING
-    val ACTION_SLOTS = ((10..16) + (19..25) + (28..34)).toSet()
+    val ACTION_SLOTS = ((10..16) + (19..25) + (28..34)).toList()
     private val NO_ACTIONS = ItemSelector(
         name = NameMatch.NameExact("No Actions!"),
         item = ItemExact(Items.BEDROCK)
@@ -235,12 +235,10 @@ object MenuUtils {
     }
 
     suspend fun goToFirstPage() {
-        while (true) {
-            val prev = findSlots(GlobalMenuItems.PREVIOUS_PAGE).firstOrNull() ?: return
-            markScreenConsumed()
-            interactionClick(prev.index)
-            onOpen(null, checkIfOpened = false)
-        }
+        val prev = findSlots(GlobalMenuItems.PREVIOUS_PAGE).firstOrNull() ?: return
+        markScreenConsumed()
+        interactionClick(prev.index, button = 1)
+        onOpen(null, checkIfOpened = false)
     }
 
     fun actionSlotsOnPage(): List<Slot> =
@@ -336,6 +334,12 @@ object MenuUtils {
             paginated,
             cacheKey = selector.cacheKey
         )
+    }
+
+    fun getSlot(propertySlotIndex: Int): Slot {
+        val gui = currentMenu() ?: error("No menu open")
+        return gui.menu.slots.getOrNull(propertySlotIndex)
+            ?: throw IllegalStateException("Property slot index $propertySlotIndex out of bounds for menu with ${gui.menu.slots.size} slots")
     }
 
     object GlobalMenuItems {

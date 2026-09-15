@@ -1,6 +1,6 @@
 package llc.redstone.htslreborn.mixins;
 
-import llc.redstone.htslreborn.importer.Queue;
+import llc.redstone.htslreborn.queue.Queue;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket;
 import org.spongepowered.asm.mixin.Mixin;

@@ -1,16 +1,19 @@
-package llc.redstone.htslreborn.importer
+package llc.redstone.htslreborn.queue.importer
 
 import com.google.gson.GsonBuilder
 import llc.redstone.htslreborn.HTSLReborn.LOGGER
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.data.ScriptContainer
 import llc.redstone.htslreborn.parser.ast.HtslAstBuilder
+import llc.redstone.htslreborn.queue.Operation
+import llc.redstone.htslreborn.queue.Queue
+import llc.redstone.htslreborn.queue.ResumableSession
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.security.MessageDigest
 
-object ImportSession {
+object ImportSession : ResumableSession {
     private val gson = GsonBuilder().setPrettyPrinting().create()
     private val resumeFile: Path get() = MC.gameDirectory.toPath().resolve("htsl/.resume.json")
 
@@ -28,9 +31,18 @@ object ImportSession {
     var checkpointBase = 0
         private set
 
-    val canResume get() = checkpoint != null || Files.exists(resumeFile)
+    override val canResume get() = checkpoint != null || Files.exists(resumeFile)
+
+    override fun buildResume(): List<Operation> {
+        val checkpoint = restore()
+        val containers = containers ?: error("Nothing to resume")
+        return Importer.buildResume(containers, checkpoint, checkpointBase)
+    }
+
+    override fun describe() = "import ${source?.fileName} at ${checkpoint?.path} (base $checkpointBase)"
 
     fun begin(source: Path, containers: List<ScriptContainer>) {
+        Queue.session = this
         this.source = source
         this.sourceHash = hash(source)
         this.containers = containers
@@ -45,7 +57,7 @@ object ImportSession {
         save()
     }
 
-    fun end() {
+    override fun end() {
         source = null
         sourceHash = null
         containers = null

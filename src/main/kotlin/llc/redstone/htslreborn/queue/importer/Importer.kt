@@ -1,9 +1,14 @@
-package llc.redstone.htslreborn.importer
+package llc.redstone.htslreborn.queue.importer
 
 import llc.redstone.htslreborn.data.*
 import llc.redstone.htslreborn.data.enums.Sound
-import llc.redstone.htslreborn.importer.Operation.*
+import llc.redstone.htslreborn.queue.Container.enterContext
+import llc.redstone.htslreborn.queue.Operation
+import llc.redstone.htslreborn.queue.Operation.*
+import llc.redstone.htslreborn.queue.OperationBuilder
+import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.utils.MenuUtils
+import llc.redstone.htslreborn.utils.MenuUtils.ACTION_SLOTS
 import llc.redstone.htslreborn.utils.PredicateUtils
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
@@ -15,31 +20,7 @@ import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.withNullability
 
-object ParserToQueue {
-    internal val slots = mutableMapOf(
-        0 to 10,
-        1 to 11,
-        2 to 12,
-        3 to 13,
-        4 to 14,
-        5 to 15,
-        6 to 16,
-        7 to 19,
-        8 to 20,
-        9 to 21,
-        10 to 22,
-        11 to 23,
-        12 to 24,
-        13 to 25,
-        14 to 28,
-        15 to 29,
-        16 to 30,
-        17 to 31,
-        18 to 32,
-        19 to 33,
-        20 to 34,
-    )
-
+object Importer {
     fun process(containers: List<ScriptContainer>) {
         Queue.addAll(build(containers))
     }
@@ -78,9 +59,9 @@ object ParserToQueue {
             for (i in 0 until path.size - 1 step 2) {
                 val action = path[i]
                 val property = path[i + 1]
-                +GotoPage(action / slots.size)
-                +OpenMenu(NameExact("Action Settings"), slot = slots.getValue(action % slots.size))
-                +Click(slots.getValue(property))
+                +GotoPage(action / ACTION_SLOTS.size)
+                +OpenMenu(NameExact("Action Settings"), slot = ACTION_SLOTS[action % ACTION_SLOTS.size])
+                +Click(ACTION_SLOTS[property])
                 +OpenMenu(NameExact("Edit Actions"))
             }
             val base = if (path.size == 1) baseCount else 0
@@ -88,17 +69,6 @@ object ParserToQueue {
         }.ops
 
         return preamble + all.drop(start)
-    }
-
-    private fun OperationBuilder.enterContext(container: ScriptContainer) {
-        when (container.context) {
-            ImportContext.FUNCTION -> {
-                +Chat("/function edit ${container.target.name}")
-                +OpenMenu(NameContains("Actions: "))
-            }
-
-            else -> {}
-        }
     }
 
     fun OperationBuilder.handleActions(actions: List<Action>) {
@@ -120,13 +90,13 @@ object ParserToQueue {
             if (action is Action.ChangeVariable) {
                 +OpenMenu(NameExact("Action Settings"))
                 if (action.holder == VariableHolder.Global) {
-                    +Click(slots[0] ?: 0)
+                    +Click(ACTION_SLOTS[0])
                     +OpenMenu(NameExact("Action Settings"))
                 }
                 if (action.holder == VariableHolder.Team) {
-                    +Click(slots[0] ?: 0)
+                    +Click(ACTION_SLOTS[0])
                     +OpenMenu(NameExact("Action Settings"))
-                    +Click(slots[0] ?: 0)
+                    +Click(ACTION_SLOTS[0])
                     +OpenMenu(NameExact("Action Settings"))
                 }
             }
@@ -135,7 +105,7 @@ object ParserToQueue {
                 val value = property.get(action)
                 val defaultValue = property.get(defaultInstance)
                 if (value == defaultValue) continue
-                val slot = slots[index] ?: continue
+                val slot = ACTION_SLOTS[index]
 
                 +OpenMenu(NameExact("Action Settings"), checkIfOpened = true)
 
@@ -167,7 +137,7 @@ object ParserToQueue {
                 val value = property.get(condition)
                 val defaultValue = property.get(defaultInstance)
                 if (value == defaultValue) continue
-                val slot = slots[index] ?: continue
+                val slot = ACTION_SLOTS[index] ?: continue
 
                 +OpenMenu(NameExact("Settings"), checkIfOpened = true)
 

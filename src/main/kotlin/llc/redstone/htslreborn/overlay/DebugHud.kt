@@ -1,9 +1,8 @@
 package llc.redstone.htslreborn.overlay
 
 import llc.redstone.htslreborn.HTSLReborn.MC
-import llc.redstone.htslreborn.importer.ImportProgress
-import llc.redstone.htslreborn.importer.ImportSession
-import llc.redstone.htslreborn.importer.Queue
+import llc.redstone.htslreborn.queue.Progress
+import llc.redstone.htslreborn.queue.Queue
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.Identifier
@@ -31,16 +30,16 @@ object DebugHud {
         line("Gui Context: ${Queue.guiContext}")
         line("Attempts: ${Queue.attempts}")
         if (Queue.paused) line("PAUSED")
-        line("Checkpoint: ${ImportSession.checkpoint?.path} (base ${ImportSession.checkpointBase})")
+        line("Session: ${Queue.session?.describe() ?: "none"}")
 
-        if (ImportProgress.active) {
-            val p = ImportProgress
+        if (Progress.active) {
+            val p = Progress
             line("Progress: ${p.completedOps}/${p.totalOps} (${(p.fraction * 100).toInt()}%)")
             line("Elapsed: ${p.format(p.elapsedMs)}")
             line("ETA: ${p.format(p.displayRemainingMs, p.indeterminate)}")
         }
 
-        for ((key, avg) in ImportProgress.averages.entries.sortedBy { it.key }) {
+        for ((key, avg) in Progress.averages.entries.sortedBy { it.key }) {
             line("  $key: ${avg.toInt()}ms")
         }
     }

@@ -36,6 +36,13 @@ object ItemStackUtils {
             }
     }
 
+    fun ItemStack.getProperties(color: Boolean): List<Pair<String, String>> {
+        return loreLines(color).mapNotNull { line ->
+            val parts = line.split(": ", limit = 2)
+            if (parts.size == 2) parts[0].replaceFirst("&7", "") to parts[1].replaceFirst("&f", "") else null
+        }
+    }
+
     fun ItemStack.getCurrentValue(color: Boolean): String? {
         val lore = loreLines(color)
         val startIndex = lore.indexOfFirst { line -> line.startsWith("Current Value:") }

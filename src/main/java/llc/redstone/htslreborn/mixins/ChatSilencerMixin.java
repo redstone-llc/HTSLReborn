@@ -1,6 +1,6 @@
 package llc.redstone.htslreborn.mixins;
 
-import llc.redstone.htslreborn.importer.Queue;
+import llc.redstone.htslreborn.queue.Queue;
 import llc.redstone.htslreborn.utils.InputUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -51,9 +51,9 @@ public class ChatSilencerMixin {
             InputUtils.INSTANCE.handleInputType(InputUtils.Type.CHAT);
         }
 
-//        if (HIDDEN_MESSAGES.stream().anyMatch(p -> p.matcher(message).matches())) {
-//            ci.cancel();
-//        }
+        if (HIDDEN_MESSAGES.stream().anyMatch(p -> p.matcher(message).matches())) {
+            ci.cancel();
+        }
     }
 
 }

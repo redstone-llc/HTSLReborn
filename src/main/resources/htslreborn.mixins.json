@@ -7,6 +7,7 @@
     "ChatSilencerMixin",
     "GuiMixin",
     "MinecraftMixin",
+    "ReceivePreviousInputMixin",
     "ScreenCloseMixin",
     "ScreenRenderMixin"
   ],

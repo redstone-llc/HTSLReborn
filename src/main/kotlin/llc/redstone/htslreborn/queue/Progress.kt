@@ -1,8 +1,8 @@
-package llc.redstone.htslreborn.importer
+package llc.redstone.htslreborn.queue
 
 import llc.redstone.htslreborn.utils.InputUtils
 
-object ImportProgress {
+object Progress {
     private const val ALPHA = 0.3
     private const val MIN_SAMPLES = 3
     private const val DISPLAY_INTERVAL_MS = 1000L

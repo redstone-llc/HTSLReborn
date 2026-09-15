@@ -1,3 +1,4 @@
+
 import com.strumenta.antlrkotlin.gradle.AntlrKotlinTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -53,6 +54,7 @@ dependencies {
     modCompileOnly("maven.modrinth:LQ3K71Q1:${property("deps.dynamic_fps")}")
 
     implementation(include("org.mozilla:rhino:1.9.1")!!)
+    implementation(include("org.javers:javers-core:7.11.8")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 }
