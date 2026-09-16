@@ -21,9 +21,6 @@ object ExportSession : ResumableSession {
     override fun buildResume(): List<Operation> {
         val index = checkpoint.takeIf { it >= 0 } ?: error("Nothing to resume")
         if (!MenuUtils.isActionContainerOpen()) error("Open the action container you were exporting first")
-
-        Exporter.args.clear()
-        while (Exporter.actions.size > index) Exporter.actions.removeLast()
         return Exporter.buildOps(startIndex = index)
     }
 

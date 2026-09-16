@@ -17,6 +17,7 @@ object DebugHud {
     }
 
     fun render(context: GuiGraphics) {
+        if (!Queue.isActive) return
         val font = MC.font
         var y = 10
         fun line(text: String) {

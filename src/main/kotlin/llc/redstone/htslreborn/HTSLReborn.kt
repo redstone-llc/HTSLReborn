@@ -9,12 +9,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import llc.redstone.htslreborn.overlay.DebugHud
-import llc.redstone.htslreborn.parser.ast.HtslAstBuilder
-import llc.redstone.htslreborn.queue.Operation
 import llc.redstone.htslreborn.queue.Queue
-import llc.redstone.htslreborn.queue.exporter.Exporter
 import llc.redstone.htslreborn.queue.importer.ImportSession
-import llc.redstone.htslreborn.queue.importer.Importer
 import llc.redstone.htslreborn.utils.ToastUtils
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
@@ -22,8 +18,6 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.Minecraft
-import net.minecraft.network.chat.Component
-import net.minecraft.world.entity.player.Player
 import org.javers.core.JaversBuilder
 import org.javers.core.diff.ListCompareAlgorithm
 import org.slf4j.Logger
@@ -50,14 +44,6 @@ object HTSLReborn : ClientModInitializer {
 
     val SCOPE = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-
-    fun Player.sendSystemMessage(comp: Component) {
-        //? if <26.1 {
-        this.displayClientMessage(comp, false)
-        //?} else {
-        /*this.sendSystemMessage(comp)
-       *///?}
-    }
 
     override fun onInitializeClient() {
         LOGGER.info("Loaded HTSL Reborn v$VERSION for Minecraft $MINECRAFT.")
@@ -86,34 +72,7 @@ object HTSLReborn : ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, context ->
             dispatcher.register(
                 literal("htsl")
-                    .executes {
-                        val home = Paths.get(System.getProperty("user.home"))
-                        val htslFile = home.resolve("Desktop/htsl/test.htsl")
-                        val ast = HtslAstBuilder.parseFile(htslFile)
-                        ImportSession.begin(htslFile, ast)
-                        Importer.process(ast)
-                        1
-                    }
-                    .then(literal("export").executes {
-                        Queue.enqueue {
-                            +Operation.Chat("/function edit test")
-                        }
-                        Exporter.process()
-                        1
-                    })
-                    .then(literal("diff").executes {
-                        1
-                    })
-                    .then(literal("clear").executes {
-                        Queue.clear()
-                        1
-                    })
-                    .then(literal("resume").executes {
-                        runCatching { Queue.resume() }
-                            .onSuccess { ToastUtils.send("§aResumed", "§7Continuing from the last action.") }
-                            .onFailure { ToastUtils.send("§cCan't resume", "§7${it.message}") }
-                        1
-                    })
+
             )
         }
 

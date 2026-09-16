@@ -5,6 +5,7 @@ import llc.redstone.htslreborn.data.Action
 import llc.redstone.htslreborn.data.Condition
 import llc.redstone.htslreborn.queue.Status.Failure
 import llc.redstone.htslreborn.queue.Status.Success
+import llc.redstone.htslreborn.queue.differ.DiffSession
 import llc.redstone.htslreborn.queue.exporter.ExportSession
 import llc.redstone.htslreborn.queue.exporter.Exporter
 import llc.redstone.htslreborn.queue.exporter.Exporter.actions
@@ -21,6 +22,7 @@ import llc.redstone.htslreborn.utils.PredicateUtils.ItemSelector
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
 import net.minecraft.client.Minecraft
+import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import kotlin.reflect.KClass
@@ -60,9 +62,9 @@ sealed interface Operation {
         }
     }
 
-    data class Click(val slot: Int, val button: Int = 0) : Operation {
+    data class Click(val slot: Int, val button: Int = 0, val actionType: ClickType = ClickType.PICKUP) : Operation {
         override suspend fun execute(mc: Minecraft): Status {
-            MenuUtils.interactionClick(slot, button)
+            MenuUtils.interactionClick(slot, button, actionType)
             return Success
         }
     }
@@ -280,6 +282,28 @@ sealed interface Operation {
         }
     }
 
+    /** Drops export state past [keep] so a scan (re)starting at that index appends cleanly. */
+    data class ResetExport(val keep: Int) : Operation {
+        override fun fixedCost() = 0L
+
+        override suspend fun execute(mc: Minecraft): Status {
+            args.clear()
+            while (actions.size > keep) actions.removeLast()
+            ExportSession.begin()
+            return Success
+        }
+    }
+
+    /** Records which container and phase a diff is in, for [DiffSession] to resume from. */
+    data class DiffPhase(val container: Int, val phase: DiffSession.Phase) : Operation {
+        override fun fixedCost() = 0L
+
+        override suspend fun execute(mc: Minecraft): Status {
+            DiffSession.record(container, phase)
+            return Success
+        }
+    }
+
     /** Export counterpart of [Checkpoint]: the top-level action about to be read. */
     data class ExportCheckpoint(val index: Int) : Operation {
         override fun fixedCost() = 0L
@@ -313,10 +337,7 @@ sealed interface Operation {
 
     data class GotoPage(val page: Int) : Operation {
         override suspend fun execute(mc: Minecraft): Status {
-            MenuUtils.goToFirstPage()
-            repeat(page) {
-                if (!MenuUtils.nextPage()) return Failure("Page $page does not exist")
-            }
+            MenuUtils.gotoPage(page)
             return Success
         }
     }

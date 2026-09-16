@@ -42,7 +42,6 @@ object Importer {
         return builder.ops
     }
 
-    /** Ops that navigate back to [checkpoint], repair partial state, then continue from it. */
     fun buildResume(containers: List<ScriptContainer>, checkpoint: Checkpoint, baseCount: Int): List<Operation> {
         val target = containers[checkpoint.container]
         if (target.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {

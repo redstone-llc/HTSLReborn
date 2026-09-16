@@ -141,18 +141,14 @@ object MenuUtils {
         }
     }
 
-    suspend fun packetClick(slot: Int, button: Int = 0) = ClientThread.send {
+    suspend fun packetClick(slot: Int, button: Int = 0, clickType: ClickType = ClickType.PICKUP) = ClientThread.send {
         val gui = MC.screen as? AbstractContainerScreen<*> ?: return@send
         val pkt = ServerboundContainerClickPacket(
             gui.menu.containerId,
             gui.menu.stateId,
             slot.toShort(),
             button.toByte(),
-            //? if >=26.1 {
-            /*ContainerInput.PICKUP,
-            *///?} else {
-            ClickType.PICKUP,
-            //?}
+            clickType,
             Int2ObjectOpenHashMap(),
             HashedStack.EMPTY
         )
@@ -160,7 +156,7 @@ object MenuUtils {
         MC.connection?.send(pkt) ?: error("Failed to send click packet")
     }
 
-    suspend fun interactionClick(slot: Int, button: Int = 0) = ClientThread.send {
+    suspend fun interactionClick(slot: Int, button: Int = 0, clickType: ClickType = ClickType.PICKUP) = ClientThread.send {
         val gui = MC.screen as? AbstractContainerScreen<*> ?: return@send
 
         val player = MC.player ?: return@send
@@ -169,7 +165,7 @@ object MenuUtils {
             gui.menu.containerId,
             slot,
             button,
-            ContainerInput.PICKUP,
+            clickType,
             player
         )
         *///?} else {
@@ -177,7 +173,7 @@ object MenuUtils {
             gui.menu.containerId,
             slot,
             button,
-            ClickType.PICKUP,
+            clickType,
             player
         )
         //?}
@@ -336,10 +332,42 @@ object MenuUtils {
         )
     }
 
+    val pattern = Regex("\\((\\d+)/(\\d+)\\)")
+    suspend fun gotoPage(page: Int) {
+        val title = currentMenu()?.title?.string ?: error("No menu open")
+        if (page == 0 && !title.contains("/")) return // already on first page
+        val match = pattern.find(title) ?: return
+        var currentPage = match.groupValues[1].toInt()
+        var totalPages = match.groupValues[2].toInt()
+        if (page < 0 || page > totalPages) throw IllegalArgumentException("Invalid page number: $page")
+        if (currentPage == page) return
+        while (currentPage != page) {
+            if (currentPage < page) {
+                clickItems(
+                    GlobalMenuItems.NEXT_PAGE,
+                    packet = true,
+                    paginated = false
+                )
+            } else {
+                clickItems(GlobalMenuItems.PREVIOUS_PAGE, packet = true, paginated = false)
+            }
+            onOpen(null)
+            val newTitle = currentMenu()?.title?.string ?: error("No menu open")
+            val newMatch = pattern.find(newTitle) ?: "(1/1)".let { pattern.find(it)!! }
+            currentPage = newMatch.groupValues[1].toInt()
+        }
+    }
+
     fun getSlot(propertySlotIndex: Int): Slot {
         val gui = currentMenu() ?: error("No menu open")
         return gui.menu.slots.getOrNull(propertySlotIndex)
             ?: throw IllegalStateException("Property slot index $propertySlotIndex out of bounds for menu with ${gui.menu.slots.size} slots")
+    }
+
+    fun getSlotAndPage(slotIndex: Int): Pair<Int, Int> {
+        val page = slotIndex / 21
+        val index = slotIndex % 21
+        return Pair(page, index)
     }
 
     object GlobalMenuItems {

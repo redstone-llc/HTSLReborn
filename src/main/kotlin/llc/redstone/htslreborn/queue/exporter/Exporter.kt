@@ -30,8 +30,6 @@ object Exporter {
     val args = mutableMapOf<KParameter, Any?>()
 
     fun process() {
-        actions.clear()
-        args.clear()
         ExportSession.begin()
         Queue.session = ExportSession
         Queue.addAll(buildOps(startIndex = 0))
@@ -41,6 +39,7 @@ object Exporter {
         val perPage = ACTION_SLOTS.size
         val startPage = startIndex / perPage
         return listOf(
+            Operation.ResetExport(keep = startIndex),
             OpenMenu(NameContains("Actions"), checkIfOpened = true),
             Operation.Callback {
                 MenuUtils.goToFirstPage()
