@@ -9,12 +9,15 @@
     "MinecraftMixin",
     "ReceivePreviousInputMixin",
     "ScreenCloseMixin",
-    "ScreenRenderMixin"
+    "ScreenHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
-  }
+  },
+  "mixins": [
+    "InventoryScreenMixin"
+  ]
 }

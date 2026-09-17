@@ -56,7 +56,7 @@ object MenuUtils {
             pendingScreen = null
             pendingNameMatch = null
             markScreenConsumed()
-            if (!checkIfOpened) awaitUntilMenuItemsLoaded()
+            if (!checkIfOpened) ClientThread.settleMenu()
             return alreadyOpen
         } else {
             return try {
@@ -68,59 +68,9 @@ object MenuUtils {
             } finally {
                 pendingScreen = null
                 pendingNameMatch = null
-                awaitUntilMenuItemsLoaded()
+                ClientThread.settleMenu()
             }
         }
-    }
-
-    var isLoading = false
-    var lastItemAddedTimestamp = 0L
-    var itemsLoaded = mutableMapOf<String, ItemStack>()
-
-    var pendingLoaded: CompletableDeferred<Screen>? = null
-    private suspend fun awaitUntilMenuItemsLoaded(): Screen {
-        val deferred = CompletableDeferred<Screen>()
-        pendingLoaded?.cancel()
-        pendingLoaded = deferred
-
-        return try {
-            isLoading = true
-            itemsLoaded.clear()
-            lastItemAddedTimestamp = System.currentTimeMillis()
-            withTimeout(5000.milliseconds) {
-                deferred.await()
-            }
-        } finally {
-            if (pendingLoaded === deferred) pendingLoaded = null
-            ClientThread.settleMenu()
-        }
-    }
-
-    internal fun render() {
-        if (!isLoading) return
-        val screen = MC.screen as? AbstractContainerScreen<*> ?: return
-        val delay = 0L // your gui delay
-        if (System.currentTimeMillis() - lastItemAddedTimestamp < delay) return
-
-        val slots = screen.menu.slots
-        var startIndex = slots.size - 44
-        if (startIndex < 0) {
-            startIndex = 0
-        }
-        val hotbarSlots = slots.subList(startIndex, startIndex + 9)
-        if (hotbarSlots.all { it.item.isEmpty }) return
-        isLoading = false
-        val pending = pendingLoaded ?: return
-        pendingLoaded = null
-        pending.complete(screen)
-    }
-
-    internal fun renderStack(stack: ItemStack) {
-        if (!isLoading) return
-        val displayName = stack.hoverName.string
-        if (itemsLoaded.containsKey(displayName)) return
-        lastItemAddedTimestamp = System.currentTimeMillis()
-        itemsLoaded[displayName] = stack
     }
 
     fun onScreenOpen(screen: Screen) {

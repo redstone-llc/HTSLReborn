@@ -37,7 +37,7 @@ object DebugHud {
             val p = Progress
             line("Progress: ${p.completedOps}/${p.totalOps} (${(p.fraction * 100).toInt()}%)")
             line("Elapsed: ${p.format(p.elapsedMs)}")
-            line("ETA: ${p.format(p.displayRemainingMs, p.indeterminate)}")
+            line("Total: ${p.format(p.displayTotalMs, p.indeterminate)}")
         }
 
         for ((key, avg) in Progress.averages.entries.sortedBy { it.key }) {

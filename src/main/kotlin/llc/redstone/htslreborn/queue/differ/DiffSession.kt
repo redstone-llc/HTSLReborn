@@ -7,6 +7,7 @@ import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.queue.ResumableSession
 import llc.redstone.htslreborn.queue.exporter.ExportSession
 import llc.redstone.htslreborn.utils.MenuUtils
+import java.nio.file.Path
 
 object DiffSession : ResumableSession {
     enum class Phase { EXPORT, EDIT }
@@ -20,9 +21,13 @@ object DiffSession : ResumableSession {
     var phase = Phase.EXPORT
         private set
 
+    var source: Path? = null
+        private set
+
     override val canResume get() = containers != null && container >= 0
 
-    fun begin(containers: List<ScriptContainer>) {
+    fun begin(containers: List<ScriptContainer>, source: Path) {
+        this.source = source
         Queue.session = this
         this.containers = containers
         container = -1

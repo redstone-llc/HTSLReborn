@@ -1,6 +1,8 @@
 package llc.redstone.htslreborn.queue
 
 import llc.redstone.htslreborn.utils.InputUtils
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
 
 object Progress {
     private const val ALPHA = 0.3
@@ -21,7 +23,7 @@ object Progress {
     private var pausedAt = 0L
     private val ema = HashMap<String, Double>()
 
-    private var displayedRemainingMs: Long? = null
+    private var displayedTotalMs: Long? = null
     private var displayUpdatedAt = 0L
 
     val active get() = totalOps > 0
@@ -51,25 +53,32 @@ object Progress {
         val pending = pendingOps()
         val unknown = pending.any { !it.estimable() }
         indeterminate = completedOps < MIN_SAMPLES || unknown
-        remainingMs = if (pending.isEmpty() || unknown) null else pending.sumOf { cost(it) }.toLong()
+        remainingMs = when {
+            unknown -> null
+            pending.isEmpty() -> 0L
+            else -> pending.sumOf { cost(it) }.toLong()
+        }
     }
 
-    /** Rate-limited and dampened so the number doesn't jitter every tick. */
-    val displayRemainingMs: Long?
+    val totalMs: Long?
         get() {
-            val raw = remainingMs ?: return null
+            val remaining = remainingMs ?: return null
+            return elapsedMs + remaining
+        }
+
+    /** Rate-limited and dampened so the number doesn't jitter every tick. */
+    val displayTotalMs: Long?
+        get() {
+            val raw = totalMs ?: return null
             val now = System.currentTimeMillis()
-            val shown = displayedRemainingMs
+            val shown = displayedTotalMs
             val stale = now - displayUpdatedAt >= DISPLAY_INTERVAL_MS
             val grewALot = shown != null && raw > shown * DISPLAY_GROW_THRESHOLD
             if (shown == null || grewALot || (stale && raw <= shown)) {
-                displayedRemainingMs = raw
-                displayUpdatedAt = now
-            } else if (stale) {
-                displayedRemainingMs = shown - (now - displayUpdatedAt)
+                displayedTotalMs = raw
                 displayUpdatedAt = now
             }
-            return displayedRemainingMs?.coerceAtLeast(0)
+            return displayedTotalMs
         }
 
     val averages: Map<String, Double> get() = ema
@@ -108,7 +117,7 @@ object Progress {
         completedOps = 0
         lastSuccessAt = 0L
         pausedAt = 0L
-        displayedRemainingMs = null
+        displayedTotalMs = null
         displayUpdatedAt = 0L
         remainingMs = null
         indeterminate = false
@@ -136,12 +145,18 @@ object Progress {
         }
     }
 
+    fun getComponent(): MutableComponent {
+        val elapsed = format(elapsedMs)
+        val total = format(displayTotalMs, indeterminate)
+        return Component.literal("$elapsed / $total")
+    }
+
     fun format(ms: Long?, indeterminate: Boolean = false): String {
         if (ms == null) return "--"
         val total = (ms + 999) / 1000
         val prefix = if (indeterminate) "~" else ""
         val m = total / 60
         val s = total % 60
-        return if (m > 0) "$prefix${m}m %02ds".format(s) else "$prefix${s}s"
+        return if (m > 0) "$prefix${m}:%02d".format(s) else "${prefix}0:%02d".format(s)
     }
 }

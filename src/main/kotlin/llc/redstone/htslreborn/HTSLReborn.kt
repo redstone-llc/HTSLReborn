@@ -9,8 +9,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import llc.redstone.htslreborn.overlay.DebugHud
+import llc.redstone.htslreborn.parser.ast.HtslAstBuilder
+import llc.redstone.htslreborn.queue.Operation
 import llc.redstone.htslreborn.queue.Queue
+import llc.redstone.htslreborn.queue.differ.Differ
+import llc.redstone.htslreborn.queue.exporter.Exporter
 import llc.redstone.htslreborn.queue.importer.ImportSession
+import llc.redstone.htslreborn.queue.importer.Importer
 import llc.redstone.htslreborn.utils.ToastUtils
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
@@ -63,7 +68,7 @@ object HTSLReborn : ClientModInitializer {
             val saved = ImportSession.load() ?: return@register
             ToastUtils.send(
                 "§eInterrupted import found",
-                "§7${Paths.get(saved.source).fileName}\n§7Open the container and run /htsl resume"
+                "§7${Paths.get(saved.source).fileName}\n§7Run '/htsl resume' to continue.",
             )
         }
 
@@ -72,7 +77,38 @@ object HTSLReborn : ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, context ->
             dispatcher.register(
                 literal("htsl")
-
+                    .executes {
+                        val home = Paths.get(System.getProperty("user.home"))
+                        val htslFile = home.resolve("Desktop/htsl/test.htsl")
+                        val ast = HtslAstBuilder.parseFile(htslFile)
+                        ImportSession.begin(htslFile, ast)
+                        Importer.process(ast)
+                        1
+                    }
+                    .then(literal("export").executes {
+                        Queue.enqueue {
+                            +Operation.Chat("/function edit test")
+                        }
+                        Exporter.process()
+                        1
+                    })
+                    .then(literal("diff").executes {
+                        val home = Paths.get(System.getProperty("user.home"))
+                        val htslFile = home.resolve("Desktop/htsl/test.htsl")
+                        val ast = HtslAstBuilder.parseFile(htslFile)
+                        Differ.process(ast, htslFile)
+                        1
+                    })
+                    .then(literal("clear").executes {
+                        Queue.clear()
+                        1
+                    })
+                    .then(literal("resume").executes {
+                        runCatching { Queue.resume() }
+                            .onSuccess { ToastUtils.send("§aResumed", "§7Continuing from the last action.") }
+                            .onFailure { ToastUtils.send("§cCan't resume", "§7${it.message}") }
+                        1
+                    })
             )
         }
 

@@ -25,13 +25,14 @@ import org.javers.core.diff.changetype.container.ElementValueChange
 import org.javers.core.diff.changetype.container.ListChange
 import org.javers.core.diff.changetype.container.ValueAdded
 import org.javers.core.diff.changetype.container.ValueRemoved
+import java.nio.file.Path
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 object Differ {
-    fun process(containers: List<ScriptContainer>) {
-        DiffSession.begin(containers)
+    fun process(containers: List<ScriptContainer>, path: Path) {
+        DiffSession.begin(containers, path)
         Queue.addAll(build(containers, from = 0))
     }
 

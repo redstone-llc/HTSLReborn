@@ -23,6 +23,7 @@ stonecutter parameters {
     replacements {
         string(current.parsed > "1.21.11") {
             replace("ClickType", "ContainerInput")
+            replace("GuiGraphics", "GuiGraphicsExtractor")
         }
     }
 }
