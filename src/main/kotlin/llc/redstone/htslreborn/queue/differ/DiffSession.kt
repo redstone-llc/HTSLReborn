@@ -12,37 +12,31 @@ import java.nio.file.Path
 object DiffSession : ResumableSession {
     enum class Phase { EXPORT, EDIT }
 
-    var containers: List<ScriptContainer>? = null
-        private set
-
-    var container = -1
+    override var container: ScriptContainer? = null
         private set
 
     var phase = Phase.EXPORT
         private set
 
-    var source: Path? = null
+    override var source: Path? = null
         private set
 
-    override val canResume get() = containers != null && container >= 0
+    override val canResume get() = container != null
 
-    fun begin(containers: List<ScriptContainer>, source: Path) {
+    override fun begin(container: ScriptContainer?, source: Path?) {
         this.source = source
         Queue.session = this
-        this.containers = containers
-        container = -1
+        this.container = container
         phase = Phase.EXPORT
     }
 
-    fun record(container: Int, phase: Phase) {
-        this.container = container
+    fun record(phase: Phase) {
         this.phase = phase
     }
 
     override fun buildResume(): List<Operation> {
-        val containers = containers ?: error("Nothing to resume")
-        val index = container.takeIf { it >= 0 } ?: error("Nothing to resume")
-        if (containers[index].context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
+        val container = container ?: error("Nothing to resume")
+        if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
             error("Open the action container you were diffing first")
         }
 
@@ -50,12 +44,11 @@ object DiffSession : ResumableSession {
             Phase.EXPORT -> ExportSession.checkpoint.coerceAtLeast(0)
             Phase.EDIT -> 0
         }
-        return Differ.build(containers, from = index, exportFrom = exportFrom)
+        return Differ.build(container, exportFrom = exportFrom)
     }
 
     override fun end() {
-        containers = null
-        container = -1
+        container = null
         phase = Phase.EXPORT
     }
 

@@ -8,13 +8,14 @@ package llc.redstone.htslreborn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import llc.redstone.htslreborn.data.ContextTarget
+import llc.redstone.htslreborn.data.ImportContext
+import llc.redstone.htslreborn.data.ScriptContainer
 import llc.redstone.htslreborn.overlay.DebugHud
 import llc.redstone.htslreborn.parser.ast.HtslAstBuilder
-import llc.redstone.htslreborn.queue.Operation
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.queue.differ.Differ
 import llc.redstone.htslreborn.queue.exporter.Exporter
-import llc.redstone.htslreborn.queue.importer.ImportSession
 import llc.redstone.htslreborn.queue.importer.Importer
 import llc.redstone.htslreborn.utils.ToastUtils
 import net.fabricmc.api.ClientModInitializer
@@ -63,13 +64,13 @@ object HTSLReborn : ClientModInitializer {
 
         var notifiedResumable = false
         ClientPlayConnectionEvents.JOIN.register { _, _, _ ->
-            if (notifiedResumable || !ImportSession.canResume) return@register
-            notifiedResumable = true
-            val saved = ImportSession.load() ?: return@register
-            ToastUtils.send(
-                "§eInterrupted import found",
-                "§7${Paths.get(saved.source).fileName}\n§7Run '/htsl resume' to continue.",
-            )
+            if (!notifiedResumable && Queue.session?.canResume == true) {
+                ToastUtils.send(
+                    "§aResumable session available",
+                    "§7Use §e/htsl resume§7 to continue the last operation."
+                )
+                notifiedResumable = true
+            }
         }
 
         DebugHud.register()
@@ -81,15 +82,13 @@ object HTSLReborn : ClientModInitializer {
                         val home = Paths.get(System.getProperty("user.home"))
                         val htslFile = home.resolve("Desktop/htsl/test.htsl")
                         val ast = HtslAstBuilder.parseFile(htslFile)
-                        ImportSession.begin(htslFile, ast)
-                        Importer.process(ast)
+                        Importer.process(ast, htslFile)
                         1
                     }
                     .then(literal("export").executes {
-                        Queue.enqueue {
-                            +Operation.Chat("/function edit test")
-                        }
-                        Exporter.process()
+                        val home = Paths.get(System.getProperty("user.home"))
+                        val outputFile = home.resolve("Desktop/htsl/output.htsl")
+                        Exporter.process(ScriptContainer(ImportContext.FUNCTION, ContextTarget("test")), outputFile)
                         1
                     })
                     .then(literal("diff").executes {

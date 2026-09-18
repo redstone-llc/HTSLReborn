@@ -295,11 +295,11 @@ sealed interface Operation {
     }
 
     /** Records which container and phase a diff is in, for [DiffSession] to resume from. */
-    data class DiffPhase(val container: Int, val phase: DiffSession.Phase) : Operation {
+    data class DiffPhase(val phase: DiffSession.Phase) : Operation {
         override fun fixedCost() = 0L
 
         override suspend fun execute(mc: Minecraft): Status {
-            DiffSession.record(container, phase)
+            DiffSession.record(phase)
             return Success
         }
     }
@@ -315,7 +315,7 @@ sealed interface Operation {
     }
 
     /** Marks the start of an action; resume always restarts from the last one passed. */
-    data class Checkpoint(val container: Int, val path: List<Int>) : Operation {
+    data class Checkpoint(val path: List<Int>) : Operation {
         override fun fixedCost() = 0L
 
         override suspend fun execute(mc: Minecraft): Status {

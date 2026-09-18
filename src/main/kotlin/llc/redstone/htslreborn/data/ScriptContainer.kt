@@ -13,8 +13,6 @@ enum class ImportContext {
     COMMAND,
     REGION,
     NPC,
-    BUTTON,
-    PAD,
     CUSTOMMENU,
     ;
 
@@ -25,9 +23,7 @@ enum class ImportContext {
             "command" -> COMMAND
             "region" -> REGION
             "npc" -> NPC
-            "button" -> BUTTON
-            "pad" -> PAD
-            "gui", "custommenu" -> CUSTOMMENU
+            "gui", "menu", "custommenu" -> CUSTOMMENU
             else -> null
         }
     }

@@ -52,6 +52,7 @@ object Container {
 
             ImportContext.CUSTOMMENU -> {
                 +Chat("/custommenus edit ${container.target.name}")
+                +OpenMenu(NameContains("Edit Menu"))
                 +Click(15)
                 +OpenMenu(NameContains("Edit Elements"))
                 +Click(container.target.trigger?.toIntOrNull() ?: throw IllegalStateException("Custom menu container has no trigger"))

@@ -60,7 +60,7 @@ public abstract class ScreenHandlerMixin extends Screen implements HandledScreen
 
     @Inject(method = "init", at = @At("TAIL"))
     public void htslreborn$init(CallbackInfo ci) {
-        if (!HTSLScreen.shouldBeVisible())  return;
+        if (!HTSLScreen.shouldBeVisible()) return;
         HTSLScreen.setINSTANCE(new HTSLScreen());
         HTSLScreen.getINSTANCE().init(this.width, this.height);
     }
@@ -77,6 +77,14 @@ public abstract class ScreenHandlerMixin extends Screen implements HandledScreen
     public void htslreborn$mouseDragged(MouseButtonEvent click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
         if (!HTSLScreen.shouldBeVisible()) return;
         if (HTSLScreen.getINSTANCE().mouseDragged(click, offsetX, offsetY)) {
+            cir.setReturnValue(true);
+        }
+    }
+
+    @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
+    public void htslreborn$mouseReleased(MouseButtonEvent click, CallbackInfoReturnable<Boolean> cir) {
+        if (!HTSLScreen.shouldBeVisible()) return;
+        if (HTSLScreen.getINSTANCE().mouseReleased(click)) {
             cir.setReturnValue(true);
         }
     }

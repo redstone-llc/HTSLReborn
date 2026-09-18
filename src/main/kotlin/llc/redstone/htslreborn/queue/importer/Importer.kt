@@ -2,11 +2,13 @@ package llc.redstone.htslreborn.queue.importer
 
 import llc.redstone.htslreborn.data.*
 import llc.redstone.htslreborn.data.enums.Sound
+import llc.redstone.htslreborn.queue.BuildableContainer
 import llc.redstone.htslreborn.queue.Container.enterContext
 import llc.redstone.htslreborn.queue.Operation
 import llc.redstone.htslreborn.queue.Operation.*
 import llc.redstone.htslreborn.queue.OperationBuilder
 import llc.redstone.htslreborn.queue.Queue
+import llc.redstone.htslreborn.ui.working.ContainerQueueEntry
 import llc.redstone.htslreborn.utils.MenuUtils
 import llc.redstone.htslreborn.utils.MenuUtils.ACTION_SLOTS
 import llc.redstone.htslreborn.utils.PredicateUtils
@@ -15,45 +17,43 @@ import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
 import llc.redstone.htslreborn.utils.PropertyReflection
 import llc.redstone.htslreborn.utils.ToastUtils
 import net.minecraft.world.item.Items
+import java.nio.file.Path
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.withNullability
 
-object Importer {
-    fun process(containers: List<ScriptContainer>) {
-        Queue.addAll(build(containers))
+object Importer: BuildableContainer {
+    fun process(containers: List<ScriptContainer>, path: Path) {
+        Queue.containers.addAll(containers.map { ContainerQueueEntry(it, Importer, path) })
     }
 
-    fun build(containers: List<ScriptContainer>): List<Operation> {
+    override fun build(container: ScriptContainer?, exportFrom: Int, path: Path?): List<Operation> {
+        if (container == null) return emptyList()
         val builder = OperationBuilder()
-        for ((index, container) in containers.withIndex()) {
-            if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
-                ToastUtils.send("§cSkipping ${container.context.name}", "§7No action container is open.")
-                continue
-            }
-            builder.container = index
-            builder.apply {
-                enterContext(container)
-                +CountActions
-                handleActions(container.actions)
-            }
+        if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
+            ToastUtils.send("§cSkipping ${container.context.name}", "§7No action container is open.")
+            return emptyList()
+        }
+        builder.apply {
+            enterContext(container)
+            +CountActions
+            handleActions(container.actions)
         }
         return builder.ops
     }
 
-    fun buildResume(containers: List<ScriptContainer>, checkpoint: Checkpoint, baseCount: Int): List<Operation> {
-        val target = containers[checkpoint.container]
-        if (target.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
+    fun buildResume(container: ScriptContainer, checkpoint: Checkpoint, baseCount: Int): List<Operation> {
+        if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
             error("Open the action container you were importing into first")
         }
-        val all = build(containers)
+        val all = build(container)
         val start = all.indexOf(checkpoint)
         if (start < 0) error("Checkpoint $checkpoint not found in regenerated queue")
 
         val path = checkpoint.path
         val preamble = OperationBuilder().apply {
-            enterContext(target)
+            enterContext(container)
             +OpenMenu(NameContains("Actions"), checkIfOpened = true)
             for (i in 0 until path.size - 1 step 2) {
                 val action = path[i]
@@ -79,7 +79,7 @@ object Importer {
             val properties = PropertyReflection.propertiesOf(action)
 
             path += actionIndex
-            +Checkpoint(container, path.toList())
+            +Checkpoint(path.toList())
 
             //Start in the action container, if not already there
             +OpenMenu(NameContains("Actions"), checkIfOpened = true)
@@ -151,7 +151,13 @@ object Importer {
         }
     }
 
-    fun OperationBuilder.handleProperty(property: KProperty1<*, *>, value: Any?, defaultValue: Any?, slot: Int, index: Int) {
+    fun OperationBuilder.handleProperty(
+        property: KProperty1<*, *>,
+        value: Any?,
+        defaultValue: Any?,
+        slot: Int,
+        index: Int
+    ) {
 
         when (property.returnType.classifier) {
             String::class -> {

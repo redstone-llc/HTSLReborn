@@ -169,7 +169,7 @@ class PreProcessor(
         val contextKeyword = gotoStatement.IDENTIFIER().text
         val context = ImportContext.fromKeyword(contextKeyword)
             ?: htslCompileError(
-                "Unknown goto context: $contextKeyword. Expected function, event, command, region, npc, button, pad, gui, or custommenu",
+                "Unknown goto context: $contextKeyword. Expected function, event, command, region, npc, gui, menu, or custommenu",
                 gotoStatement
             )
 

@@ -6,13 +6,15 @@ import net.minecraft.network.chat.Component
 
 object ToastUtils {
     fun send(title: String, description: String) {
-        MC.toastManager.addToast(
-            SystemToast.multiline(
-                MC,
-                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                Component.literal(title),
-                Component.literal(description),
-            )
-        );
+        MC.execute {
+            MC.toastManager.addToast(
+                SystemToast.multiline(
+                    MC,
+                    SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                    Component.literal(title),
+                    Component.literal(description),
+                )
+            );
+        }
     }
 }

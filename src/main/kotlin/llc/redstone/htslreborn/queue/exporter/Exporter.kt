@@ -1,63 +1,92 @@
 package llc.redstone.htslreborn.queue.exporter
 
 import llc.redstone.htslreborn.data.*
-import llc.redstone.htslreborn.queue.Operation
+import llc.redstone.htslreborn.parser.ActionParser
+import llc.redstone.htslreborn.parser.ActionParser.handleSwaps
+import llc.redstone.htslreborn.parser.ConditionParser
+import llc.redstone.htslreborn.queue.*
+import llc.redstone.htslreborn.queue.Container.enterContext
 import llc.redstone.htslreborn.queue.Operation.OpenMenu
-import llc.redstone.htslreborn.queue.Queue
-import llc.redstone.htslreborn.queue.Status
-import llc.redstone.htslreborn.utils.InputUtils
+import llc.redstone.htslreborn.ui.working.ContainerQueueEntry
+import llc.redstone.htslreborn.utils.*
 import llc.redstone.htslreborn.utils.ItemStackUtils.getCurrentValue
 import llc.redstone.htslreborn.utils.ItemStackUtils.getProperties
 import llc.redstone.htslreborn.utils.ItemStackUtils.loreLines
-import llc.redstone.htslreborn.utils.MenuUtils
 import llc.redstone.htslreborn.utils.MenuUtils.ACTION_SLOTS
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemSelector
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
-import llc.redstone.htslreborn.utils.TextUtils
 import net.minecraft.world.item.Items
 import java.lang.reflect.ParameterizedType
+import java.nio.file.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
+import kotlin.io.path.writeText
+import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.javaField
 
-object Exporter {
+object Exporter : BuildableContainer {
     val actions = mutableListOf<Action>()
     val conditions = mutableListOf<Condition>()
     val args = mutableMapOf<KParameter, Any?>()
 
-    fun process() {
-        ExportSession.begin()
-        Queue.session = ExportSession
-        Queue.addAll(buildOps(startIndex = 0))
+    fun process(container: ScriptContainer, path: Path) {
+        Queue.containers.add(ContainerQueueEntry(container = container, context = Exporter, source = path))
     }
 
-    fun buildOps(startIndex: Int): List<Operation> {
+    override fun build(container: ScriptContainer?, exportFrom: Int, path: Path?): List<Operation> {
+        if (container == null) error("No container to diff")
+        val builder = OperationBuilder()
+        if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
+            ToastUtils.send("§cSkipping ${container.context.name}", "§7No action container is open.")
+            return emptyList()
+        }
+
+        builder.apply {
+            enterContext(container)
+            buildOps(startIndex = exportFrom)
+            +Operation.Callback {
+                if (path == null) error("No path provided for export")
+                val lines = export(actions, path)
+                path.parent?.let {
+                    if (!it.exists()) {
+                        it.createDirectories()
+                    }
+                }
+                path.writeText(lines.joinToString("\n"))
+                Status.Success
+            }
+        }
+
+        return builder.ops
+    }
+
+    fun OperationBuilder.buildOps(startIndex: Int) {
         val perPage = ACTION_SLOTS.size
         val startPage = startIndex / perPage
-        return listOf(
-            Operation.ResetExport(keep = startIndex),
-            OpenMenu(NameContains("Actions"), checkIfOpened = true),
-            Operation.Callback {
-                MenuUtils.goToFirstPage()
+        +Operation.ResetExport(keep = startIndex)
+        +OpenMenu(NameContains("Actions"), checkIfOpened = true)
+        +Operation.Callback {
+            MenuUtils.goToFirstPage()
 
-                val queue = ArrayDeque<Operation>()
-                queue.add(Operation.GotoPage(startPage))
-                queue.addAll(handleActions(skip = startIndex % perPage, checkpointFrom = startIndex))
-                var index = (startPage + 1) * perPage
-                while (MenuUtils.nextPage()) {
-                    queue.add(Operation.NextPage)
-                    queue.addAll(handleActions(checkpointFrom = index))
-                    index += perPage
-                }
-                MenuUtils.goToFirstPage()
-                Queue.addAll(queue, 0)
-                Status.Success
-            },
-        )
+            val queue = ArrayDeque<Operation>()
+            queue.add(Operation.GotoPage(startPage))
+            queue.addAll(handleActions(skip = startIndex % perPage, checkpointFrom = startIndex))
+            var index = (startPage + 1) * perPage
+            while (MenuUtils.nextPage()) {
+                queue.add(Operation.NextPage)
+                queue.addAll(handleActions(checkpointFrom = index))
+                index += perPage
+            }
+            MenuUtils.goToFirstPage()
+            Queue.addAll(queue, 0)
+            Status.Success
+        }
     }
 
     suspend fun handleActions(skip: Int = 0, checkpointFrom: Int? = null): ArrayDeque<Operation> {
@@ -312,6 +341,212 @@ object Exporter {
         }
 
         return handleSimpleProperty(prop, colorValue)
+    }
+
+    private fun quoteIfNeeded(value: String): String {
+        val escaped = value.replace("\"", "\\\"")
+        return if (escaped.isEmpty() || escaped.any { it.isWhitespace() } || escaped == "null" || escaped.contains("\\\"")) {
+            "\"$escaped\""
+        } else {
+            escaped
+        }
+    }
+
+    //This class is a little gross :)
+    fun handleProperty(property: KProperty1<PropertyHolder, *>, value: Any?, path: Path): List<String> {
+        val properties = mutableListOf<String>()
+
+        if (value == null) {
+            properties.add("null")
+            return properties
+        }
+
+        when (property.returnType.classifier) {
+            String::class -> {
+                if (value == "Not Set") {
+                    properties.add("null")
+                    return properties
+                }
+                if (property.name == "amount" || property.name == "variable") {
+                    properties.add(quoteIfNeeded(value as String))
+                } else {
+                    properties.add("\"${value as String}\"")
+                }
+            }
+
+            Int::class, Double::class, Long::class, Boolean::class -> {
+                properties.add(value.toString())
+            }
+
+            Operator::class -> {
+                val operator = value as Operator
+                when (operator) {
+                    Operator.INCREMENT -> properties.add("+=")
+                    Operator.DECREMENT -> properties.add("-=")
+                    Operator.SET -> properties.add("=")
+                    Operator.MULTIPLY -> properties.add("*=")
+                    Operator.DIVIDE -> properties.add("/=")
+                    Operator.BITWISE_AND -> properties.add("&=")
+                    Operator.BITWISE_OR -> properties.add("|=")
+                    Operator.BITWISE_XOR -> properties.add("^=")
+                    Operator.LEFT_SHIFT -> properties.add("<<=")
+                    Operator.LOGICAL_RIGHT_SHIFT -> properties.add(">>=")
+                    Operator.ARITHMETIC_RIGHT_SHIFT -> properties.add(">>>=")
+                    Operator.UNSET -> properties.add("unset")
+                }
+            }
+
+            Location::class -> {
+                val location = value as Location
+                if (location !is Location.Custom) {
+                    properties.add("\"${location.key}\"")
+                } else {
+                    properties.add("\"custom_coordinates\" \"$location\"")
+                }
+            }
+
+            Comparator::class -> {
+                val comparison = value as Comparator
+                when (comparison) {
+                    Comparator.EQUALS -> properties.add("==")
+                    Comparator.GREATER_THAN -> properties.add(">")
+                    Comparator.LESS_THAN -> properties.add("<")
+                    Comparator.GREATER_THAN_OR_EQUAL -> properties.add(">=")
+                    Comparator.LESS_THAN_OR_EQUAL -> properties.add("<=")
+                    Comparator.NOT_EQUALS -> properties.add("!=")
+                }
+            }
+
+            InventorySlot::class -> {
+                val inventorySlot = value as InventorySlot
+                properties.add("\"${inventorySlot.key}\"")
+            }
+
+            ItemStack::class -> {
+                val itemStack = value as ItemStack
+                val stack = itemStack.stack ?: error("ItemStack is null for property ${property.name}")
+                val nbt = NbtHelper.serializeItemStack(stack).getOrNull() ?: return properties
+                val nbtString = nbt.toString()
+                val itemName = stack.hoverName.string.replace(" ", "_")
+                if (path.parent.resolve("$itemName.nbt").exists()) {
+                    properties.add("\"$itemName.nbt\"")
+                } else {
+                    path.parent.resolve("$itemName.nbt").writeText(nbtString)
+                    properties.add("\"$itemName.nbt\"")
+                }
+            }
+
+            else -> {
+                if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType.withNullability(true))) {
+                    val keyed = value as Keyed
+                    if (keyed::class.hasAnnotation<CustomKey>()) {
+                        properties.add(keyed.toString())
+                    } else if (keyed is KeyedLabeled) {
+                        properties.add("\"${keyed.label}\"")
+                    } else {
+                        properties.add("\"${keyed.key}\"")
+                    }
+                } else {
+                    properties.add(value.toString()) //More than likely null
+                }
+            }
+        }
+
+        return properties
+    }
+
+    fun export(actions: List<Action>, path: Path): List<String> {
+        val lines = mutableListOf<String>()
+        for (action in actions) {
+            if (action is Action.Conditional) {
+                val exportedConditions = exportConditions(action.conditions, path)
+                lines.add("if${if (action.matchAnyCondition) " or" else ""} (${exportedConditions.joinToString(", ")}) {")
+                val exportedActions = export(action.ifActions, path)
+                lines.addAll(exportedActions.map { "    $it" })
+                if (action.elseActions.isNotEmpty()) {
+                    lines.add("} else {")
+                    val exportedElseActions = export(action.elseActions, path)
+                    lines.addAll(exportedElseActions.map { "    $it" })
+                }
+                lines.add("}")
+                continue
+            }
+
+            if (action is Action.RandomAction) {
+                lines.add("random {")
+                val exportedActions = export(action.actions, path)
+                lines.addAll(exportedActions.map { "    $it" })
+                lines.add("}")
+                continue
+            }
+
+            val actionClass = action::class
+            val constructor = actionClass.primaryConstructor!!
+            val parameters = constructor.parameters.toMutableList()
+
+            handleSwaps(parameters, actionClass)
+
+            val actionProperties = actionClass.memberProperties
+            val newActionProperties = mutableListOf<KProperty1<Action, *>>()
+
+            for (parm in parameters) {
+                newActionProperties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *>)
+            }
+
+            val keyword = ActionParser.keywords.entries.find { it.value == action::class }?.key ?: continue
+            val properties = mutableListOf<String>()
+
+            for (property in newActionProperties) {
+                if (property.name == "actionName") continue
+                val value = property.getter.call(action)
+                // Add only the first string, because only conditionals and random actions should have lists
+                properties.add(handleProperty(property as KProperty1<PropertyHolder, *>, value, path).first())
+                if (value == Operator.UNSET) break
+            }
+
+            val line = if (properties.isNotEmpty()) {
+                "$keyword ${properties.joinToString(" ")}"
+            } else {
+                keyword
+            }
+            lines.add(line)
+        }
+        return lines
+    }
+
+    fun exportConditions(conditions: List<Condition>, path: Path): List<String> {
+        val conditionStrings = mutableListOf<String>()
+        for (condition in conditions) {
+            val conditionClass = condition::class
+            val constructor = conditionClass.primaryConstructor!!
+            val parameters = constructor.parameters.toMutableList()
+
+            val conditionProperties = conditionClass.memberProperties
+            val newConditionProperties = mutableListOf<KProperty1<Condition, *>>()
+
+            for (parm in parameters) {
+                newConditionProperties.add(conditionProperties.find { it.name == parm.name } as KProperty1<Condition, *>)
+            }
+            val keyword = ConditionParser.keywords.entries.find { it.value == condition::class }?.key ?: continue
+            val properties = mutableListOf<String>()
+
+            for (property in newConditionProperties) {
+                if (property.name == "conditionName" || property.name == "inverted") continue
+                val value = property.getter.call(condition)
+                // Add only the first string, because only conditionals and random actions should have lists
+                properties.add(handleProperty(property as KProperty1<PropertyHolder, *>, value, path).first())
+            }
+
+            val conditionString = "${if (condition.inverted) "!" else ""}${
+                if (properties.isNotEmpty()) {
+                    "$keyword ${properties.joinToString(" ")}"
+                } else {
+                    keyword
+                }
+            }"
+            conditionStrings.add(conditionString)
+        }
+        return conditionStrings
     }
 
     object MenuItems {

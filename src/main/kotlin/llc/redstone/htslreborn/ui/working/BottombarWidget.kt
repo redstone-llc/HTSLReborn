@@ -1,8 +1,10 @@
-package llc.redstone.htslreborn.ui
+package llc.redstone.htslreborn.ui.working
 
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.queue.Progress
 import llc.redstone.htslreborn.queue.Queue
+import llc.redstone.htslreborn.ui.Icon
+import llc.redstone.htslreborn.ui.IconWidget
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.network.chat.Component
@@ -12,7 +14,7 @@ import net.minecraft.resources.Identifier
 
 class BottombarWidget(
     x: Int, y: Int
-) : IconWidget(x, y, 176, 17, Component.literal("Bottombar")) {
+) : IconWidget(x, y, 223, 17, Component.literal("Bottombar")) {
     companion object {
         val BACKGROUND = Identifier.fromNamespaceAndPath("htslreborn", "textures/ui/bottombar/bottombar.png")
         val MCFIVE_FONT = FontDescription.Resource(Identifier.fromNamespaceAndPath("htslreborn", "mc_five"))
@@ -23,7 +25,7 @@ class BottombarWidget(
         get() = BottombarWidget.BACKGROUND
 
     override val icons = listOf(
-        Icon(160, 0) {
+        Icon(160, 1) {
             Queue.clear(true)
         }
     )
@@ -55,10 +57,12 @@ class BottombarWidget(
         val component = Progress.getComponent()
             .setStyle(Style.EMPTY.withFont(MCFIVE_FONT))
 
+        val textWidth = MC.font.width(component)
+
         guiGraphics.drawString(
             MC.font,
             component,
-            x + 111,
+            x + 203 - textWidth,
             y + 6,
             0xFF808080.toInt(),
             false
@@ -89,7 +93,7 @@ class BottombarWidget(
         guiGraphics.drawString(
             MC.font,
             component,
-            x + 111,
+            x + 203 - textWidth,
             y + 6,
             0xFF355C16.toInt(),
             false

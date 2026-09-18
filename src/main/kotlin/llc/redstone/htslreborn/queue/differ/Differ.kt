@@ -5,16 +5,13 @@ import llc.redstone.htslreborn.data.Action
 import llc.redstone.htslreborn.data.Condition
 import llc.redstone.htslreborn.data.ImportContext
 import llc.redstone.htslreborn.data.ScriptContainer
-import llc.redstone.htslreborn.queue.Container.enterContext
-import llc.redstone.htslreborn.queue.Operation
-import llc.redstone.htslreborn.queue.OperationBuilder
-import llc.redstone.htslreborn.queue.Queue
-import llc.redstone.htslreborn.queue.Status
+import llc.redstone.htslreborn.queue.*
 import llc.redstone.htslreborn.queue.exporter.Exporter
 import llc.redstone.htslreborn.queue.importer.Importer
 import llc.redstone.htslreborn.queue.importer.Importer.handleActions
 import llc.redstone.htslreborn.queue.importer.Importer.handleConditions
 import llc.redstone.htslreborn.queue.importer.Importer.handleProperty
+import llc.redstone.htslreborn.ui.working.ContainerQueueEntry
 import llc.redstone.htslreborn.utils.MenuUtils
 import llc.redstone.htslreborn.utils.MenuUtils.ACTION_SLOTS
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
@@ -30,34 +27,27 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
-object Differ {
+object Differ : BuildableContainer {
     fun process(containers: List<ScriptContainer>, path: Path) {
-        DiffSession.begin(containers, path)
-        Queue.addAll(build(containers, from = 0))
+        Queue.containers.addAll(containers.map { ContainerQueueEntry(it, Differ, path) })
     }
 
-    fun build(containers: List<ScriptContainer>, from: Int, exportFrom: Int = 0): List<Operation> {
+    override fun build(container: ScriptContainer?, exportFrom: Int, path: Path?): List<Operation> {
+        if (container == null) error("No container to diff")
         val ops = mutableListOf<Operation>()
-        for (index in from until containers.size) {
-            val container = containers[index]
-            if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
-                ToastUtils.send("§cSkipping ${container.context.name}", "§7No action container is open.")
-                continue
-            }
-            ops += buildContainer(container, index, if (index == from) exportFrom else 0)
+        if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
+            ToastUtils.send("§cSkipping ${container.context.name}", "§7No action container is open.")
+            return ops
         }
+        ops += buildContainer(container,  exportFrom)
         return ops
     }
 
-    private fun buildContainer(container: ScriptContainer, index: Int, exportFrom: Int): List<Operation> {
+    private fun buildContainer(container: ScriptContainer, exportFrom: Int): List<Operation> {
         val ops = mutableListOf<Operation>()
-        ops += Operation.DiffPhase(index, DiffSession.Phase.EXPORT)
-        ops += OperationBuilder().apply {
-            this.container = index
-            enterContext(container)
-        }.ops
-        ops += Exporter.buildOps(startIndex = exportFrom)
-        ops += Operation.DiffPhase(index, DiffSession.Phase.EDIT)
+        ops += Operation.DiffPhase(DiffSession.Phase.EXPORT)
+        ops += Exporter.build(container, exportFrom = exportFrom)
+        ops += Operation.DiffPhase(DiffSession.Phase.EDIT)
         ops += Operation.Callback {
             Queue.addAll(handleActions(Exporter.actions, container.actions), 0)
             Status.Success

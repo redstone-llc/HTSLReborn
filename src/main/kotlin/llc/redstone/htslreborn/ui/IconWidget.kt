@@ -39,7 +39,7 @@ abstract class IconWidget(x: Int, y: Int, w: Int, h: Int, comp: Component) : Abs
                     icon.x.toFloat(),
                     0.0f,
                     15,
-                    15,
+                    16,
                     width,
                     height,
                     0xFFBFBFCC.toInt()

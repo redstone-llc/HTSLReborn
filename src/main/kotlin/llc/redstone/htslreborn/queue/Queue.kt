@@ -4,7 +4,14 @@ import kotlinx.coroutines.launch
 import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.SCOPE
+import llc.redstone.htslreborn.queue.differ.DiffSession
+import llc.redstone.htslreborn.queue.differ.Differ
+import llc.redstone.htslreborn.queue.exporter.ExportSession
+import llc.redstone.htslreborn.queue.exporter.Exporter
 import llc.redstone.htslreborn.queue.importer.ImportSession
+import llc.redstone.htslreborn.queue.importer.Importer
+import llc.redstone.htslreborn.ui.working.ContainerQueueEntry
+import llc.redstone.htslreborn.ui.working.WorkingWidget
 import llc.redstone.htslreborn.utils.ToastUtils
 
 
@@ -14,7 +21,6 @@ annotation class OperationDsl
 @OperationDsl
 class OperationBuilder {
     val ops = mutableListOf<Operation>()
-    var container = 0
     val path = mutableListOf<Int>()
 
     operator fun Operation.unaryPlus() {
@@ -23,6 +29,7 @@ class OperationBuilder {
 }
 
 object Queue {
+    val containers = mutableListOf<ContainerQueueEntry>()
     val queue = ArrayDeque<Operation>()
 
     var current: Operation? = null
@@ -38,19 +45,17 @@ object Queue {
     var attempts: Int = 0
         private set
 
+    var tasksStarted: Int = 0
+
     var guiContext: String? = null
 
     @Volatile
     var paused = false
         private set
 
-    /** What a paused queue can be rebuilt from. Set by whoever starts a run. */
     var session: ResumableSession? = null
 
-
-    val isIdle get() = current == null && queue.isEmpty()
-
-    val isActive get() = current != null || queue.isNotEmpty() || executing
+    val isActive get() = !paused && (current != null || queue.isNotEmpty() || executing)
 
     fun pause(): Boolean {
         if (paused || !isActive) return false
@@ -60,10 +65,9 @@ object Queue {
         return true
     }
 
-    /** Rebuilds the queue from the last checkpoint. Throws with a user-facing message if it can't. */
     fun resume() {
         if (executing) error("An operation is still finishing, try again in a moment")
-        val session = session ?: ImportSession.takeIf { it.canResume } ?: error("Nothing to resume")
+        val session = session ?: error("Nothing to resume")
         val ops = session.buildResume()
 
         clear(discardSession = false)
@@ -94,6 +98,28 @@ object Queue {
 
     fun onTick() {
         if (executing || paused) return
+
+        if (session == null) {
+            if (tasksStarted >= containers.size) {
+                tasksStarted = 0
+                containers.clear()
+                WorkingWidget.scrollHeight = 0.0 //SPAGHETTI CODEEEEEE
+                return
+            }
+            containers.getOrNull(tasksStarted)?.let { entry ->
+                session = when (entry.context) {
+                    is Importer -> ImportSession
+                    is Exporter -> ExportSession
+                    is Differ -> DiffSession
+                    else -> error("Unknown context: ${entry.context}")
+                }
+                tasksStarted++
+                session?.begin(entry.container, entry.source)
+                Progress.reset()
+                addAll(entry.context.build(entry.container, path = entry.source))
+            }
+        }
+
         if (current == null) current = queue.removeFirstOrNull()
         val op = current ?: return
 
@@ -171,4 +197,6 @@ object Queue {
     fun size(): Int {
         return queue.size + if (current != null) 1 else 0
     }
+
+
 }
