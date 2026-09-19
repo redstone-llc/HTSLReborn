@@ -1,6 +1,7 @@
 package llc.redstone.htslreborn.ui.browser
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
+import java.nio.file.ClosedWatchServiceException
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.*
@@ -23,15 +24,24 @@ object FileExplorerHandler {
         if (!watchedDir.exists()) watchedDir.createDirectories()
 
         Thread {
-            while (true) {
-                val key = watcher.take()
-                val watchable = key.watchable() as Path
-                for (event in key.pollEvents()) {
-                    val contextPath = event.context() as Path
-                    fileEventQueue.offer(watchable.resolve(contextPath))
+            try {
+                while (true) {
+                    val key = watcher.take()
+                    val watchable = key.watchable() as Path
+                    for (event in key.pollEvents()) {
+                        val contextPath = event.context() as Path
+                        fileEventQueue.offer(watchable.resolve(contextPath))
+                    }
+                    if (!key.reset()) break
                 }
-                if (!key.reset()) break
+            } catch (e: ClosedWatchServiceException) {
+                // Watcher closed on shutdown
+            } catch (e: InterruptedException) {
+                // Watcher interrupted on shutdown
             }
+        }.apply {
+            name = "HTSL Reborn File Watcher"
+            isDaemon = true // Non-daemon threads block the client from exiting
         }.start()
 
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick {
