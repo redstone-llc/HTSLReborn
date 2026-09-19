@@ -1,5 +1,6 @@
 package llc.redstone.htslreborn.ui.working
 
+import llc.redstone.htslreborn.ui.HTSLScreen
 import llc.redstone.htslreborn.ui.Icon
 import llc.redstone.htslreborn.ui.IconWidget
 import net.minecraft.network.chat.Component
@@ -21,11 +22,11 @@ class WorkingTopbarWidget(x: Int, y: Int) : IconWidget(
         Icon(31, 0, disabled = true) {},
         Icon(46, 0, disabled = true) {},
         Icon(61, 0, disabled = true) {},
-        Icon(191, 0) {
-
+        Icon(192, 0) {
+            HTSLScreen.export()
         },
-        Icon(206, 0) {
-
+        Icon(207, 0) {
+            HTSLScreen.import()
         }
     )
 }

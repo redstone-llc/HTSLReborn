@@ -40,7 +40,7 @@ object PropertyParser {
             }
         }
         return when (prop.returnType.classifier) {
-            String::class -> arg.text
+            String::class -> arg.text.replace("\"", "")
             Int::class -> (arg.text.toIntOrNull()
                 ?: htslCompileError("Missing numeric value for parameter: ${param.name}", arg))
 

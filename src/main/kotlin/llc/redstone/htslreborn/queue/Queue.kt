@@ -179,7 +179,7 @@ object Queue {
         }
     }
 
-    fun clear(discardSession: Boolean = true) {
+    fun clear(discardSession: Boolean = true, discardContainers: Boolean = true) {
         queue.clear()
         current = null
         previous = null
@@ -191,6 +191,10 @@ object Queue {
         if (discardSession) {
             session?.end()
             session = null
+        }
+        if (discardContainers) {
+            containers.clear()
+            tasksStarted = 0
         }
     }
 

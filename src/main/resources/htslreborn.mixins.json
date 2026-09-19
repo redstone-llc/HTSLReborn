@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "ChatSilencerMixin",
+    "CommandSuggestionMixin",
     "GuiMixin",
+    "KeyboardHandlerMixin",
     "MinecraftMixin",
     "ReceivePreviousInputMixin",
     "ScreenCloseMixin",

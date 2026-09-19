@@ -25,8 +25,8 @@ class BottombarWidget(
         get() = BottombarWidget.BACKGROUND
 
     override val icons = listOf(
-        Icon(160, 1) {
-            Queue.clear(true)
+        Icon(208, 1) {
+            Queue.clear(true, discardContainers = true)
         }
     )
 

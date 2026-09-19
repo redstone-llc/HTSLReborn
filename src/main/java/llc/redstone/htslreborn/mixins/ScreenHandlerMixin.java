@@ -45,7 +45,7 @@ public abstract class ScreenHandlerMixin extends Screen implements HandledScreen
         }
         HTSLScreen.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
         menuRendered = true;
-        if (Queue.INSTANCE.isActive()) {
+        if (Queue.INSTANCE.isActive() || HTSLScreen.Companion.isBrowsing()) {
             ci.cancel();
         }
     }
@@ -53,7 +53,8 @@ public abstract class ScreenHandlerMixin extends Screen implements HandledScreen
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     public void htslreborn$mouseClicked(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
         if (!HTSLScreen.shouldBeVisible()) return;
-        if (HTSLScreen.getINSTANCE().mouseClicked(click, doubled)) {
+        HTSLScreen.getINSTANCE().mouseClicked(click, doubled);
+        if (Queue.INSTANCE.isActive() || HTSLScreen.Companion.isBrowsing()) {
             cir.setReturnValue(true);
         }
     }

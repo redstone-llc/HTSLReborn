@@ -8,6 +8,10 @@ import net.minecraft.network.chat.TextColor
 
 
 object TextUtils {
+    fun titleCase(input: String): String {
+        return input.split(" ").joinToString(" ") { it.lowercase().replaceFirstChar { char -> char.uppercase() } }
+    }
+
     fun convertTextToString(text: Component?, colors: Boolean = true): String? {
         if (text == null) return null
         val parts = if (text.siblings.isEmpty()) {

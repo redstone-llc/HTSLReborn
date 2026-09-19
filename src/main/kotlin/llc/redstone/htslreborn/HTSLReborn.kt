@@ -17,6 +17,8 @@ import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.queue.differ.Differ
 import llc.redstone.htslreborn.queue.exporter.Exporter
 import llc.redstone.htslreborn.queue.importer.Importer
+import llc.redstone.htslreborn.ui.browser.FileExplorerHandler
+import llc.redstone.htslreborn.ui.browser.FileHandler
 import llc.redstone.htslreborn.utils.ToastUtils
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
@@ -75,6 +77,16 @@ object HTSLReborn : ClientModInitializer {
 
         DebugHud.register()
 
+        val htslDir = MC.gameDirectory.toPath().resolve("htsl")
+        FileHandler.baseDir = htslDir
+        FileHandler.currentDir = htslDir
+
+        FileHandler.refreshFiles()
+        FileExplorerHandler.setWatchedDir(FileHandler.currentDir)
+        LOGGER.info(FileHandler.filteredFiles.toString())
+
+        FileExplorerHandler.init()
+
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, context ->
             dispatcher.register(
                 literal("htsl")
@@ -111,6 +123,6 @@ object HTSLReborn : ClientModInitializer {
             )
         }
 
-        runCatching { Files.createDirectories(MC.gameDirectory.toPath().resolve("htsl")) }
+        runCatching { Files.createDirectories(htslDir) }
     }
 }

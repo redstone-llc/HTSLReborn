@@ -3,12 +3,19 @@ package llc.redstone.htslreborn.queue
 import llc.redstone.htslreborn.utils.InputUtils
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
+import kotlin.math.abs
 
 object Progress {
-    private const val ALPHA = 0.3
     private const val MIN_SAMPLES = 3
-    private const val DISPLAY_INTERVAL_MS = 1000L
-    private const val DISPLAY_GROW_THRESHOLD = 1.2
+    private const val DELAY_WINDOW = 20
+    private const val DELAY_MIN_MS = 8.0
+    private const val DELAY_MAX_MS = 8_000.0
+
+    /** The shown total sticks until the estimate drifts past these bounds. */
+    private const val LATCH_HOLD_MS = 5_000L
+    private const val LATCH_DRIFT_FRACTION = 0.15
+    private const val LATCH_MIN_DRIFT_MS = 5_000L
+    private const val LATCH_BIG_DRIFT_FRACTION = 0.5
 
     var startedAt = 0L
         private set
@@ -21,10 +28,14 @@ object Progress {
 
     private var lastSuccessAt = 0L
     private var pausedAt = 0L
-    private val ema = HashMap<String, Double>()
+    private val delays = HashMap<String, DelayAvg>()
 
-    private var displayedTotalMs: Long? = null
-    private var displayUpdatedAt = 0L
+    // Latched by whichever thread renders first; both only ever store a fresh snapshot.
+    @Volatile
+    private var latchedTotalMs: Long? = null
+
+    @Volatile
+    private var latchedAt = 0L
 
     val active get() = totalOps > 0
 
@@ -60,28 +71,50 @@ object Progress {
         }
     }
 
-    val totalMs: Long?
+    /** Live estimate, including time already spent on the op in flight. */
+    val rawTotalMs: Long?
         get() {
             val remaining = remainingMs ?: return null
-            return elapsedMs + remaining
+            val now = if (pausedAt != 0L) pausedAt else System.currentTimeMillis()
+            val spentOnCurrent = if (lastSuccessAt == 0L) 0L else (now - lastSuccessAt).coerceAtLeast(0L)
+            return elapsedMs + (remaining - spentOnCurrent).coerceAtLeast(0L)
         }
 
-    /** Rate-limited and dampened so the number doesn't jitter every tick. */
+    /**
+     * Holds a single total and only re-latches once the live estimate drifts well
+     * clear of it, so the HUD counts down instead of twitching every operation.
+     */
     val displayTotalMs: Long?
         get() {
-            val raw = totalMs ?: return null
+            val raw = rawTotalMs ?: return null
             val now = System.currentTimeMillis()
-            val shown = displayedTotalMs
-            val stale = now - displayUpdatedAt >= DISPLAY_INTERVAL_MS
-            val grewALot = shown != null && raw > shown * DISPLAY_GROW_THRESHOLD
-            if (shown == null || grewALot || (stale && raw <= shown)) {
-                displayedTotalMs = raw
-                displayUpdatedAt = now
+            val shown = latchedTotalMs ?: run {
+                latchedTotalMs = raw
+                latchedAt = now
+                return raw
             }
-            return displayedTotalMs
+
+            val drift = abs(raw - shown)
+            val threshold = maxOf(LATCH_MIN_DRIFT_MS, (shown * LATCH_DRIFT_FRACTION).toLong())
+            val overrun = elapsedMs >= shown && raw > shown
+            val bigDrift = drift > maxOf(threshold, (shown * LATCH_BIG_DRIFT_FRACTION).toLong())
+            val held = now - latchedAt < LATCH_HOLD_MS
+
+            if (overrun || bigDrift || (drift > threshold && !held)) {
+                latchedTotalMs = raw
+                latchedAt = now
+                return raw
+            }
+            return shown
         }
 
-    val averages: Map<String, Double> get() = ema
+    val displayRemainingMs: Long?
+        get() {
+            val total = displayTotalMs ?: return null
+            return (total - elapsedMs).coerceAtLeast(0L)
+        }
+
+    val averages: Map<String, Double> get() = delays.mapValues { it.value.mean }
 
     fun onEnqueued(count: Int) {
         if (count <= 0) return
@@ -97,8 +130,7 @@ object Progress {
         val now = System.currentTimeMillis()
         completedOps++
         if (cleanRun && op.fixedCost() == null) {
-            val observed = (now - lastSuccessAt).toDouble()
-            ema[op.costKey] = ema[op.costKey]?.let { ALPHA * observed + (1 - ALPHA) * it } ?: observed
+            observe(op.costKey, (now - lastSuccessAt).toDouble())
         }
         lastSuccessAt = now
     }
@@ -117,8 +149,8 @@ object Progress {
         completedOps = 0
         lastSuccessAt = 0L
         pausedAt = 0L
-        displayedTotalMs = null
-        displayUpdatedAt = 0L
+        latchedTotalMs = null
+        latchedAt = 0L
         remainingMs = null
         indeterminate = false
     }
@@ -128,7 +160,11 @@ object Progress {
 
     private fun cost(op: Operation): Double {
         op.fixedCost()?.let { return it.toDouble() }
-        return ema[op.costKey] ?: prior(op.costKey)
+        return delays[op.costKey]?.mean ?: prior(op.costKey)
+    }
+
+    private fun observe(key: String, observed: Double) {
+        delays.getOrPut(key) { DelayAvg(prior(key)) }.add(observed)
     }
 
     private fun prior(key: String): Double {
@@ -158,5 +194,21 @@ object Progress {
         val m = total / 60
         val s = total % 60
         return if (m > 0) "$prefix${m}:%02d".format(s) else "${prefix}0:%02d".format(s)
+    }
+
+    private class DelayAvg(prior: Double) {
+        private val samples = ArrayDeque<Double>().apply {
+            repeat(4) { addLast(prior) }
+        }
+        var mean = prior
+            private set
+
+        fun add(observed: Double) {
+            val lo = (mean * 0.4).coerceAtLeast(DELAY_MIN_MS)
+            val hi = (mean * 2.5).coerceAtMost(DELAY_MAX_MS).coerceAtLeast(lo)
+            samples.addLast(observed.coerceIn(lo, hi))
+            while (samples.size > DELAY_WINDOW) samples.removeFirst()
+            mean = samples.average()
+        }
     }
 }

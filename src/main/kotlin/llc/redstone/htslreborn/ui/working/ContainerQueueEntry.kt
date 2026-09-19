@@ -68,7 +68,7 @@ data class ContainerQueueEntry(
             Component.literal("$contextName ")
                 .withColor(0x3F3F3F)
                 .append(
-                    Component.literal("${source?.fileName} > ${container?.target?.name}")
+                    Component.literal("${source?.fileName} > ${container?.target?.name ?: "Default"}")
                         .withColor(0x666666)
                 ),
             x + 14,

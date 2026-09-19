@@ -20,7 +20,7 @@ abstract class IconWidget(x: Int, y: Int, w: Int, h: Int, comp: Component) : Abs
             }
         }
 
-        return super.mouseClicked(mouseButtonEvent, bl)
+        return false
     }
 
     override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
@@ -30,6 +30,8 @@ abstract class IconWidget(x: Int, y: Int, w: Int, h: Int, comp: Component) : Abs
         val relativeMouseY = mouseY - y
 
         for (icon in icons) {
+            icon.draw(guiGraphics, x + icon.x, y + icon.y)
+
             if (!icon.disabled && icon.isHovered(relativeMouseX, relativeMouseY)) {
                 guiGraphics.blit(
                     RenderPipelines.GUI_TEXTURED,
@@ -39,11 +41,12 @@ abstract class IconWidget(x: Int, y: Int, w: Int, h: Int, comp: Component) : Abs
                     icon.x.toFloat(),
                     0.0f,
                     15,
-                    16,
+                    15,
                     width,
                     height,
                     0xFFBFBFCC.toInt()
                 )
+                icon.draw(guiGraphics, x + icon.x, y + icon.y, 0xFFBFBFCC.toInt())
             }
         }
     }

@@ -30,7 +30,7 @@ class WorkingWidget(x: Int, y: Int) :
         val CUSTOMMENU = Identifier.fromNamespaceAndPath("htslreborn", "textures/ui/icon/custommenu.png")
     }
 
-    private val queueScroll = HTSLScrollWidget(QueueLayout(0, 0, 206, 161), scrollHeight)
+    private val queueScroll = HTSLScrollWidget(0, 0, 206, 161, QueueLayout(0, 0, 206, 161), scrollHeight)
 
     override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
         val session = Queue.session ?: return
@@ -68,7 +68,7 @@ class WorkingWidget(x: Int, y: Int) :
             is ImportSession -> session.source?.fileName
             is DiffSession -> session.source?.fileName
             is ExportSession -> session.container?.let {
-                "${it.target.name} ${it.target.trigger ?: ""}"
+                "${it.target.name ?: "Default"} ${it.target.trigger ?: ""}"
             }
 
             else -> null
@@ -76,11 +76,11 @@ class WorkingWidget(x: Int, y: Int) :
 
         val output = when (session) {
             is ImportSession -> session.container?.let {
-                "${it.target.name} ${it.target.trigger ?: ""}"
+                "${it.target.name ?: "Default"} ${it.target.trigger ?: ""}"
             }
 
             is DiffSession -> session.container?.let {
-                "${it.target.name} ${it.target.trigger ?: ""}"
+                "${it.target.name ?: "Default"} ${it.target.trigger ?: ""}"
             }
 
             is ExportSession -> session.source?.fileName?.toString()
@@ -94,7 +94,7 @@ class WorkingWidget(x: Int, y: Int) :
             ImportContext.NPC -> NPC
             ImportContext.REGION -> REGION
             ImportContext.CUSTOMMENU -> CUSTOMMENU
-            else -> error("Unknown context: ${session.container?.context}")
+            else -> null
         }
 
         val badgeX = if (session is ExportSession) x + 8 else x + 121
@@ -102,9 +102,9 @@ class WorkingWidget(x: Int, y: Int) :
         guiGraphics.drawEllipsis(
             MC.font,
             Component.literal("${input ?: "Unknown"}"),
-            if (badgeInput) x + 11 else x + 20,
+            if (badgeInput || badgeTexture == null) x + 11 else x + 20,
             y + 22,
-            if (badgeInput) 92 else 83,
+            if (badgeInput || badgeTexture == null) 92 else 83,
             0xFF3F3F3F.toInt(),
             false
         )
@@ -112,25 +112,27 @@ class WorkingWidget(x: Int, y: Int) :
         guiGraphics.drawEllipsis(
             MC.font,
             Component.literal(output ?: "Unknown"),
-            if (!badgeInput) x + 121 else x + 130,
+            if (!badgeInput || badgeTexture == null) x + 121 else x + 130,
             y + 22,
-            if (!badgeInput) 92 else 83,
+            if (!badgeInput || badgeTexture == null) 92 else 83,
             0xFF3F3F3F.toInt(),
             false
         )
 
-        guiGraphics.blit(
-            RenderPipelines.GUI_TEXTURED,
-            badgeTexture,
-            badgeX,
-            y + 22,
-            0.0f,
-            0.0f,
-            7,
-            7,
-            7,
-            7
-        )
+        if (badgeTexture != null) {
+            guiGraphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                badgeTexture,
+                badgeX,
+                y + 22,
+                0.0f,
+                0.0f,
+                7,
+                7,
+                7,
+                7
+            )
+        }
 
         renderQueue(guiGraphics, mouseX, mouseY, delta)
     }

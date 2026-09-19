@@ -1,8 +1,8 @@
 package llc.redstone.htslreborn.ui
 
-import llc.redstone.htslreborn.queue.Queue
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.AbstractContainerWidget
+import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.components.events.GuiEventListener
 import net.minecraft.client.gui.layouts.Layout
 import net.minecraft.client.gui.narration.NarratableEntry
@@ -11,8 +11,11 @@ import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 
-class HTSLScrollWidget(val layout: Layout, scrollAmount: Double) :
-    AbstractContainerWidget(layout.x, layout.y, layout.width, layout.height, Component.empty()) {
+class HTSLScrollWidget(
+    x: Int, y: Int, width: Int, height: Int,
+    val layout: Layout, scrollAmount: Double
+) :
+    AbstractContainerWidget(x, y, width, height, Component.empty()) {
     companion object {
         const val BAR_WIDTH = 3
 
@@ -20,15 +23,22 @@ class HTSLScrollWidget(val layout: Layout, scrollAmount: Double) :
         val SCROLLER_BACKGROUND = Identifier.withDefaultNamespace("widget/scroller_background")
     }
 
+    private val childWidgets = mutableListOf<AbstractWidget>()
+
     init {
         setScrollAmount(scrollAmount)
+    }
+
+    private fun syncChildren() {
+        childWidgets.clear()
+        layout.visitWidgets { childWidgets.add(it) }
     }
 
     override fun contentHeight(): Int = layout.height
 
     override fun scrollRate(): Double = 17.0
 
-    override fun scrollbarVisible(): Boolean = true;
+    override fun scrollbarVisible(): Boolean = true
 
     override fun scrollBarX(): Int = this.x + this.width - BAR_WIDTH
 
@@ -70,17 +80,18 @@ class HTSLScrollWidget(val layout: Layout, scrollAmount: Double) :
     override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
         layout.setPosition(x, y - scrollAmount().toInt())
         layout.arrangeElements()
+        syncChildren()
         guiGraphics.enableScissor(x, y, x + width, y + height)
-        for (entry in Queue.containers) {
-            entry.render(guiGraphics, mouseX, mouseY, delta)
+        for (child in childWidgets) {
+            child.render(guiGraphics, mouseX, mouseY, delta)
         }
         guiGraphics.disableScissor()
         renderScrollbar(guiGraphics, mouseX, mouseY)
     }
 
-    override fun children(): MutableList<out GuiEventListener> = Queue.containers
+    override fun children(): MutableList<out GuiEventListener> = childWidgets
 
-    override fun getNarratables(): Collection<NarratableEntry> = Queue.containers
+    override fun getNarratables(): Collection<NarratableEntry> = childWidgets
 
     override fun updateWidgetNarration(narrationElementOutput: NarrationElementOutput) {
     }

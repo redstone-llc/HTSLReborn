@@ -1,10 +1,7 @@
 package llc.redstone.htslreborn.queue.differ
 
 import llc.redstone.htslreborn.HTSLReborn.JAVERS
-import llc.redstone.htslreborn.data.Action
-import llc.redstone.htslreborn.data.Condition
-import llc.redstone.htslreborn.data.ImportContext
-import llc.redstone.htslreborn.data.ScriptContainer
+import llc.redstone.htslreborn.data.*
 import llc.redstone.htslreborn.queue.*
 import llc.redstone.htslreborn.queue.exporter.Exporter
 import llc.redstone.htslreborn.queue.importer.Importer
@@ -28,8 +25,14 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 object Differ : BuildableContainer {
-    fun process(containers: List<ScriptContainer>, path: Path) {
-        Queue.containers.addAll(containers.map { ContainerQueueEntry(it, Differ, path) })
+    fun process(containers: List<ScriptContainer>, path: Path, context: ImportContext? = null, target: ContextTarget? = null) {
+        Queue.containers.addAll(containers.mapIndexed { index, container ->
+            if (index == 0 && context != null && target != null && container.context == ImportContext.DEFAULT) {
+                container.context = context
+                container.target = target
+            }
+            ContainerQueueEntry(container, Differ, path)
+        })
     }
 
     override fun build(container: ScriptContainer?, exportFrom: Int, path: Path?): List<Operation> {

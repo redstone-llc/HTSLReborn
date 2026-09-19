@@ -3,6 +3,9 @@ package llc.redstone.htslreborn.ui
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.accessor.HandledScreenAccessor
 import llc.redstone.htslreborn.queue.Queue
+import llc.redstone.htslreborn.ui.browser.BrowsingTopbarWidget
+import llc.redstone.htslreborn.ui.browser.BrowsingWidget
+import llc.redstone.htslreborn.ui.browser.FileHandler
 import llc.redstone.htslreborn.ui.working.BottombarWidget
 import llc.redstone.htslreborn.ui.working.WorkingTopbarWidget
 import llc.redstone.htslreborn.ui.working.WorkingWidget
@@ -10,10 +13,11 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
+import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedDeque
 
 class HTSLScreen : Screen(Component.literal("Working Screen")) {
     companion object {
@@ -37,43 +41,79 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
         fun shouldBeVisible(): Boolean {
             return Queue.isActive || housingTitles.any { title -> MC.screen?.title?.string?.contains(title) == true } || MC.screen is InventoryScreen/* || MC.screen is CreativeModeInventoryScreen*/
         }
+
+        var isBrowsing = false
+        var browsingType: BrowsingType? = BrowsingType.IMPORT_LEFT
+
+        fun import() {
+            isBrowsing = !isBrowsing
+            if (isBrowsing) {
+                browsingType = BrowsingType.IMPORT_LEFT
+                FileHandler.refreshFiles()
+            }
+        }
+
+        fun export() {
+            isBrowsing = !isBrowsing
+            if (isBrowsing) {
+                browsingType = BrowsingType.EXPORT_LEFT
+                FileHandler.refreshFiles()
+            }
+        }
+
+        fun notBrowsing() {
+            isBrowsing = false
+            browsingType = null
+            BrowsingWidget.container = null
+            BrowsingWidget.filePath = null
+        }
     }
 
     val imageWidth = 176
+    val biggerImageWidth = 223
 
-    val widgets = ConcurrentHashMap<String, AbstractWidget>()
+    val widgets = ConcurrentLinkedDeque<AbstractWidget>()
 
     override fun init() {
         super.init()
         val accessor = MC.screen as? HandledScreenAccessor ?: return
         val menuSize = getMenuHeight()
-        val menuTop = if (Queue.isActive) (this.height - menuSize) / 2 else accessor.getGuiTop()
+        val menuTop = if (Queue.isActive || isBrowsing) (this.height - menuSize) / 2 else accessor.getGuiTop()
 
-        if (Queue.isActive && widgets.size <= 1) {
-            widgets["topbar"] = WorkingTopbarWidget((this.width - imageWidth) / 2, menuTop - 19)
-            widgets["bottombar"] =
-                BottombarWidget((this.width - imageWidth) / 2, (this.height - menuSize) / 2 + menuSize)
-            widgets["working"] = WorkingWidget((this.width - imageWidth) / 2, (this.height - 222) / 2)
+        if (isBrowsing && widgets.find { it is BrowsingWidget } == null) {
+            widgets.clear()
+            widgets.add(BrowsingTopbarWidget((this.width - biggerImageWidth) / 2, menuTop - 19))
+            widgets.add(BrowsingWidget((this.width - biggerImageWidth) / 2, (this.height - 222) / 2))
+            if (Queue.isActive) {
+                widgets.add(BottombarWidget((this.width - biggerImageWidth) / 2, (this.height - menuSize) / 2 + menuSize))
+            }
+            return
+        }
+        if (Queue.isActive && !isBrowsing && widgets.find { it is WorkingWidget } == null) {
+            widgets.clear()
+            widgets.add(WorkingTopbarWidget((this.width - biggerImageWidth) / 2, menuTop - 19))
+            widgets.add(WorkingWidget((this.width - biggerImageWidth) / 2, (this.height - 222) / 2))
+            widgets.add(BottombarWidget((this.width - biggerImageWidth) / 2, (this.height - menuSize) / 2 + menuSize))
             return
         }
 
-        if (!Queue.isActive) {
+        if (!Queue.isActive && !isBrowsing) {
             if (widgets.size > 1) widgets.clear()
 
-            widgets["topbar"] = TopbarWidget((this.width - imageWidth) / 2, menuTop - 19)
+            widgets.add(TopbarWidget((this.width - imageWidth) / 2, menuTop - 19))
         }
     }
 
     override fun render(guiGraphics: GuiGraphics, i: Int, j: Int, f: Float) {
         super.render(guiGraphics, i, j, f)
         init()
-        widgets.forEach { (_, widget) ->
+        widgets.forEach { widget ->
             widget.render(guiGraphics, i, j, f)
         }
     }
 
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, bl: Boolean): Boolean {
-        widgets.forEach { (_, widget) ->
+        widgets.forEach { widget ->
             if (widget.mouseClicked(mouseButtonEvent, bl)) {
                 return true
             }
@@ -82,7 +122,7 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
     }
 
     override fun mouseScrolled(d: Double, e: Double, f: Double, g: Double): Boolean {
-        widgets.forEach { (_, widget) ->
+        widgets.forEach { widget ->
             if (widget.mouseScrolled(d, e, f, g)) {
                 return true
             }
@@ -91,7 +131,7 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
     }
 
     override fun mouseDragged(mouseButtonEvent: MouseButtonEvent, d: Double, e: Double): Boolean {
-        widgets.forEach { (_, widget) ->
+        widgets.forEach { widget ->
             if (widget.mouseDragged(mouseButtonEvent, d, e)) {
                 return true
             }
@@ -100,7 +140,7 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
-        widgets.forEach { (_, widget) ->
+        widgets.forEach { widget ->
             if (widget.mouseReleased(mouseButtonEvent)) {
                 return true
             }
@@ -109,7 +149,7 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
-        widgets.forEach { (_, widget) ->
+        widgets.forEach { widget ->
             if (widget.keyPressed(keyEvent)) {
                 return true
             }
@@ -117,8 +157,24 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
         return super.keyPressed(keyEvent)
     }
 
+    override fun charTyped(characterEvent: CharacterEvent): Boolean {
+        widgets.forEach { widget ->
+            if (widget.charTyped(characterEvent)) {
+                return true
+            }
+        }
+        return super.charTyped(characterEvent)
+    }
+
     fun getMenuHeight(): Int {
-        if (Queue.isActive) return 222
+        if (Queue.isActive || isBrowsing) return 222
         return 144
+    }
+
+    enum class BrowsingType {
+        IMPORT_LEFT,
+        IMPORT_RIGHT,
+        EXPORT_LEFT,
+        EXPORT_RIGHT
     }
 }
