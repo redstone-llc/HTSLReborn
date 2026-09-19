@@ -32,10 +32,10 @@ class TopbarWidget(x: Int, y: Int) : IconWidget(
             runBlocking { CommandUtils.runCommand("commands") }
         },
         Icon(145, 0) {
-            HTSLScreen.import()
+            HTSLScreen.export()
         },
         Icon(160, 0) {
-            HTSLScreen.export()
+            HTSLScreen.import()
         }
     )
 }

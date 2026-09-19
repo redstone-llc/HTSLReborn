@@ -40,6 +40,10 @@ class FileLayout(
         }
     }
 
+    //? if >=26.2 {
+    // override fun removeChildren(): Unit { }
+    //? }
+
     override fun arrangeElements() {
         super.arrangeElements()
         sync()

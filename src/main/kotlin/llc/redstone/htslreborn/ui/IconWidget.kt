@@ -1,6 +1,6 @@
 package llc.redstone.htslreborn.ui
 
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.narration.NarrationElementOutput
 import net.minecraft.client.input.MouseButtonEvent
@@ -23,8 +23,8 @@ abstract class IconWidget(x: Int, y: Int, w: Int, h: Int, comp: Component) : Abs
         return false
     }
 
-    override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, delta)
+    override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
+        this.renderBackground(guiGraphics, mouseX, mouseY, a)
 
         val relativeMouseX = mouseX - x
         val relativeMouseY = mouseY - y
@@ -51,7 +51,7 @@ abstract class IconWidget(x: Int, y: Int, w: Int, h: Int, comp: Component) : Abs
         }
     }
 
-    private fun renderBackground(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    private fun renderBackground(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         guiGraphics.blit(
             RenderPipelines.GUI_TEXTURED,
             BACKGROUND,

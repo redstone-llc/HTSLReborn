@@ -8,7 +8,7 @@ import llc.redstone.htslreborn.queue.exporter.ExportSession
 import llc.redstone.htslreborn.queue.importer.ImportSession
 import llc.redstone.htslreborn.ui.HTSLScrollWidget
 import llc.redstone.htslreborn.utils.TextUtils.drawEllipsis
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.narration.NarrationElementOutput
 import net.minecraft.client.input.MouseButtonEvent
@@ -32,12 +32,12 @@ class WorkingWidget(x: Int, y: Int) :
 
     private val queueScroll = HTSLScrollWidget(0, 0, 206, 161, QueueLayout(0, 0, 206, 161), scrollHeight)
 
-    override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         val session = Queue.session ?: return
 
         this.renderBackground(guiGraphics, mouseX, mouseY, delta)
 
-        guiGraphics.drawString(
+        guiGraphics.text(
             MC.font,
             Component.literal(
                 when (session) {
@@ -53,7 +53,7 @@ class WorkingWidget(x: Int, y: Int) :
             false
         )
 
-        guiGraphics.drawString(
+        guiGraphics.text(
             MC.font,
             Component.literal(
                 "Task ${Queue.tasksStarted}/${Queue.containers.size}"
@@ -137,13 +137,13 @@ class WorkingWidget(x: Int, y: Int) :
         renderQueue(guiGraphics, mouseX, mouseY, delta)
     }
 
-    private fun renderQueue(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    private fun renderQueue(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         queueScroll.setPosition(x + 9, y + 53)
-        queueScroll.render(guiGraphics, mouseX, mouseY, delta)
+        queueScroll.extractRenderState(guiGraphics, mouseX, mouseY, delta)
         scrollHeight = queueScroll.scrollAmount()
     }
 
-    private fun renderBackground(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    private fun renderBackground(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         guiGraphics.blit(
             RenderPipelines.GUI_TEXTURED,
             BACKGROUND,

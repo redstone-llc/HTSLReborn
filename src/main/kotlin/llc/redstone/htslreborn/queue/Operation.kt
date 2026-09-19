@@ -22,7 +22,7 @@ import llc.redstone.htslreborn.utils.PredicateUtils.ItemSelector
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
 import net.minecraft.client.Minecraft
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import kotlin.reflect.KClass
@@ -62,7 +62,7 @@ sealed interface Operation {
         }
     }
 
-    data class Click(val slot: Int, val button: Int = 0, val actionType: ClickType = ClickType.PICKUP) : Operation {
+    data class Click(val slot: Int, val button: Int = 0, val actionType: ContainerInput = ContainerInput.PICKUP) : Operation {
         override suspend fun execute(mc: Minecraft): Status {
             MenuUtils.interactionClick(slot, button, actionType)
             return Success

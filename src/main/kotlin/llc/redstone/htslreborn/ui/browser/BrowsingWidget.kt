@@ -16,7 +16,7 @@ import llc.redstone.htslreborn.ui.browser.FileHandler.baseDir
 import llc.redstone.htslreborn.utils.MenuUtils
 import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.TextUtils.drawEllipsis
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.components.EditBox
 import net.minecraft.client.gui.narration.NarrationElementOutput
@@ -26,7 +26,6 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
-import org.lwjgl.glfw.GLFW
 import java.nio.file.Path
 
 class BrowsingWidget(x: Int, y: Int) :
@@ -104,7 +103,7 @@ class BrowsingWidget(x: Int, y: Int) :
         }
     }
 
-    override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         val browsingType = HTSLScreen.browsingType ?: return
 
         this.renderBackground(guiGraphics, mouseX, mouseY, delta)
@@ -116,7 +115,7 @@ class BrowsingWidget(x: Int, y: Int) :
 
         val left = isLeftBrowsing()
 
-        guiGraphics.drawString(
+        guiGraphics.text(
             MC.font,
             Component.literal(browsingText),
             x + 8,
@@ -137,7 +136,7 @@ class BrowsingWidget(x: Int, y: Int) :
             }
         }
 
-        guiGraphics.drawString(
+        guiGraphics.text(
             MC.font,
             Component.literal(names.joinToString(" > ")),
             x + 9,
@@ -254,21 +253,21 @@ class BrowsingWidget(x: Int, y: Int) :
         renderFiles(guiGraphics, mouseX, mouseY, delta)
     }
 
-    private fun renderFiles(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    private fun renderFiles(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         val left = isLeftBrowsing()
         val scroll = if (left) fileScroll else contextScroll
 
         if (scroll == null) return
         scroll.setPosition(x + 10, y + 53)
-        scroll.render(guiGraphics, mouseX, mouseY, delta)
+        scroll.extractRenderState(guiGraphics, mouseX, mouseY, delta)
         scrollHeight = scroll.scrollAmount()
 
         searchBox.setPosition(x + 11, y + 204)
         searchBox.setSize(128, 13)
-        searchBox.render(guiGraphics, mouseX, mouseY, delta)
+        searchBox.extractRenderState(guiGraphics, mouseX, mouseY, delta)
     }
 
-    private fun renderBackground(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    private fun renderBackground(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         guiGraphics.blit(
             RenderPipelines.GUI_TEXTURED,
             BACKGROUND,
@@ -409,7 +408,7 @@ class BrowsingWidget(x: Int, y: Int) :
             if (searchBox.keyPressed(keyEvent)) {
                 return true
             }
-            if (keyEvent.key() == GLFW.GLFW_KEY_ESCAPE) {
+            if (keyEvent.key() == 256) {
                 searchBox.isFocused = false
             }
             return true

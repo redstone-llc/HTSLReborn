@@ -1,6 +1,6 @@
 package llc.redstone.htslreborn.ui
 
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractContainerWidget
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.components.events.GuiEventListener
@@ -15,7 +15,7 @@ class HTSLScrollWidget(
     x: Int, y: Int, width: Int, height: Int,
     val layout: Layout, scrollAmount: Double
 ) :
-    AbstractContainerWidget(x, y, width, height, Component.empty()) {
+    AbstractContainerWidget(x, y, width, height, Component.empty(), defaultSettings(17)) {
     companion object {
         const val BAR_WIDTH = 3
 
@@ -38,8 +38,6 @@ class HTSLScrollWidget(
 
     override fun scrollRate(): Double = 17.0
 
-    override fun scrollbarVisible(): Boolean = true
-
     override fun scrollBarX(): Int = this.x + this.width - BAR_WIDTH
 
     override fun isOverScrollbar(mouseX: Double, mouseY: Double): Boolean {
@@ -47,7 +45,7 @@ class HTSLScrollWidget(
                 mouseY >= y && mouseY < y + height
     }
 
-    override fun renderScrollbar(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int) {
+    override fun extractScrollbar(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         if (this.maxScrollAmount() <= 0) {
             guiGraphics.blitSprite(
                 RenderPipelines.GUI_TEXTURED,
@@ -77,16 +75,16 @@ class HTSLScrollWidget(
         )
     }
 
-    override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         layout.setPosition(x, y - scrollAmount().toInt())
         layout.arrangeElements()
         syncChildren()
         guiGraphics.enableScissor(x, y, x + width, y + height)
         for (child in childWidgets) {
-            child.render(guiGraphics, mouseX, mouseY, delta)
+            child.extractRenderState(guiGraphics, mouseX, mouseY, delta)
         }
         guiGraphics.disableScissor()
-        renderScrollbar(guiGraphics, mouseX, mouseY)
+        extractScrollbar(guiGraphics, mouseX, mouseY)
     }
 
     override fun children(): MutableList<out GuiEventListener> = childWidgets

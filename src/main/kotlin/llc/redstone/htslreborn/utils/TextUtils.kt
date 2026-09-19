@@ -2,7 +2,7 @@ package llc.redstone.htslreborn.utils
 
 import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.Font
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TextColor
 
@@ -78,7 +78,7 @@ object TextUtils {
         return result.append(Component.literal(ellipsis).withStyle(lastStyle))
     }
 
-    fun GuiGraphics.drawEllipsis(
+    fun GuiGraphicsExtractor.drawEllipsis(
         font: Font,
         text: Component,
         x: Int,
@@ -87,10 +87,10 @@ object TextUtils {
         color: Int,
         dropShadow: Boolean = false,
     ) {
-        drawString(font, ellipsize(font, text, maxWidth), x, y, color, dropShadow)
+        text(font, ellipsize(font, text, maxWidth), x, y, color, dropShadow)
     }
 
-    fun GuiGraphics.drawEllipsis(
+    fun GuiGraphicsExtractor.drawEllipsis(
         font: Font,
         text: String,
         x: Int,

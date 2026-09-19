@@ -5,7 +5,7 @@ import llc.redstone.htslreborn.queue.Progress
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.ui.Icon
 import llc.redstone.htslreborn.ui.IconWidget
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.FontDescription
@@ -36,16 +36,16 @@ class BottombarWidget(
 //        startingY = (this.height - menuSize) / 2 + menuSize
     }
 
-    override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
-        super.renderWidget(guiGraphics, mouseX, mouseY, delta)
+    override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
+        super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, delta)
 
         this.renderRelative(guiGraphics, mouseX, mouseY, delta)
     }
 
-    fun renderRelative(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    fun renderRelative(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         val progressPixels = width * (Progress.fraction.coerceIn(0f, 1f))
 
-        guiGraphics.drawString(
+        guiGraphics.text(
             MC.font,
             WORKING_COMPONENT,
             x + 6,
@@ -59,7 +59,7 @@ class BottombarWidget(
 
         val textWidth = MC.font.width(component)
 
-        guiGraphics.drawString(
+        guiGraphics.text(
             MC.font,
             component,
             x + 203 - textWidth,
@@ -82,7 +82,7 @@ class BottombarWidget(
             height,
             0xFF69b72b.toInt()
         )
-        guiGraphics.drawString(
+        guiGraphics.text(
             MC.font,
             WORKING_COMPONENT,
             x + 6,
@@ -90,7 +90,7 @@ class BottombarWidget(
             0xFF355C16.toInt(),
             false
         )
-        guiGraphics.drawString(
+        guiGraphics.text(
             MC.font,
             component,
             x + 203 - textWidth,

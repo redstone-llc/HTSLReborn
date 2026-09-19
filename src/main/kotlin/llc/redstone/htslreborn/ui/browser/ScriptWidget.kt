@@ -6,11 +6,15 @@ import llc.redstone.htslreborn.ui.Icon
 import llc.redstone.htslreborn.ui.IconWidget
 import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.TextUtils.drawEllipsis
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
+//? if >=26.3 {
+/*import com.mojang.blaze3d.Blaze3D
+*///?} else {
 import net.minecraft.util.Util
+//?}
 import java.nio.file.Path
 import kotlin.io.path.name
 
@@ -31,7 +35,11 @@ class ScriptWidget(val file: Path? = null, val scriptContainer: ScriptContainer?
         },
         Icon(185, 0, texture = OPEN_EXTERNALLY) {
             if (file == null) return@Icon
+            //? if >=26.3 {
+            /*Blaze3D.openPath(file)
+            *///?} else {
             Util.getPlatform().openPath(file)
+            //?}
         }
     )
 
@@ -40,8 +48,8 @@ class ScriptWidget(val file: Path? = null, val scriptContainer: ScriptContainer?
     override val BACKGROUND: Identifier
         get() = ScriptWidget.BACKGROUND
 
-    override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
-        super.renderWidget(guiGraphics, mouseX, mouseY, delta)
+    override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
+        super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, delta)
         guiGraphics.drawEllipsis(
             MC.font,
             file?.name ?: scriptContainer?.target?.name?.let { TextUtils.titleCase(it) } ?: "Default",

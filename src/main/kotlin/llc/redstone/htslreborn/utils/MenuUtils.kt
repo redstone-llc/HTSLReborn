@@ -4,10 +4,6 @@ package llc.redstone.htslreborn.utils
 /*import llc.redstone.htslreborn.screen
 *///?}
 
-//? if >=26.1 {
-/*import net.minecraft.world.inventory.ContainerInput
-*///?} else {
-//?}
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
@@ -23,7 +19,7 @@ import net.minecraft.client.gui.screens.inventory.AnvilScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.network.HashedStack
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
@@ -91,14 +87,14 @@ object MenuUtils {
         }
     }
 
-    suspend fun packetClick(slot: Int, button: Int = 0, clickType: ClickType = ClickType.PICKUP) = ClientThread.send {
+    suspend fun packetClick(slot: Int, button: Int = 0, input: ContainerInput = ContainerInput.PICKUP) = ClientThread.send {
         val gui = MC.screen as? AbstractContainerScreen<*> ?: return@send
         val pkt = ServerboundContainerClickPacket(
             gui.menu.containerId,
             gui.menu.stateId,
             slot.toShort(),
             button.toByte(),
-            clickType,
+            input,
             Int2ObjectOpenHashMap(),
             HashedStack.EMPTY
         )
@@ -106,27 +102,17 @@ object MenuUtils {
         MC.connection?.send(pkt) ?: error("Failed to send click packet")
     }
 
-    suspend fun interactionClick(slot: Int, button: Int = 0, clickType: ClickType = ClickType.PICKUP) = ClientThread.send {
+    suspend fun interactionClick(slot: Int, button: Int = 0, input: ContainerInput = ContainerInput.PICKUP) = ClientThread.send {
         val gui = MC.screen as? AbstractContainerScreen<*> ?: return@send
 
         val player = MC.player ?: return@send
-        //? if >=26.1 {
-        /*MC.gameMode?.handleContainerInput(
+        MC.gameMode?.handleContainerInput(
             gui.menu.containerId,
             slot,
             button,
-            clickType,
+            input,
             player
         )
-        *///?} else {
-        MC.gameMode?.handleInventoryMouseClick(
-            gui.menu.containerId,
-            slot,
-            button,
-            clickType,
-            player
-        )
-        //?}
     }
 
     suspend fun clickPlayerSlot(slot: Int, button: Int = 0) {

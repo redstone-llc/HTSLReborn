@@ -13,13 +13,7 @@ group = "llc.redstone"
 version = "${property("mod.version")}+${stonecutter.current.version}"
 base.archivesName = property("mod.id") as String
 
-val requiredJava: JavaVersion = when {
-    stonecutter.current.parsed >= "26.1" -> JavaVersion.VERSION_25
-    stonecutter.current.parsed >= "1.20.5" -> JavaVersion.VERSION_21
-    stonecutter.current.parsed >= "1.18" -> JavaVersion.VERSION_17
-    stonecutter.current.parsed >= "1.17" -> JavaVersion.VERSION_16
-    else -> JavaVersion.VERSION_1_8
-}
+val requiredJava: JavaVersion = JavaVersion.VERSION_25
 
 
 repositories {
@@ -54,7 +48,14 @@ dependencies {
     modCompileOnly("maven.modrinth:LQ3K71Q1:${property("deps.dynamic_fps")}")
 
     implementation(include("org.mozilla:rhino:1.9.1")!!)
+
+    // include() is not transitive, so javers' own runtime dependencies have to be nested by hand.
     implementation(include("org.javers:javers-core:7.11.8")!!)
+    include("org.picocontainer:picocontainer:2.15")
+    include("io.github.classgraph:classgraph:4.8.184")
+
+    // The KMP root module resolves to the -jvm variant, which include() cannot pick on its own.
+    implementation(include("com.strumenta:antlr-kotlin-runtime-jvm:1.0.13")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 }
@@ -99,9 +100,6 @@ kotlin {
     }
     sourceSets {
         main {
-            dependencies {
-                implementation("com.strumenta:antlr-kotlin-runtime:1.0.13")
-            }
             kotlin.srcDir(generateKotlinGrammarSource)
         }
     }

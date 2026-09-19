@@ -4,7 +4,7 @@ plugins {
 //    id("me.modmuss50.mod-publish-plugin") version "1.0.+" apply false // Publishes builds to hosting websites
 }
 
-stonecutter active "1.21.11"
+stonecutter active "26.1.2"
 
 /*
 // Make newer versions be published last
@@ -21,9 +21,6 @@ stonecutter parameters {
     dependencies["fapi"] = node.project.property("deps.fabric_api") as String
 
     replacements {
-        string(current.parsed > "1.21.11") {
-            replace("ClickType", "ContainerInput")
-            replace("GuiGraphics", "GuiGraphicsExtractor")
-        }
+
     }
 }

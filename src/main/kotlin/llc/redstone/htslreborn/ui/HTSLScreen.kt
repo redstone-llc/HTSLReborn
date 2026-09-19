@@ -1,5 +1,9 @@
 package llc.redstone.htslreborn.ui
 
+//? if >=26.2 {
+/*import llc.redstone.htslreborn.screen
+*///?}
+
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.accessor.HandledScreenAccessor
 import llc.redstone.htslreborn.queue.Queue
@@ -9,7 +13,7 @@ import llc.redstone.htslreborn.ui.browser.FileHandler
 import llc.redstone.htslreborn.ui.working.BottombarWidget
 import llc.redstone.htslreborn.ui.working.WorkingTopbarWidget
 import llc.redstone.htslreborn.ui.working.WorkingWidget
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
@@ -104,11 +108,11 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
         }
     }
 
-    override fun render(guiGraphics: GuiGraphics, i: Int, j: Int, f: Float) {
-        super.render(guiGraphics, i, j, f)
+    override fun extractRenderState(guiGraphics: GuiGraphicsExtractor, i: Int, j: Int, f: Float) {
+        super.extractRenderState(guiGraphics, i, j, f)
         init()
         widgets.forEach { widget ->
-            widget.render(guiGraphics, i, j, f)
+            widget.extractRenderState(guiGraphics, i, j, f)
         }
     }
 

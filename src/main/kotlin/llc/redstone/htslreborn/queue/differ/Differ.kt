@@ -14,7 +14,7 @@ import llc.redstone.htslreborn.utils.MenuUtils.ACTION_SLOTS
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
 import llc.redstone.htslreborn.utils.ToastUtils
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import org.javers.core.diff.changetype.container.ElementValueChange
 import org.javers.core.diff.changetype.container.ListChange
 import org.javers.core.diff.changetype.container.ValueAdded
@@ -85,7 +85,7 @@ object Differ : BuildableContainer {
                         var (currentPage, currentSlot) = MenuUtils.getSlotAndPage(newIndex)
                         while (currentSlot != indexSlot || currentPage != indexPage) {
                             counter += 1
-                            +Operation.Click(ACTION_SLOTS[currentSlot], 0, ClickType.QUICK_MOVE)
+                            +Operation.Click(ACTION_SLOTS[currentSlot], 0, ContainerInput.QUICK_MOVE)
                             +Operation.OpenMenu(NameContains("Actions"))
                             val (newPage, newSlot) = MenuUtils.getSlotAndPage(newIndex - counter)
                             currentPage = newPage
@@ -163,7 +163,7 @@ object Differ : BuildableContainer {
                             var (currentPage, currentSlot) = MenuUtils.getSlotAndPage(newIndex - counter)
                             while (currentSlot != indexSlot || currentPage != indexPage) {
                                 counter += 1
-                                +Operation.Click(ACTION_SLOTS[currentSlot], 0, ClickType.QUICK_MOVE)
+                                +Operation.Click(ACTION_SLOTS[currentSlot], 0, ContainerInput.QUICK_MOVE)
                                 +Operation.OpenMenu(NameExact("Edit Conditions"))
                                 val (newPage, newSlot) = MenuUtils.getSlotAndPage(oldActions.size - counter)
                                 currentPage = newPage

@@ -10,7 +10,7 @@ import llc.redstone.htslreborn.queue.importer.Importer
 import llc.redstone.htslreborn.ui.Icon
 import llc.redstone.htslreborn.ui.IconWidget
 import llc.redstone.htslreborn.utils.TextUtils.drawEllipsis
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.narration.NarrationElementOutput
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
@@ -53,8 +53,8 @@ data class ContainerQueueEntry(
             State.COMPLETE -> COMPLETE
         }
 
-    override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
-        super.renderWidget(guiGraphics, mouseX, mouseY, delta)
+    override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
+        super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, delta)
         val contextName = when (context) {
             is Importer -> "Import"
             is Exporter -> "Export"

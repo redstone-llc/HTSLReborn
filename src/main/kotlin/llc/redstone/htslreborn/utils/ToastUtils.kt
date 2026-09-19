@@ -7,6 +7,14 @@ import net.minecraft.network.chat.Component
 object ToastUtils {
     fun send(title: String, description: String) {
         MC.execute {
+            //? if >=26.2 {
+            //SystemToast.add(
+            //   MC.gui.toastManager(),
+            //   SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+            //   Component.literal(title),
+            //   Component.literal(description),
+            //)
+            //? } else {
             MC.toastManager.addToast(
                 SystemToast.multiline(
                     MC,
@@ -15,6 +23,7 @@ object ToastUtils {
                     Component.literal(description),
                 )
             );
+            //? }
         }
     }
 }

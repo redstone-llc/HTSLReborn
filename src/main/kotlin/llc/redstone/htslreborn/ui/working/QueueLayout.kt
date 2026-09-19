@@ -26,6 +26,10 @@ class QueueLayout(
         }
     }
 
+    //? if >=26.2 {
+    // override fun removeChildren(): Unit { }
+    //? }
+
     override fun getWidth(): Int = 197
 
     override fun getHeight(): Int = Queue.containers.size * 17

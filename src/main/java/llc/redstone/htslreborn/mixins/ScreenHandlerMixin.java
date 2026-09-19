@@ -3,7 +3,7 @@ package llc.redstone.htslreborn.mixins;
 import llc.redstone.htslreborn.accessor.HandledScreenAccessor;
 import llc.redstone.htslreborn.queue.Queue;
 import llc.redstone.htslreborn.ui.HTSLScreen;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
@@ -36,14 +36,14 @@ public abstract class ScreenHandlerMixin extends Screen implements HandledScreen
     @Unique
     boolean menuRendered = false;
 
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    public void htslreborn$render(GuiGraphics context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
+    @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
+    public void htslreborn$render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
         if (!HTSLScreen.shouldBeVisible()) {
 //            if (menuRendered) FileExplorer.getINSTANCE().resetCursor();
             menuRendered = false;
             return;
         }
-        HTSLScreen.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
+        HTSLScreen.getINSTANCE().extractRenderState(graphics, mouseX, mouseY, a);
         menuRendered = true;
         if (Queue.INSTANCE.isActive() || HTSLScreen.Companion.isBrowsing()) {
             ci.cancel();

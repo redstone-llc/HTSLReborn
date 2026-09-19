@@ -4,7 +4,7 @@ import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.queue.Progress
 import llc.redstone.htslreborn.queue.Queue
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
 
 object DebugHud {
@@ -16,12 +16,12 @@ object DebugHud {
         }
     }
 
-    fun render(context: GuiGraphics) {
+    fun render(context: GuiGraphicsExtractor) {
         if (!Queue.isActive) return
         val font = MC.font
         var y = 10
         fun line(text: String) {
-            context.drawString(font, text, 10, y, 0xFFFFFFFF.toInt())
+            context.text(font, text, 10, y, 0xFFFFFFFF.toInt())
             y += 15
         }
 
