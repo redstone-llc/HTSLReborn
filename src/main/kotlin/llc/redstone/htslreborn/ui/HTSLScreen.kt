@@ -50,6 +50,11 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
         var browsingType: BrowsingType? = BrowsingType.IMPORT_LEFT
 
         fun import() {
+            if (isBrowsing && (browsingType == BrowsingType.EXPORT_RIGHT || browsingType == BrowsingType.EXPORT_LEFT)) {
+                browsingType = BrowsingType.IMPORT_LEFT
+                FileHandler.refreshFiles()
+                return
+            }
             isBrowsing = !isBrowsing
             if (isBrowsing) {
                 browsingType = BrowsingType.IMPORT_LEFT
@@ -58,6 +63,11 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
         }
 
         fun export() {
+            if (isBrowsing && (browsingType == BrowsingType.IMPORT_RIGHT || browsingType == BrowsingType.IMPORT_LEFT)) {
+                browsingType = BrowsingType.EXPORT_LEFT
+                FileHandler.refreshFiles()
+                return
+            }
             isBrowsing = !isBrowsing
             if (isBrowsing) {
                 browsingType = BrowsingType.EXPORT_LEFT
@@ -114,6 +124,11 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
         widgets.forEach { widget ->
             widget.extractRenderState(guiGraphics, i, j, f)
         }
+    }
+
+    override fun onClose() {
+        notBrowsing()
+        super.onClose()
     }
 
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, bl: Boolean): Boolean {

@@ -17,6 +17,7 @@ import net.minecraft.util.Util
 //?}
 import java.nio.file.Path
 import kotlin.io.path.name
+import kotlin.io.path.nameWithoutExtension
 
 class ScriptWidget(val file: Path? = null, val scriptContainer: ScriptContainer? = null) : IconWidget(0, 0, 200, 15, Component.literal("Script")) {
     companion object {
@@ -66,6 +67,7 @@ class ScriptWidget(val file: Path? = null, val scriptContainer: ScriptContainer?
         if (hovered && mouseButtonEvent.x.toInt() in x..(x + 170) && mouseButtonEvent.y.toInt() in y..(y + height)) {
             if (file != null) {
                 BrowsingWidget.filePath = file
+                BrowsingWidget.searchBox?.value = file.nameWithoutExtension
             } else if (scriptContainer != null) {
                 BrowsingWidget.container = scriptContainer
             }

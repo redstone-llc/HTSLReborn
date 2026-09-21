@@ -17,7 +17,7 @@ public class InventoryScreenMixin {
 
         HTSLScreen.getINSTANCE().extractRenderState(context, mouseX, mouseY, deltaTicks);
 
-        if (Queue.INSTANCE.isActive()) {
+        if (Queue.INSTANCE.isActive() || HTSLScreen.Companion.isBrowsing()) {
             ci.cancel();
         }
     }

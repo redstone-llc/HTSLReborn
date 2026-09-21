@@ -72,6 +72,10 @@ public abstract class ScreenHandlerMixin extends Screen implements HandledScreen
         if (HTSLScreen.getINSTANCE().keyPressed(input)) {
             cir.setReturnValue(true);
         }
+
+        if (Queue.INSTANCE.isActive()) {
+            cir.setReturnValue(true);
+        }
     }
 
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
