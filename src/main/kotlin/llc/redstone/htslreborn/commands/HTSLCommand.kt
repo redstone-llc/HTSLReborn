@@ -57,7 +57,6 @@ object HTSLCommand {
                             .executes(::saveItem)
                     ))
                     .then(literal("delete")
-                        .then(literal("confirm").executes(::confirmDelete))
                         .then(
                             argument("file", StringArgumentType.greedyString())
                                 .executes(::deleteItem)
@@ -135,6 +134,10 @@ object HTSLCommand {
 
     fun deleteItem(context: CommandContext<FabricClientCommandSource>): Int {
         val fileArg = StringArgumentType.getString(context, "file")
+        if (fileArg == "confirm") {
+            return confirmDelete(context)
+        }
+
         val file = resolveBaseFile(fileArg, "nbt")
         if (HTSLConfig.data.fileDeletionConfirmation) {
             HTSLConfig.pendingDelete = file
