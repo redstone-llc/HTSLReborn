@@ -8,6 +8,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import llc.redstone.htslreborn.HTSLReborn.MC
+import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.utils.ItemStackUtils.giveItem
 import llc.redstone.htslreborn.utils.TextUtils.convertTextToString
 import net.minecraft.client.Minecraft
@@ -31,7 +32,7 @@ object InputUtils {
             if (type != null) {
                 return handleInput(input, type!!)
             }
-            withTimeout(5000.milliseconds) {
+            withTimeout(HTSLConfig.data.inputTimeout.milliseconds) {
                 val type = pendingInput?.await() ?: return@withTimeout false
                 return@withTimeout handleInput(input, type)
             }
@@ -71,7 +72,7 @@ object InputUtils {
         }
     }
 
-    private suspend fun awaitScreen(failure: String, timeout: Duration = 5000.milliseconds, predicate: (Screen?) -> Boolean) {
+    private suspend fun awaitScreen(failure: String, timeout: Duration = HTSLConfig.data.inputTimeout.milliseconds, predicate: (Screen?) -> Boolean) {
         val deadline = System.currentTimeMillis() + timeout.inWholeMilliseconds
         while (!predicate(MC.screen)) {
             if (System.currentTimeMillis() > deadline) error(failure)
@@ -103,7 +104,7 @@ object InputUtils {
 
         click()
 
-        val deadline = System.currentTimeMillis() + 5000
+        val deadline = System.currentTimeMillis() + HTSLConfig.data.itemTimeout
         while (true) {
             val received = ClientThread.run { diffInventory(before) }
                 .firstOrNull { matchesPendingItem(it.stack, displayName, compareStack) }
@@ -151,7 +152,7 @@ object InputUtils {
 
         return try {
             click()
-            withTimeout(5000.milliseconds) { deferred.await() }
+            withTimeout(HTSLConfig.data.inputTimeout.milliseconds) { deferred.await() }
         } finally {
             if (pendingString === deferred) pendingString = null
             CommandUtils.runCommand("chatinput cancel")

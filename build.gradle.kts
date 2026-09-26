@@ -35,7 +35,6 @@ repositories {
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     strictMaven("https://maven.terraformersmc.com/", "Terraformers", "com.terraformersmc")
     strictMaven("https://maven.isxander.dev/releases", "xanderRepoReleases", "dev.isxander", "org.quiltmc.parsers")
-    strictMaven("https://maven.wispforest.io/releases", "wispForestReleases", "io.wispforest", "io.wispforest.endec")
     strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth", "me.djtheredstoner")
 }
 
@@ -45,6 +44,8 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
+    modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
     modCompileOnly("maven.modrinth:LQ3K71Q1:${property("deps.dynamic_fps")}")
 
     implementation(include("org.mozilla:rhino:1.9.1")!!)

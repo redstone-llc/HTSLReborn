@@ -22,6 +22,9 @@
         "adapter": "kotlin",
         "value": "llc.redstone.htslreborn.HTSLReborn"
       }
+    ],
+    "modmenu": [
+      "llc.redstone.htslreborn.config.HTSLModMenu"
     ]
   },
   "mixins": [
@@ -31,6 +34,10 @@
     "fabricloader": ">=${fabric_loader}",
     "minecraft": "${minecraft}",
     "fabric-api": ">=${fabric_api}",
-    "fabric-language-kotlin": ">=${fabric_language_kotlin}"
+    "fabric-language-kotlin": ">=${fabric_language_kotlin}",
+    "yet_another_config_lib_v3": ">=3.9.7"
+  },
+  "suggests": {
+    "modmenu": "*"
   }
 }

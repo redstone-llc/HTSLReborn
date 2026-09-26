@@ -4,6 +4,7 @@ import com.mojang.brigadier.suggestion.Suggestions
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
 import llc.redstone.htslreborn.HTSLReborn.MC
+import llc.redstone.htslreborn.config.HTSLConfig
 import net.minecraft.client.Minecraft
 import net.minecraft.network.protocol.game.ServerboundCommandSuggestionPacket
 import kotlin.time.Duration.Companion.milliseconds
@@ -27,7 +28,7 @@ object CommandUtils {
 
         return try {
             MC.connection?.send(ServerboundCommandSuggestionPacket(1, partialCommand))
-            withTimeout(1_000.milliseconds) { deferred.await() }
+            withTimeout(HTSLConfig.data.commandTimeout.milliseconds) { deferred.await() }
         } finally {
             if (pending === deferred) pending = null
         }

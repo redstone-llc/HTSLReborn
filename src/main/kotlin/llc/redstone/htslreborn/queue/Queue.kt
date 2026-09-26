@@ -4,6 +4,7 @@ import kotlinx.coroutines.launch
 import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.HTSLReborn.SCOPE
+import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.queue.differ.DiffSession
 import llc.redstone.htslreborn.queue.differ.Differ
 import llc.redstone.htslreborn.queue.exporter.ExportSession
@@ -14,6 +15,7 @@ import llc.redstone.htslreborn.ui.working.ContainerQueueEntry
 import llc.redstone.htslreborn.ui.working.WorkingWidget
 import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.ToastUtils
+import net.minecraft.sounds.SoundEvents
 
 
 @DslMarker
@@ -144,9 +146,15 @@ object Queue {
                     current = queue.removeFirstOrNull()
                     attempts = 0
                     if (current == null) {
+                        val finished = tasksStarted >= containers.size
                         Progress.reset()
                         session?.end()
                         session = null
+                        if (finished && HTSLConfig.data.playCompleteSound) {
+                            MC.execute {
+                                MC.player?.playSound(SoundEvents.NOTE_BLOCK_BELL.value(), 1f, 1f)
+                            }
+                        }
                     } else {
                         Progress.recompute()
                     }

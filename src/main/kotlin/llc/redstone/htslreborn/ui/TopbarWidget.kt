@@ -1,6 +1,7 @@
 package llc.redstone.htslreborn.ui
 
 import kotlinx.coroutines.runBlocking
+import llc.redstone.htslreborn.ui.HTSLScreen.Companion.notBrowsing
 import llc.redstone.htslreborn.utils.CommandUtils
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
@@ -24,19 +25,34 @@ class TopbarWidget(x: Int, y: Int, val wide: Boolean = false, val containersActi
 
     override val icons = listOf(
         Icon(1, 0, disabled = !containersActive, tooltip = Component.translatable("htslreborn.topbar.housing_menu")) {
-            if (containersActive) runBlocking { CommandUtils.runCommand("menu") }
+            if (containersActive) runBlocking {
+                notBrowsing()
+                CommandUtils.runCommand("menu")
+            }
         },
         Icon(16, 0, disabled = !containersActive, tooltip = Component.translatable("htslreborn.topbar.functions")) {
-            if (containersActive) runBlocking { CommandUtils.runCommand("functions") }
+            if (containersActive) runBlocking {
+                notBrowsing()
+                CommandUtils.runCommand("functions")
+            }
         },
         Icon(31, 0, disabled = !containersActive, tooltip = Component.translatable("htslreborn.topbar.event_actions")) {
-            if (containersActive) runBlocking { CommandUtils.runCommand("eventactions") }
+            if (containersActive) runBlocking {
+                notBrowsing()
+                CommandUtils.runCommand("eventactions")
+            }
         },
         Icon(46, 0, disabled = !containersActive, tooltip = Component.translatable("htslreborn.topbar.regions")) {
-            if (containersActive) runBlocking { CommandUtils.runCommand("regions") }
+            if (containersActive) runBlocking {
+                notBrowsing()
+                CommandUtils.runCommand("regions")
+            }
         },
         Icon(61, 0, disabled = !containersActive, tooltip = Component.translatable("htslreborn.topbar.commands")) {
-            if (containersActive) runBlocking { CommandUtils.runCommand("commands") }
+            if (containersActive) runBlocking {
+                notBrowsing()
+                CommandUtils.runCommand("commands")
+            }
         },
         Icon(if (wide) 192 else 145, 0, tooltip = Component.translatable("htslreborn.topbar.export")) {
             HTSLScreen.export()

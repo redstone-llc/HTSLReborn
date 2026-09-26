@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import llc.redstone.htslreborn.commands.HTSLCommand
+import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.overlay.DebugHud
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.ui.browser.FileExplorerHandler
@@ -52,11 +53,15 @@ object HTSLReborn : ClientModInitializer {
             Queue.onTick()
         }
 
+        var notifiedResumable = false
+
         ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
-            if (Queue.pause()) LOGGER.info("Paused import due to disconnect")
+            if (Queue.pause()) {
+                LOGGER.info("Paused import due to disconnect")
+                notifiedResumable = false
+            }
         }
 
-        var notifiedResumable = false
         ClientPlayConnectionEvents.JOIN.register { _, _, _ ->
             if (!notifiedResumable && Queue.session?.canResume == true) {
                 ToastUtils.resumableSession()
@@ -70,7 +75,9 @@ object HTSLReborn : ClientModInitializer {
 
         DebugHud.register()
 
-        val htslDir = MC.gameDirectory.toPath().resolve("htsl")
+        HTSLConfig.load()
+        val htslDir = HTSLConfig.importsPath()
+        runCatching { Files.createDirectories(htslDir) }
         FileHandler.baseDir = htslDir
         FileHandler.currentDir = htslDir
 
@@ -79,7 +86,5 @@ object HTSLReborn : ClientModInitializer {
         LOGGER.info(FileHandler.filteredFiles.toString())
 
         FileExplorerHandler.init()
-
-        runCatching { Files.createDirectories(htslDir) }
     }
 }

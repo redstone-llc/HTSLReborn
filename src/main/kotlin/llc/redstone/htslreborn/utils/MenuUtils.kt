@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
 import llc.redstone.htslreborn.HTSLReborn.MC
+import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.utils.InputUtils.Type
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemSelector
@@ -56,7 +57,7 @@ object MenuUtils {
             return alreadyOpen
         } else {
             return try {
-                withTimeout(5000.milliseconds) {
+                withTimeout(HTSLConfig.data.guiTimeout.milliseconds) {
                     deferred.await()
                 }
             } catch (e: Exception) {

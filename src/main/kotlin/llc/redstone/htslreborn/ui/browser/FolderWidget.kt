@@ -1,6 +1,7 @@
 package llc.redstone.htslreborn.ui.browser
 
 import llc.redstone.htslreborn.HTSLReborn.MC
+import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.data.ImportContext
 import llc.redstone.htslreborn.ui.Icon
 import llc.redstone.htslreborn.ui.IconWidget
@@ -29,11 +30,11 @@ class FolderWidget(val file: Path? = null, val context: ImportContext? = null) :
     var hovered = false
 
     val hoveredIcons = listOf(
-        Icon(155, 0, texture = DELETE) {
-            if (file == null) return@Icon
-            // Delete folder
+        Icon(155, 0, texture = DELETE, tooltip = Component.translatable("htslreborn.browser.delete")) {
+            val target = file ?: return@Icon
+            HTSLConfig.requestDelete(target)
         },
-        Icon(170, 0, texture = OPEN_EXTERNALLY) {
+        Icon(170, 0, texture = OPEN_EXTERNALLY, tooltip = Component.translatable("htslreborn.browser.open_externally")) {
             if (file == null) return@Icon
             // Open Externally
             //? if >=26.3 {
@@ -42,7 +43,7 @@ class FolderWidget(val file: Path? = null, val context: ImportContext? = null) :
             Util.getPlatform().openPath(file)
             //?}
         },
-        Icon(185, 0) {
+        Icon(185, 0, tooltip = Component.translatable("htslreborn.browser.open")) {
             if (file == null) return@Icon
             // Open Folder
             FileHandler.currentDir = file
@@ -53,7 +54,7 @@ class FolderWidget(val file: Path? = null, val context: ImportContext? = null) :
     )
 
     val contextIcons = listOf(
-        Icon(185, 0) {
+        Icon(185, 0, height = 15, tooltip = Component.translatable("htslreborn.browser.open")) {
             if (context == null) return@Icon
             BrowsingWidget.openContext = context
             BrowsingWidget.contextScroll?.setScrollAmount(0.0)

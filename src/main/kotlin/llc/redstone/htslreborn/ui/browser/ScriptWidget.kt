@@ -1,6 +1,7 @@
 package llc.redstone.htslreborn.ui.browser
 
 import llc.redstone.htslreborn.HTSLReborn.MC
+import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.data.ScriptContainer
 import llc.redstone.htslreborn.ui.Icon
 import llc.redstone.htslreborn.ui.IconWidget
@@ -29,11 +30,11 @@ class ScriptWidget(val file: Path? = null, val scriptContainer: ScriptContainer?
     var hovered = false
 
     val hoveredIcons = listOf(
-        Icon(170, 0, texture = DELETE) {
-            if (file == null) return@Icon
-            // Delete file
+        Icon(170, 0, texture = DELETE, tooltip = Component.translatable("htslreborn.browser.delete")) {
+            val target = file ?: return@Icon
+            HTSLConfig.requestDelete(target)
         },
-        Icon(185, 0, texture = OPEN_EXTERNALLY) {
+        Icon(185, 0, texture = OPEN_EXTERNALLY, tooltip = Component.translatable("htslreborn.browser.open_externally")) {
             if (file == null) return@Icon
             //? if >=26.3 {
             /*Blaze3D.openPath(file)

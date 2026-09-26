@@ -11,7 +11,8 @@
     "MinecraftMixin",
     "ReceivePreviousInputMixin",
     "ScreenCloseMixin",
-    "ScreenHandlerMixin"
+    "ScreenHandlerMixin",
+    "SoundSilencerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
