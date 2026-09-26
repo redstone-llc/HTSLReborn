@@ -9,6 +9,7 @@ import llc.redstone.htslreborn.queue.exporter.Exporter
 import llc.redstone.htslreborn.queue.importer.Importer
 import llc.redstone.htslreborn.ui.Icon
 import llc.redstone.htslreborn.ui.IconWidget
+import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.TextUtils.drawEllipsis
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.narration.NarrationElementOutput
@@ -19,7 +20,8 @@ import java.nio.file.Path
 data class ContainerQueueEntry(
     val container: ScriptContainer?, val context: BuildableContainer, val source: Path? = null
 ) : IconWidget(
-    0, 0, 202, 15, Component.literal(container?.target?.name ?: "Unknown Container")
+    0, 0, 202, 15, container?.target?.name?.let { Component.literal(it) }
+        ?: Component.translatable("htslreborn.queue.unknown_container")
 ) {
     companion object {
         val PENDING = Identifier.fromNamespaceAndPath("htslreborn", "textures/ui/container/pending.png")
@@ -53,23 +55,31 @@ data class ContainerQueueEntry(
             State.COMPLETE -> COMPLETE
         }
 
+    override val isWholeHovered: Boolean = true
+
     override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, delta)
-        val contextName = when (context) {
-            is Importer -> "Import"
-            is Exporter -> "Export"
-            is Differ -> "Diff"
-            else -> "Unknown"
-        }
+        val contextName = Component.translatable(
+            when (context) {
+                is Importer -> "htslreborn.queue.import"
+                is Exporter -> "htslreborn.queue.export"
+                is Differ -> "htslreborn.queue.diff"
+                else -> "htslreborn.queue.unknown"
+            }
+        ).withColor(0x3F3F3F)
 
         val clipRight = if (getState() == State.PENDING) 187 else 198
         guiGraphics.drawEllipsis(
             HTSLReborn.MC.font,
-            Component.literal("$contextName ")
-                .withColor(0x3F3F3F)
+            Component.empty()
+                .append(contextName)
+                .append(Component.literal(" ").withColor(0x3F3F3F))
                 .append(
-                    Component.literal("${source?.fileName} > ${container?.target?.name ?: "Default"}")
-                        .withColor(0x666666)
+                    Component.translatable(
+                        "htslreborn.queue.path",
+                        "${source?.fileName}",
+                        container?.target?.name ?: TextUtils.translate("htslreborn.browser.default")
+                    ).withColor(0x666666)
                 ),
             x + 14,
             y + 4,

@@ -270,7 +270,7 @@ object MenuUtils {
 
     val pattern = Regex("\\((\\d+)/(\\d+)\\)")
     suspend fun gotoPage(page: Int) {
-        val title = currentMenu()?.title?.string ?: error("No menu open")
+        val title = currentMenu()?.title?.string ?: error(TextUtils.translate("htslreborn.error.no_menu"))
         if (page == 0 && !title.contains("/")) return // already on first page
         val match = pattern.find(title) ?: return
         var currentPage = match.groupValues[1].toInt()
@@ -288,14 +288,14 @@ object MenuUtils {
                 clickItems(GlobalMenuItems.PREVIOUS_PAGE, packet = true, paginated = false)
             }
             onOpen(null)
-            val newTitle = currentMenu()?.title?.string ?: error("No menu open")
+            val newTitle = currentMenu()?.title?.string ?: error(TextUtils.translate("htslreborn.error.no_menu"))
             val newMatch = pattern.find(newTitle) ?: "(1/1)".let { pattern.find(it)!! }
             currentPage = newMatch.groupValues[1].toInt()
         }
     }
 
     fun getSlot(propertySlotIndex: Int): Slot {
-        val gui = currentMenu() ?: error("No menu open")
+        val gui = currentMenu() ?: error(TextUtils.translate("htslreborn.error.no_menu"))
         return gui.menu.slots.getOrNull(propertySlotIndex)
             ?: throw IllegalStateException("Property slot index $propertySlotIndex out of bounds for menu with ${gui.menu.slots.size} slots")
     }

@@ -4,6 +4,7 @@ import llc.redstone.htslreborn.data.ContextTarget
 import llc.redstone.htslreborn.data.ImportContext
 import llc.redstone.htslreborn.data.ScriptContainer
 import llc.redstone.htslreborn.utils.MenuUtils
+import llc.redstone.htslreborn.utils.TextUtils
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.layouts.AbstractLayout
 import net.minecraft.client.gui.layouts.LayoutElement
@@ -33,9 +34,13 @@ class ContextLayout(
             }
         }
         return entries.filter { entry ->
-            val name = entry.target?.name
-                ?: entry.context?.name
-                ?: "Default"
+            val targetName = entry.target?.name
+            val name = when {
+                entry.context == ImportContext.DEFAULT -> TextUtils.translate("htslreborn.browser.default")
+                targetName != null -> TextUtils.titleCase(targetName)
+                entry.context != null -> TextUtils.translate(entry.context.translationKey())
+                else -> TextUtils.translate("htslreborn.browser.unknown_folder")
+            }
             FileHandler.matchesSearch(name)
         }
     }

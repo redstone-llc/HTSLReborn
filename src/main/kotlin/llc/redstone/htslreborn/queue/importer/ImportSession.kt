@@ -1,6 +1,7 @@
 package llc.redstone.htslreborn.queue.importer
 
 import llc.redstone.htslreborn.data.ScriptContainer
+import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.queue.Operation
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.queue.ResumableSession
@@ -25,7 +26,7 @@ object ImportSession : ResumableSession {
 
     override fun buildResume(): List<Operation> {
         val checkpoint = restore()
-        val container = container ?: error("Nothing to resume")
+        val container = container ?: error(TextUtils.translate("htslreborn.error.nothing_to_resume"))
         return Importer.buildResume(container, checkpoint, checkpointBase)
     }
 
@@ -56,6 +57,6 @@ object ImportSession : ResumableSession {
 
     fun restore(): Operation.Checkpoint {
         checkpoint?.let { if (container != null) return it }
-        error("No resume data available")
+        error(TextUtils.translate("htslreborn.error.no_resume_data"))
     }
 }

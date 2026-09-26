@@ -48,7 +48,7 @@ object InputUtils {
                 Type.CHAT -> {
                     ClientThread.send {
                         Minecraft.getInstance().connection
-                            ?.sendChat(input) ?: error("Failed to send chat message")
+                            ?.sendChat(input) ?: error(TextUtils.translate("htslreborn.error.chat_failed"))
                     }
                     this.type = null
                     true
@@ -109,7 +109,7 @@ object InputUtils {
                 .firstOrNull { matchesPendingItem(it.stack, displayName, compareStack) }
             if (received != null) return received
             if (System.currentTimeMillis() > deadline) {
-                error("Timed out waiting to receive an item from the menu (is your inventory full?)")
+                error(TextUtils.translate("htslreborn.error.timeout_item"))
             }
             delay(50.milliseconds)
         }

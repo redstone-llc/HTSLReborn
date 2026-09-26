@@ -4,12 +4,56 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextColor
 
 
 object TextUtils {
     fun titleCase(input: String): String {
         return input.split(" ").joinToString(" ") { it.lowercase().replaceFirstChar { char -> char.uppercase() } }
+    }
+
+    fun translate(key: String, vararg args: Any): String =
+        Component.translatable(key, *args).string
+
+    /** Splits a translated tooltip. Section signs in the language string set each line's color. */
+    fun legacyTooltip(text: String): List<Component> {
+        return text.split('\n').map { line ->
+            if (line.isEmpty()) Component.literal(" ") else legacy(line)
+        }
+    }
+
+    fun legacy(text: String): Component {
+        val result = Component.empty()
+        var style = Style.EMPTY
+        val buffer = StringBuilder()
+        fun flush() {
+            if (buffer.isEmpty()) return
+            result.append(Component.literal(buffer.toString()).withStyle(style))
+            buffer.clear()
+        }
+        var i = 0
+        while (i < text.length) {
+            val code = text.getOrNull(i + 1)
+            if (text[i] == '§' && code != null) {
+                val format = ChatFormatting.getByCode(code)
+                if (format != null) {
+                    flush()
+                    style = format.apply(style)
+                    i += 2
+                    continue
+                }
+            }
+            buffer.append(text[i])
+            i++
+        }
+        flush()
+        return result
+    }
+
+    private fun ChatFormatting.apply(style: Style): Style = when (this) {
+        ChatFormatting.RESET -> Style.EMPTY
+        else -> style.applyFormat(this)
     }
 
     fun convertTextToString(text: Component?, colors: Boolean = true): String? {

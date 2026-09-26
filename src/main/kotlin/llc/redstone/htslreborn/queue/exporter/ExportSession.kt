@@ -4,6 +4,7 @@ import llc.redstone.htslreborn.data.ScriptContainer
 import llc.redstone.htslreborn.queue.Operation
 import llc.redstone.htslreborn.queue.ResumableSession
 import llc.redstone.htslreborn.utils.MenuUtils
+import llc.redstone.htslreborn.utils.TextUtils
 import java.nio.file.Path
 
 object ExportSession : ResumableSession {
@@ -29,8 +30,8 @@ object ExportSession : ResumableSession {
     }
 
     override fun buildResume(): List<Operation> {
-        val index = checkpoint.takeIf { it >= 0 } ?: error("Nothing to resume")
-        if (!MenuUtils.isActionContainerOpen()) error("Open the action container you were exporting first")
+        val index = checkpoint.takeIf { it >= 0 } ?: error(TextUtils.translate("htslreborn.error.nothing_to_resume"))
+        if (!MenuUtils.isActionContainerOpen()) error(TextUtils.translate("htslreborn.error.open_export_container"))
         return Exporter.build(container, exportFrom = index)
     }
 

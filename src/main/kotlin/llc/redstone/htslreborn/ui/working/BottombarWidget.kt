@@ -14,18 +14,18 @@ import net.minecraft.resources.Identifier
 
 class BottombarWidget(
     x: Int, y: Int
-) : IconWidget(x, y, 223, 17, Component.literal("Bottombar")) {
+) : IconWidget(x, y, 223, 17, Component.translatable("htslreborn.working.bottombar")) {
     companion object {
         val BACKGROUND = Identifier.fromNamespaceAndPath("htslreborn", "textures/ui/bottombar/bottombar.png")
         val MCFIVE_FONT = FontDescription.Resource(Identifier.fromNamespaceAndPath("htslreborn", "mc_five"))
-        val WORKING_COMPONENT = Component.literal("WORKING...").withStyle(Style.EMPTY.withFont(MCFIVE_FONT))
+        val WORKING_COMPONENT = Component.translatable("htslreborn.working.label").withStyle(Style.EMPTY.withFont(MCFIVE_FONT))
     }
 
     override val BACKGROUND: Identifier
         get() = BottombarWidget.BACKGROUND
 
     override val icons = listOf(
-        Icon(208, 1) {
+        Icon(208, 1, tooltip = Component.translatable("htslreborn.working.bottombar.clear")) {
             Queue.clear(true, discardContainers = true)
         }
     )

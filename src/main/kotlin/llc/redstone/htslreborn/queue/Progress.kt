@@ -184,7 +184,7 @@ object Progress {
     fun getComponent(): MutableComponent {
         val elapsed = format(elapsedMs)
         val total = format(displayTotalMs, indeterminate)
-        return Component.literal("$elapsed / $total")
+        return Component.translatable("htslreborn.working.progress", elapsed, total)
     }
 
     fun format(ms: Long?, indeterminate: Boolean = false): String {

@@ -39,7 +39,7 @@ object Differ : BuildableContainer {
         if (container == null) error("No container to diff")
         val ops = mutableListOf<Operation>()
         if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
-            ToastUtils.send("§cSkipping ${container.context.name}", "§7No action container is open.")
+            ToastUtils.skippingClosedContainer(container.context)
             return ops
         }
         ops += buildContainer(container,  exportFrom)

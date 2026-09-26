@@ -79,9 +79,12 @@ class HTSLScrollWidget(
         layout.setPosition(x, y - scrollAmount().toInt())
         layout.arrangeElements()
         syncChildren()
+        val overContent = mouseX >= x && mouseX < x + width - BAR_WIDTH && mouseY >= y && mouseY < y + height
+        val childMouseX = if (overContent) mouseX else Int.MIN_VALUE
+        val childMouseY = if (overContent) mouseY else Int.MIN_VALUE
         guiGraphics.enableScissor(x, y, x + width, y + height)
         for (child in childWidgets) {
-            child.extractRenderState(guiGraphics, mouseX, mouseY, delta)
+            child.extractRenderState(guiGraphics, childMouseX, childMouseY, delta)
         }
         guiGraphics.disableScissor()
         extractScrollbar(guiGraphics, mouseX, mouseY)

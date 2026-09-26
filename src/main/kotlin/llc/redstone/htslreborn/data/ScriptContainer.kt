@@ -19,6 +19,8 @@ enum class ImportContext {
     CUSTOMMENU,
     ;
 
+    fun translationKey(): String = "htslreborn.context.${name.lowercase()}"
+
     suspend fun getContexts(): List<String> {
         return when (this) {
             FUNCTION -> CommandUtils.getTabCompletions("function edit ")

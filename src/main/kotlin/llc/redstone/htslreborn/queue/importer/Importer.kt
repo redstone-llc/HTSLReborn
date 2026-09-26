@@ -15,6 +15,7 @@ import llc.redstone.htslreborn.utils.PredicateUtils
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
 import llc.redstone.htslreborn.utils.PropertyReflection
+import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.ToastUtils
 import net.minecraft.world.item.Items
 import java.nio.file.Path
@@ -38,7 +39,7 @@ object Importer: BuildableContainer {
         if (container == null) return emptyList()
         val builder = OperationBuilder()
         if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
-            ToastUtils.send("§cSkipping ${container.context.name}", "§7No action container is open.")
+            ToastUtils.skippingClosedContainer(container.context)
             return emptyList()
         }
         builder.apply {
@@ -51,7 +52,7 @@ object Importer: BuildableContainer {
 
     fun buildResume(container: ScriptContainer, checkpoint: Checkpoint, baseCount: Int): List<Operation> {
         if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
-            error("Open the action container you were importing into first")
+            error(TextUtils.translate("htslreborn.error.open_import_container"))
         }
         val all = build(container)
         val start = all.indexOf(checkpoint)

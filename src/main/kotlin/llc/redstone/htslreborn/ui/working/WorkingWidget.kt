@@ -2,11 +2,13 @@ package llc.redstone.htslreborn.ui.working
 
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.data.ImportContext
+import llc.redstone.htslreborn.data.ScriptContainer
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.queue.differ.DiffSession
 import llc.redstone.htslreborn.queue.exporter.ExportSession
 import llc.redstone.htslreborn.queue.importer.ImportSession
 import llc.redstone.htslreborn.ui.HTSLScrollWidget
+import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.TextUtils.drawEllipsis
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
@@ -17,7 +19,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 
 class WorkingWidget(x: Int, y: Int) :
-    AbstractWidget(x, y, 223, 222, Component.literal("Working")) {
+    AbstractWidget(x, y, 223, 222, Component.translatable("htslreborn.working.title")) {
     companion object {
         val BACKGROUND = Identifier.fromNamespaceAndPath("htslreborn", "textures/ui/working/working.png")
         var scrollHeight = 0.0
@@ -39,12 +41,12 @@ class WorkingWidget(x: Int, y: Int) :
 
         guiGraphics.text(
             MC.font,
-            Component.literal(
+            Component.translatable(
                 when (session) {
-                    is ImportSession -> "Importing"
-                    is ExportSession -> "Exporting"
-                    is DiffSession -> if (session.phase == DiffSession.Phase.EXPORT) "Exporting" else "Editing"
-                    else -> "Unknown Status"
+                    is ImportSession -> "htslreborn.working.importing"
+                    is ExportSession -> "htslreborn.working.exporting"
+                    is DiffSession -> if (session.phase == DiffSession.Phase.EXPORT) "htslreborn.working.exporting" else "htslreborn.working.editing"
+                    else -> "htslreborn.working.unknown_status"
                 }
             ),
             x + 8,
@@ -55,8 +57,10 @@ class WorkingWidget(x: Int, y: Int) :
 
         guiGraphics.text(
             MC.font,
-            Component.literal(
-                "Task ${Queue.tasksStarted}/${Queue.containers.size}"
+            Component.translatable(
+                "htslreborn.working.task",
+                Queue.tasksStarted,
+                Queue.containers.size
             ),
             x + 170,
             y + 8,
@@ -67,21 +71,15 @@ class WorkingWidget(x: Int, y: Int) :
         val input = when (session) {
             is ImportSession -> session.source?.fileName
             is DiffSession -> session.source?.fileName
-            is ExportSession -> session.container?.let {
-                "${it.target.name ?: "Default"} ${it.target.trigger ?: ""}"
-            }
+            is ExportSession -> session.container?.let { containerText(it) }
 
             else -> null
         }
 
         val output = when (session) {
-            is ImportSession -> session.container?.let {
-                "${it.target.name ?: "Default"} ${it.target.trigger ?: ""}"
-            }
+            is ImportSession -> session.container?.let { containerText(it) }
 
-            is DiffSession -> session.container?.let {
-                "${it.target.name ?: "Default"} ${it.target.trigger ?: ""}"
-            }
+            is DiffSession -> session.container?.let { containerText(it) }
 
             is ExportSession -> session.source?.fileName?.toString()
             else -> null
@@ -101,7 +99,7 @@ class WorkingWidget(x: Int, y: Int) :
         val badgeInput = session !is ExportSession
         guiGraphics.drawEllipsis(
             MC.font,
-            Component.literal("${input ?: "Unknown"}"),
+            input?.let { Component.literal(it.toString()) } ?: Component.translatable("htslreborn.working.unknown"),
             if (badgeInput || badgeTexture == null) x + 11 else x + 20,
             y + 22,
             if (badgeInput || badgeTexture == null) 92 else 83,
@@ -111,7 +109,7 @@ class WorkingWidget(x: Int, y: Int) :
 
         guiGraphics.drawEllipsis(
             MC.font,
-            Component.literal(output ?: "Unknown"),
+            output?.let { Component.literal(it) } ?: Component.translatable("htslreborn.working.unknown"),
             if (!badgeInput || badgeTexture == null) x + 121 else x + 130,
             y + 22,
             if (!badgeInput || badgeTexture == null) 92 else 83,
@@ -135,6 +133,11 @@ class WorkingWidget(x: Int, y: Int) :
         }
 
         renderQueue(guiGraphics, mouseX, mouseY, delta)
+    }
+
+    private fun containerText(container: ScriptContainer): String {
+        val name = container.target.name ?: TextUtils.translate("htslreborn.browser.default")
+        return "$name ${container.target.trigger ?: ""}"
     }
 
     private fun renderQueue(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {

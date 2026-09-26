@@ -7,12 +7,11 @@ package llc.redstone.htslreborn.ui
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.accessor.HandledScreenAccessor
 import llc.redstone.htslreborn.queue.Queue
-import llc.redstone.htslreborn.ui.browser.BrowsingTopbarWidget
 import llc.redstone.htslreborn.ui.browser.BrowsingWidget
 import llc.redstone.htslreborn.ui.browser.FileHandler
 import llc.redstone.htslreborn.ui.working.BottombarWidget
-import llc.redstone.htslreborn.ui.working.WorkingTopbarWidget
 import llc.redstone.htslreborn.ui.working.WorkingWidget
+import llc.redstone.htslreborn.utils.CursorManager
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.screens.Screen
@@ -23,7 +22,7 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
 import java.util.concurrent.ConcurrentLinkedDeque
 
-class HTSLScreen : Screen(Component.literal("Working Screen")) {
+class HTSLScreen : Screen(Component.translatable("htslreborn.screen.working")) {
     companion object {
         @JvmStatic
         var INSTANCE = HTSLScreen()
@@ -78,8 +77,7 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
         fun notBrowsing() {
             isBrowsing = false
             browsingType = null
-            BrowsingWidget.container = null
-            BrowsingWidget.filePath = null
+            BrowsingWidget.clearSelection()
         }
     }
 
@@ -96,7 +94,7 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
 
         if (isBrowsing && widgets.find { it is BrowsingWidget } == null) {
             widgets.clear()
-            widgets.add(BrowsingTopbarWidget((this.width - biggerImageWidth) / 2, menuTop - 19))
+            widgets.add(TopbarWidget((this.width - biggerImageWidth) / 2, menuTop - 19, wide = true, containersActive = !Queue.isActive))
             widgets.add(BrowsingWidget((this.width - biggerImageWidth) / 2, (this.height - 222) / 2))
             if (Queue.isActive) {
                 widgets.add(BottombarWidget((this.width - biggerImageWidth) / 2, (this.height - menuSize) / 2 + menuSize))
@@ -105,7 +103,7 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
         }
         if (Queue.isActive && !isBrowsing && widgets.find { it is WorkingWidget } == null) {
             widgets.clear()
-            widgets.add(WorkingTopbarWidget((this.width - biggerImageWidth) / 2, menuTop - 19))
+            widgets.add(TopbarWidget((this.width - biggerImageWidth) / 2, menuTop - 19, wide = true, containersActive = !Queue.isActive))
             widgets.add(WorkingWidget((this.width - biggerImageWidth) / 2, (this.height - 222) / 2))
             widgets.add(BottombarWidget((this.width - biggerImageWidth) / 2, (this.height - menuSize) / 2 + menuSize))
             return
@@ -124,10 +122,12 @@ class HTSLScreen : Screen(Component.literal("Working Screen")) {
         widgets.forEach { widget ->
             widget.extractRenderState(guiGraphics, i, j, f)
         }
+        CursorManager.resetCursor()
     }
 
     override fun onClose() {
         notBrowsing()
+        CursorManager.resetCursor()
         super.onClose()
     }
 

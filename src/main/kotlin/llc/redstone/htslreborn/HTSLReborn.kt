@@ -8,12 +8,14 @@ package llc.redstone.htslreborn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import llc.redstone.htslreborn.commands.HTSLCommand
 import llc.redstone.htslreborn.overlay.DebugHud
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.ui.browser.FileExplorerHandler
 import llc.redstone.htslreborn.ui.browser.FileHandler
 import llc.redstone.htslreborn.utils.ToastUtils
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.Minecraft
@@ -57,12 +59,13 @@ object HTSLReborn : ClientModInitializer {
         var notifiedResumable = false
         ClientPlayConnectionEvents.JOIN.register { _, _, _ ->
             if (!notifiedResumable && Queue.session?.canResume == true) {
-                ToastUtils.send(
-                    "§aResumable session available",
-                    "§7Use §e/htsl resume§7 to continue the last operation."
-                )
+                ToastUtils.resumableSession()
                 notifiedResumable = true
             }
+        }
+
+        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
+            HTSLCommand.register(dispatcher)
         }
 
         DebugHud.register()

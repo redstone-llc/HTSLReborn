@@ -5,7 +5,6 @@ import llc.redstone.htslreborn.data.ImportContext
 import llc.redstone.htslreborn.ui.Icon
 import llc.redstone.htslreborn.ui.IconWidget
 import llc.redstone.htslreborn.ui.browser.FileExplorerHandler.setWatchedDir
-import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.TextUtils.drawEllipsis
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.MouseButtonEvent
@@ -19,7 +18,7 @@ import net.minecraft.util.Util
 import java.nio.file.Path
 import kotlin.io.path.name
 
-class FolderWidget(val file: Path? = null, val context: ImportContext? = null) : IconWidget(0, 0, 200, 15, Component.literal("Folder")) {
+class FolderWidget(val file: Path? = null, val context: ImportContext? = null) : IconWidget(0, 0, 200, 15, Component.translatable("htslreborn.browser.folder")) {
     companion object {
         val BACKGROUND = Identifier.fromNamespaceAndPath("htslreborn", "textures/ui/browser/folder.png")
 
@@ -65,12 +64,18 @@ class FolderWidget(val file: Path? = null, val context: ImportContext? = null) :
         get() = if (hovered) if (file != null) hoveredIcons else contextIcons else emptyList()
     override val BACKGROUND: Identifier
         get() = FolderWidget.BACKGROUND
+    override val isWholeHovered: Boolean = true
 
     override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, delta)
+        val label = when {
+            file != null -> Component.literal(file.name)
+            context != null -> Component.translatable(context.translationKey())
+            else -> Component.translatable("htslreborn.browser.unknown_folder")
+        }
         guiGraphics.drawEllipsis(
             MC.font,
-            file?.name ?: context?.name?.let { TextUtils.titleCase(it) } ?: "Unknown Folder",
+            label,
             x + 14,
             y + 4,
             if (hovered) 138 else 173,
@@ -81,7 +86,7 @@ class FolderWidget(val file: Path? = null, val context: ImportContext? = null) :
     }
 
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, bl: Boolean): Boolean {
-        if (hovered && bl && mouseButtonEvent.x.toInt() in x..(x + 155) && mouseButtonEvent.y.toInt() in y..(y + height)) {
+        if (hovered) {
             if (file != null) {
                 FileHandler.currentDir = file
                 FileHandler.refreshFiles()

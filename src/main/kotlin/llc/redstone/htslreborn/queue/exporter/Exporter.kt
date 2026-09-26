@@ -43,7 +43,7 @@ object Exporter : BuildableContainer {
         if (container == null) error("No container to diff")
         val builder = OperationBuilder()
         if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
-            ToastUtils.send("§cSkipping ${container.context.name}", "§7No action container is open.")
+            ToastUtils.skippingClosedContainer(container.context)
             return emptyList()
         }
 
@@ -300,7 +300,7 @@ object Exporter : BuildableContainer {
 
         MenuUtils.packetClick(propertySlotIndex)
         MenuUtils.onOpen(NameExact("Select an Item"))
-            ?: error("Failed to open the item selection menu")
+            ?: error(TextUtils.translate("htslreborn.error.item_menu"))
 
         val received = InputUtils.getItemFromMenu(null, stack) {
             MenuUtils.packetClick(13)

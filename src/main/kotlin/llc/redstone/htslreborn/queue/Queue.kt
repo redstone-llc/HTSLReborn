@@ -12,6 +12,7 @@ import llc.redstone.htslreborn.queue.importer.ImportSession
 import llc.redstone.htslreborn.queue.importer.Importer
 import llc.redstone.htslreborn.ui.working.ContainerQueueEntry
 import llc.redstone.htslreborn.ui.working.WorkingWidget
+import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.ToastUtils
 
 
@@ -66,8 +67,8 @@ object Queue {
     }
 
     fun resume() {
-        if (executing) error("An operation is still finishing, try again in a moment")
-        val session = session ?: error("Nothing to resume")
+        if (executing) error(TextUtils.translate("htslreborn.error.resume_busy"))
+        val session = session ?: error(TextUtils.translate("htslreborn.error.nothing_to_resume"))
         val ops = session.buildResume()
 
         clear(discardSession = false)
@@ -130,7 +131,7 @@ object Queue {
                     op.execute(MC)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    Status.Failure("Error executing $op: ${e.message}")
+                    Status.Failure(TextUtils.translate("htslreborn.error.execute", op, e.message ?: ""))
                 }
                 attempts++
 
@@ -169,7 +170,7 @@ object Queue {
                             previous = null
                         } else {
                             pause()
-                            ToastUtils.send("§cPaused", "§7${done.reason}\n§7Run /htsl resume to retry from the last action.")
+                            ToastUtils.paused(done.reason)
                         }
                     }
                 }

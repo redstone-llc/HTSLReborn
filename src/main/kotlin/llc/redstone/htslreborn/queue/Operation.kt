@@ -17,6 +17,7 @@ import llc.redstone.htslreborn.utils.CommandUtils
 import llc.redstone.htslreborn.utils.InputUtils
 import llc.redstone.htslreborn.utils.ItemStackUtils.giveItem
 import llc.redstone.htslreborn.utils.MenuUtils
+import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemSelector
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch
@@ -57,7 +58,7 @@ sealed interface Operation {
                 } != null) {
                 Success
             } else {
-                Failure("Failed to open menu: ${gui.cacheKey}")
+                Failure(TextUtils.translate("htslreborn.error.open_menu", gui.cacheKey))
             }
         }
     }
@@ -73,10 +74,10 @@ sealed interface Operation {
         override suspend fun execute(mc: Minecraft): Status {
             try {
                 val slot = MenuUtils.findSlots(item, paginated = true).firstOrNull()
-                MenuUtils.interactionClick(slot?.index ?: error("Item '$item' not found"))
+                MenuUtils.interactionClick(slot?.index ?: error(TextUtils.translate("htslreborn.error.item_not_found", item)))
                 return Success
             } catch (e: Exception) {
-                return Failure("Failed to click item: ${e.message}")
+                return Failure(TextUtils.translate("htslreborn.error.click_item", e.message ?: ""))
             }
         }
     }
@@ -86,7 +87,7 @@ sealed interface Operation {
             return if (InputUtils.doInput(text)) {
                 Success
             } else {
-                Failure("Failed to input text: $text")
+                Failure(TextUtils.translate("htslreborn.error.input_text", text))
             }
         }
     }
@@ -95,10 +96,10 @@ sealed interface Operation {
         override suspend fun execute(mc: Minecraft): Status {
             try {
                 val slot = MenuUtils.findSlots(option, paginated = true).firstOrNull()
-                MenuUtils.interactionClick(slot?.index ?: error("Option '$option' not found"))
+                MenuUtils.interactionClick(slot?.index ?: error(TextUtils.translate("htslreborn.error.option_not_found", option)))
                 return Success
             } catch (e: Exception) {
-                return Failure("Failed to select option: ${e.message}")
+                return Failure(TextUtils.translate("htslreborn.error.select_option", e.message ?: ""))
             }
         }
     }
@@ -114,7 +115,7 @@ sealed interface Operation {
             } else {
                 ClientThread.send {
                     Minecraft.getInstance().connection
-                        ?.sendChat(text) ?: error("Failed to send chat message")
+                        ?.sendChat(text) ?: error(TextUtils.translate("htslreborn.error.chat_failed"))
                 }
             }
             return Success
@@ -176,7 +177,7 @@ sealed interface Operation {
             if (MenuUtils.nextPage()) {
                 return Success
             } else {
-                return Failure("No next page available")
+                return Failure(TextUtils.translate("htslreborn.error.no_next_page"))
             }
         }
     }

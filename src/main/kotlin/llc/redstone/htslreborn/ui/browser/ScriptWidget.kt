@@ -17,9 +17,8 @@ import net.minecraft.util.Util
 //?}
 import java.nio.file.Path
 import kotlin.io.path.name
-import kotlin.io.path.nameWithoutExtension
 
-class ScriptWidget(val file: Path? = null, val scriptContainer: ScriptContainer? = null) : IconWidget(0, 0, 200, 15, Component.literal("Script")) {
+class ScriptWidget(val file: Path? = null, val scriptContainer: ScriptContainer? = null) : IconWidget(0, 0, 200, 15, Component.translatable("htslreborn.browser.script")) {
     companion object {
         val BACKGROUND = Identifier.fromNamespaceAndPath("htslreborn", "textures/ui/browser/script.png")
 
@@ -48,12 +47,13 @@ class ScriptWidget(val file: Path? = null, val scriptContainer: ScriptContainer?
         get() = if (hovered && file != null) hoveredIcons else emptyList()
     override val BACKGROUND: Identifier
         get() = ScriptWidget.BACKGROUND
+    override val isWholeHovered: Boolean = true
 
     override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, delta)
         guiGraphics.drawEllipsis(
             MC.font,
-            file?.name ?: scriptContainer?.target?.name?.let { TextUtils.titleCase(it) } ?: "Default",
+            entryLabel(),
             x + 14,
             y + 4,
             if (hovered) if (file != null) 160 else 190 else 190,
@@ -63,16 +63,18 @@ class ScriptWidget(val file: Path? = null, val scriptContainer: ScriptContainer?
         hovered = mouseX in x..(x + width) && mouseY in y..(y + height)
     }
 
+    private fun entryLabel(): String {
+        file?.name?.let { return it }
+        scriptContainer?.target?.name?.let { return TextUtils.titleCase(it) }
+        return TextUtils.translate("htslreborn.browser.default")
+    }
+
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, bl: Boolean): Boolean {
-        if (hovered && mouseButtonEvent.x.toInt() in x..(x + 170) && mouseButtonEvent.y.toInt() in y..(y + height)) {
-            if (file != null) {
-                BrowsingWidget.filePath = file
-                BrowsingWidget.searchBox?.value = file.nameWithoutExtension
-            } else if (scriptContainer != null) {
-                BrowsingWidget.container = scriptContainer
-            }
+        if (super.mouseClicked(mouseButtonEvent, bl)) return true
+        if (hovered) {
+            BrowsingWidget.fillSearch(entryLabel())
             return true
         }
-        return super.mouseClicked(mouseButtonEvent, bl)
+        return false
     }
 }

@@ -7,6 +7,7 @@ import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.queue.ResumableSession
 import llc.redstone.htslreborn.queue.exporter.ExportSession
 import llc.redstone.htslreborn.utils.MenuUtils
+import llc.redstone.htslreborn.utils.TextUtils
 import java.nio.file.Path
 
 object DiffSession : ResumableSession {
@@ -35,9 +36,9 @@ object DiffSession : ResumableSession {
     }
 
     override fun buildResume(): List<Operation> {
-        val container = container ?: error("Nothing to resume")
+        val container = container ?: error(TextUtils.translate("htslreborn.error.nothing_to_resume"))
         if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
-            error("Open the action container you were diffing first")
+            error(TextUtils.translate("htslreborn.error.open_diff_container"))
         }
 
         val exportFrom = when (phase) {
