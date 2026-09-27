@@ -55,7 +55,7 @@
   "htslreborn.browser.exporting": "Exporting",
   "htslreborn.browser.not_set": "Not Set",
   "htslreborn.browser.current_container": "Current Container",
-  "htslreborn.browser.default": "Default",
+  "htslreborn.browser.default": "Current Container",
   "htslreborn.browser.search": "Search",
   "htslreborn.browser.contexts": "Contexts",
   "htslreborn.browser.separator": " > ",
@@ -63,7 +63,7 @@
   "htslreborn.browser.script": "Script",
   "htslreborn.browser.folder": "Folder",
 
-  "htslreborn.context.default": "Default",
+  "htslreborn.context.default": "Current Container",
   "htslreborn.context.function": "Function",
   "htslreborn.context.event": "Event",
   "htslreborn.context.command": "Command",

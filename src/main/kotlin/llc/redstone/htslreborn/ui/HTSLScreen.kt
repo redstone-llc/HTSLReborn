@@ -12,6 +12,7 @@ import llc.redstone.htslreborn.ui.browser.FileHandler
 import llc.redstone.htslreborn.ui.working.BottombarWidget
 import llc.redstone.htslreborn.ui.working.WorkingWidget
 import llc.redstone.htslreborn.utils.CursorManager
+import llc.redstone.htslreborn.utils.HousingUtils
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.screens.Screen
@@ -42,7 +43,7 @@ class HTSLScreen : Screen(Component.translatable("htslreborn.screen.working")) {
 
         @JvmStatic
         fun shouldBeVisible(): Boolean {
-            return Queue.isActive || housingTitles.any { title -> MC.screen?.title?.string?.contains(title) == true } || MC.screen is InventoryScreen/* || MC.screen is CreativeModeInventoryScreen*/
+            return HousingUtils.isInHousing() && (Queue.isActive || housingTitles.any { title -> MC.screen?.title?.string?.contains(title) == true } || MC.screen is InventoryScreen/* || MC.screen is CreativeModeInventoryScreen*/)
         }
 
         var isBrowsing = false

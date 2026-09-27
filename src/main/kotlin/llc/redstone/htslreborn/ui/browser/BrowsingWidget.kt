@@ -28,6 +28,7 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
+import net.minecraft.sounds.SoundEvents
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
@@ -342,7 +343,8 @@ class BrowsingWidget(x: Int, y: Int) :
             97,
             13,
             97,
-            13
+            13,
+            if (!left && mouseX in x + 8..x + 8 + 97 && mouseY in y + 19..y + 19 + 13) 0xFFCCCCCD.toInt() else 0xFFFFFFFF.toInt()
         )
         if (!left && mouseX in x + 8..x + 8 + 97 && mouseY in y + 19..y + 19 + 13) {
             CursorManager.setHandCursor()
@@ -357,7 +359,8 @@ class BrowsingWidget(x: Int, y: Int) :
             97,
             13,
             97,
-            13
+            13,
+            if (left && mouseX in x + 118..x + 118 + 97 && mouseY in y + 19..y + 19 + 13) 0xFFCCCCCD.toInt() else 0xFFFFFFFF.toInt()
         )
         if (left && mouseX in x + 118..x + 118 + 97 && mouseY in y + 19..y + 19 + 13) {
             CursorManager.setHandCursor()
@@ -386,7 +389,7 @@ class BrowsingWidget(x: Int, y: Int) :
             if (badgeInput || badgeTexture == null) x + 11 else x + 20,
             y + 22,
             if (badgeInput || badgeTexture == null) 92 else 83,
-            0xFF3F3F3F.toInt(),
+            if (!left && mouseX in x + 8..x + 8 + 97 && mouseY in y + 19..y + 19 + 13) 0xFF333333.toInt() else 0xFF3F3F3F.toInt(),
             false
         )
 
@@ -396,7 +399,7 @@ class BrowsingWidget(x: Int, y: Int) :
             if (!badgeInput || badgeTexture == null) x + 121 else x + 130,
             y + 22,
             if (!badgeInput || badgeTexture == null) 92 else 83,
-            0xFF3F3F3F.toInt(),
+            if (left && mouseX in x + 118..x + 118 + 97 && mouseY in y + 19..y + 19 + 13) 0xFF333333.toInt() else 0xFF3F3F3F.toInt(),
             false
         )
 
@@ -438,7 +441,8 @@ class BrowsingWidget(x: Int, y: Int) :
                     if (mouseX in x + 145 + 27..x + 145 + 27 + 43 && mouseY in y + 201..y + 201 + 13) 0xFFCCCCCD.toInt() else 0xFFFFFFFF.toInt()
                 )
             } else {
-                if (mouseX in x + 173..x + 145 + 42 && mouseY in y + 201..y + 201 + 13) {
+                val hover = mouseX in x + 173..x + 173 + 42 && mouseY in y + 201..y + 201 + 13
+                if (hover) {
                     CursorManager.setHandCursor()
                 }
                 guiGraphics.blit(
@@ -446,7 +450,7 @@ class BrowsingWidget(x: Int, y: Int) :
                     EXPORT,
                     x + 173, y + 201, 0.0f, 0.0f,
                     42, 13, 42, 13,
-                    if (mouseX in x + 173..x + 145 + 42 && mouseY in y + 201..y + 201 + 13) 0xFFCCCCCD.toInt() else 0xFFFFFFFF.toInt()
+                    if (hover) 0xFFCCCCCD.toInt() else 0xFFFFFFFF.toInt()
                 )
             }
         }
@@ -523,6 +527,9 @@ class BrowsingWidget(x: Int, y: Int) :
             }
             fileScroll?.setScrollAmount(0.0)
             contextScroll?.setScrollAmount(0.0)
+            MC.execute {
+                MC.player?.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1f, 1f)
+            }
             return true
         } else if (left && event.x.toInt() in x + 118..x + 118 + 97 && event.y.toInt() in y + 19..y + 19 + 13) {
             HTSLScreen.browsingType = when (HTSLScreen.browsingType) {
@@ -532,6 +539,9 @@ class BrowsingWidget(x: Int, y: Int) :
             }
             fileScroll?.setScrollAmount(0.0)
             contextScroll?.setScrollAmount(0.0)
+            MC.execute {
+                MC.player?.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1f, 1f)
+            }
             return true
         }
 
@@ -550,6 +560,9 @@ class BrowsingWidget(x: Int, y: Int) :
                         val ast = HtslAstBuilder.parseFile(htslFile)
                         Importer.process(ast, htslFile, selectedContainer.context, selectedContainer.target)
                         HTSLScreen.notBrowsing()
+                        MC.execute {
+                            MC.player?.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1f, 1f)
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
                         return false
@@ -560,6 +573,9 @@ class BrowsingWidget(x: Int, y: Int) :
                         val ast = HtslAstBuilder.parseFile(htslFile)
                         Differ.process(ast, htslFile, selectedContainer.context, selectedContainer.target)
                         HTSLScreen.notBrowsing()
+                        MC.execute {
+                            MC.player?.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1f, 1f)
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
                         return false
@@ -567,10 +583,13 @@ class BrowsingWidget(x: Int, y: Int) :
                     return true
                 }
             } else {
-                if (event.x.toInt() in x + 173..x + 145 + 42 && event.y.toInt() in y + 201..y + 201 + 13) {
+                if (event.x.toInt() in x + 173..x + 173 + 42 && event.y.toInt() in y + 201..y + 201 + 13) {
                     try {
                         Exporter.process(selectedContainer, htslFile)
                         HTSLScreen.notBrowsing()
+                        MC.execute {
+                            MC.player?.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1f, 1f)
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
                         return false

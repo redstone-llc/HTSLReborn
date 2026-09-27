@@ -3,8 +3,10 @@ package llc.redstone.htslreborn.queue
 import llc.redstone.htslreborn.utils.InputUtils
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 
+//This is the only 100% AI written class
 object Progress {
     private const val MIN_SAMPLES = 3
     private const val DELAY_WINDOW = 20
@@ -28,7 +30,7 @@ object Progress {
 
     private var lastSuccessAt = 0L
     private var pausedAt = 0L
-    private val delays = HashMap<String, DelayAvg>()
+    private val delays = ConcurrentHashMap<String, DelayAvg>()
 
     // Latched by whichever thread renders first; both only ever store a fresh snapshot.
     @Volatile

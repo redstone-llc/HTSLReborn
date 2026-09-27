@@ -1,6 +1,7 @@
 package llc.redstone.htslreborn.overlay
 
 import llc.redstone.htslreborn.HTSLReborn.MC
+import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.queue.Progress
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.utils.TextUtils
@@ -18,6 +19,7 @@ object DebugHud {
     }
 
     fun render(context: GuiGraphicsExtractor) {
+        if (!HTSLConfig.data.debugMode) return
         if (!Queue.isActive) return
         val font = MC.font
         var y = 10

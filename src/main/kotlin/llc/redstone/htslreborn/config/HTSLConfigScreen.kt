@@ -1,10 +1,6 @@
 package llc.redstone.htslreborn.config
 
-import dev.isxander.yacl3.api.ConfigCategory
-import dev.isxander.yacl3.api.Option
-import dev.isxander.yacl3.api.OptionDescription
-import dev.isxander.yacl3.api.OptionGroup
-import dev.isxander.yacl3.api.YetAnotherConfigLib
+import dev.isxander.yacl3.api.*
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder
 import dev.isxander.yacl3.api.controller.StringControllerBuilder
 import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder
@@ -82,6 +78,12 @@ object HTSLConfigScreen {
                 false,
                 { data.silenceImportSounds },
                 { data.silenceImportSounds = it }
+            ))
+            .option(booleanOption(
+                "htslreborn.config.debug_mode",
+                false,
+                { data.debugMode },
+                { data.debugMode = it }
             ))
             .build()
     }

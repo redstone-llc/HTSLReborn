@@ -138,7 +138,9 @@ object Queue {
                 attempts++
 
                 if (done == Status.Success) {
-                    HTSLReborn.LOGGER.info("[${queue.size - 1}] Operation succeeded: {}", op)
+                    if (HTSLConfig.data.debugMode) {
+                        HTSLReborn.LOGGER.info("[${queue.size - 1}] Operation succeeded: {}", op)
+                    }
                     Progress.onSucceeded(op, cleanRun = attempts == 1)
                     if (op !is Operation.OpenMenu) {
                         previous = op
@@ -162,7 +164,9 @@ object Queue {
                 }
 
                 if (done is Status.Failure) {
-                    HTSLReborn.LOGGER.warn("[${queue.size - 1}] Operation failed: {}. Reason: {}", op, done.reason)
+                    if (HTSLConfig.data.debugMode) {
+                        HTSLReborn.LOGGER.warn("[${queue.size - 1}] Operation failed: {}. Reason: {}", op, done.reason)
+                    }
                     Progress.onFailed()
                     if (paused) {
                         attempts = 0
@@ -173,7 +177,9 @@ object Queue {
                     }
                     if (attempts >= 3) {
                         if (previous != null) {
-                            HTSLReborn.LOGGER.warn("[${queue.size - 1}] Retrying previous operation: {}", previous)
+                            if (HTSLConfig.data.debugMode) {
+                                HTSLReborn.LOGGER.warn("[${queue.size - 1}] Retrying previous operation: {}", previous)
+                            }
                             previous?.execute(MC)
                             previous = null
                         } else {

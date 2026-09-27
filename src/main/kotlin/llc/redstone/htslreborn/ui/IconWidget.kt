@@ -10,6 +10,7 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
+import net.minecraft.sounds.SoundEvents
 
 abstract class IconWidget(x: Int, y: Int, w: Int, h: Int, comp: Component) : AbstractWidget(x, y, w, h, comp) {
     abstract val icons: List<Icon>
@@ -20,6 +21,9 @@ abstract class IconWidget(x: Int, y: Int, w: Int, h: Int, comp: Component) : Abs
         for (icon in icons) {
             if (icon.isHovered(mouseButtonEvent.x.toInt() - x, mouseButtonEvent.y.toInt() - y)) {
                 icon.run()
+                MC.execute {
+                    MC.player?.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1f, 1f)
+                }
                 return true
             }
         }

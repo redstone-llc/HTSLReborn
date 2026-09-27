@@ -30,11 +30,11 @@ class FolderWidget(val file: Path? = null, val context: ImportContext? = null) :
     var hovered = false
 
     val hoveredIcons = listOf(
-        Icon(155, 0, texture = DELETE, tooltip = Component.translatable("htslreborn.browser.delete")) {
+        Icon(155, 0, height = 15, texture = DELETE, tooltip = Component.translatable("htslreborn.browser.delete")) {
             val target = file ?: return@Icon
             HTSLConfig.requestDelete(target)
         },
-        Icon(170, 0, texture = OPEN_EXTERNALLY, tooltip = Component.translatable("htslreborn.browser.open_externally")) {
+        Icon(170, 0, height = 15, texture = OPEN_EXTERNALLY, tooltip = Component.translatable("htslreborn.browser.open_externally")) {
             if (file == null) return@Icon
             // Open Externally
             //? if >=26.3 {
@@ -43,7 +43,7 @@ class FolderWidget(val file: Path? = null, val context: ImportContext? = null) :
             Util.getPlatform().openPath(file)
             //?}
         },
-        Icon(185, 0, tooltip = Component.translatable("htslreborn.browser.open")) {
+        Icon(185, 0, height = 15, tooltip = Component.translatable("htslreborn.browser.open")) {
             if (file == null) return@Icon
             // Open Folder
             FileHandler.currentDir = file
@@ -87,6 +87,7 @@ class FolderWidget(val file: Path? = null, val context: ImportContext? = null) :
     }
 
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, bl: Boolean): Boolean {
+        if (super.mouseClicked(mouseButtonEvent, bl)) return true
         if (hovered) {
             if (file != null) {
                 FileHandler.currentDir = file
@@ -99,6 +100,6 @@ class FolderWidget(val file: Path? = null, val context: ImportContext? = null) :
             }
             return true
         }
-        return super.mouseClicked(mouseButtonEvent, bl)
+        return false
     }
 }

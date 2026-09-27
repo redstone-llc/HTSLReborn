@@ -18,7 +18,7 @@ class FileLayout(
 
     private fun visiblePaths(): List<Path> {
         return FileHandler.filteredFiles.filter { path ->
-            path.isDirectory() || path.name.endsWith(".htsl", ignoreCase = true)
+            (path.isDirectory() && !path.name.startsWith(".")) || path.name.endsWith(".htsl", ignoreCase = true)
         }
     }
 

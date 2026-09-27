@@ -30,11 +30,11 @@ class ScriptWidget(val file: Path? = null, val scriptContainer: ScriptContainer?
     var hovered = false
 
     val hoveredIcons = listOf(
-        Icon(170, 0, texture = DELETE, tooltip = Component.translatable("htslreborn.browser.delete")) {
+        Icon(170, 0, height = 15, texture = DELETE, tooltip = Component.translatable("htslreborn.browser.delete")) {
             val target = file ?: return@Icon
             HTSLConfig.requestDelete(target)
         },
-        Icon(185, 0, texture = OPEN_EXTERNALLY, tooltip = Component.translatable("htslreborn.browser.open_externally")) {
+        Icon(185, 0, height = 15, texture = OPEN_EXTERNALLY, tooltip = Component.translatable("htslreborn.browser.open_externally")) {
             if (file == null) return@Icon
             //? if >=26.3 {
             /*Blaze3D.openPath(file)
