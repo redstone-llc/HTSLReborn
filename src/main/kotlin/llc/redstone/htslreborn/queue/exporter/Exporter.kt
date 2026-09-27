@@ -51,7 +51,7 @@ object Exporter : BuildableContainer {
             enterContext(container)
             buildOps(startIndex = exportFrom)
             +Operation.Callback {
-                if (path == null) error("No path provided for export")
+                if (path == null) return@Callback Status.Success
                 val lines = export(actions, path)
                 path.parent?.let {
                     if (!it.exists()) {
@@ -295,8 +295,11 @@ object Exporter : BuildableContainer {
 
     suspend fun handleItemProperty(
         propertySlotIndex: Int
-    ): ItemStack {
+    ): ItemStack? {
         val stack = MenuUtils.getSlot(propertySlotIndex).item
+        if (stack.getCurrentValue(false) == "Not Set") {
+            return null
+        }
 
         MenuUtils.packetClick(propertySlotIndex)
         MenuUtils.onOpen(NameExact("Select an Item"))
