@@ -80,6 +80,12 @@ object Queue {
         HTSLReborn.LOGGER.info("Queue resumed: {} ({} ops)", session.describe(), ops.size)
     }
 
+    fun cancel() {
+        clear(discardSession = true)
+        paused = false
+        HTSLReborn.LOGGER.info("Queue canceled")
+    }
+
     fun enqueue(block: OperationBuilder.() -> Unit) {
         addAll(OperationBuilder().apply(block).ops)
     }

@@ -80,6 +80,12 @@ object HTSLConfigScreen {
                 { data.silenceImportSounds = it }
             ))
             .option(booleanOption(
+                "htslreborn.config.hide_working_screen",
+                false,
+                { data.hideWorkingScreen },
+                { data.hideWorkingScreen = it }
+            ))
+            .option(booleanOption(
                 "htslreborn.config.debug_mode",
                 false,
                 { data.debugMode },

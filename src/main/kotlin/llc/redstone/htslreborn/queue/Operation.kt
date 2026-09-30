@@ -8,16 +8,9 @@ import llc.redstone.htslreborn.queue.Status.Success
 import llc.redstone.htslreborn.queue.differ.DiffSession
 import llc.redstone.htslreborn.queue.exporter.ExportSession
 import llc.redstone.htslreborn.queue.exporter.Exporter
-import llc.redstone.htslreborn.queue.exporter.Exporter.actions
-import llc.redstone.htslreborn.queue.exporter.Exporter.args
-import llc.redstone.htslreborn.queue.exporter.Exporter.conditions
 import llc.redstone.htslreborn.queue.importer.ImportSession
-import llc.redstone.htslreborn.utils.ClientThread
-import llc.redstone.htslreborn.utils.CommandUtils
-import llc.redstone.htslreborn.utils.InputUtils
+import llc.redstone.htslreborn.utils.*
 import llc.redstone.htslreborn.utils.ItemStackUtils.giveItem
-import llc.redstone.htslreborn.utils.MenuUtils
-import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemSelector
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch
@@ -73,9 +66,9 @@ sealed interface Operation {
     data class ClickItem(val item: ItemSelector, val button: Int = 0) : Operation {
         override suspend fun execute(mc: Minecraft): Status {
             try {
-                val slot = MenuUtils.findSlots(item, paginated = true).firstOrNull()
-                MenuUtils.interactionClick(slot?.index ?: error(TextUtils.translate("htslreborn.error.item_not_found", item)))
-                return Success
+            val slot = MenuUtils.findSlots(item, paginated = true).firstOrNull()
+            MenuUtils.interactionClick(slot?.index ?: error(TextUtils.translate("htslreborn.error.item_not_found", item)))
+            return Success
             } catch (e: Exception) {
                 return Failure(TextUtils.translate("htslreborn.error.click_item", e.message ?: ""))
             }
@@ -101,6 +94,25 @@ sealed interface Operation {
             } catch (e: Exception) {
                 return Failure(TextUtils.translate("htslreborn.error.select_option", e.message ?: ""))
             }
+        }
+    }
+
+    data class OpenOrCreate(
+        val name: String,
+        val openCommand: String,
+        val createCommand: String,
+        val menu: NameMatch,
+    ): Operation {
+        override suspend fun execute(mc: Minecraft): Status {
+            val suggestions = CommandUtils.getTabCompletions(openCommand)
+            if (suggestions.contains(name)) {
+                CommandUtils.runCommand(openCommand + name)
+                MenuUtils.onOpen(menu, checkIfOpened = false) ?: return Failure(TextUtils.translate("htslreborn.error.open_menu", menu.cacheKey))
+            } else {
+                CommandUtils.runCommand(createCommand)
+                MenuUtils.onOpen(menu, checkIfOpened = false) ?: return Failure(TextUtils.translate("htslreborn.error.open_menu", menu.cacheKey))
+            }
+            return Success
         }
     }
 
@@ -141,33 +153,11 @@ sealed interface Operation {
         }
     }
 
-    data class GotoManual(val name: String) : Operation {
-        override fun fixedCost() = 0L
-    }
-
     data class Wait(val timeMs: Long) : Operation {
         override fun fixedCost() = timeMs
 
         override suspend fun execute(mc: Minecraft): Status {
             delay(timeMs.milliseconds)
-            return Success
-        }
-    }
-
-    data object DeleteActions : Operation {
-        override fun estimable() = false
-
-        override suspend fun execute(mc: Minecraft): Status {
-            if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() != null) {
-                return Success
-            }
-
-            while (true) {
-                if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() != null) break
-
-                MenuUtils.interactionClick(10, 1)
-                delay((50 + InputUtils.getClientPing()).milliseconds)
-            }
             return Success
         }
     }
@@ -182,20 +172,65 @@ sealed interface Operation {
         }
     }
 
-    data object ExportActions : Operation {
+    data class ExportActions(val param: KParameter) : Operation {
         override fun estimable() = false
 
         override suspend fun execute(mc: Minecraft): Status {
-            Exporter.handleActions()
+            val collected = mutableListOf<Action>()
+            Exporter.pushActionTarget(collected)
+            val nested = try {
+                Exporter.readAllPages(Exporter.MenuItems.NO_ACTIONS) { Exporter.handleActions() }
+            } catch (e: Exception) {
+                Exporter.popActionTarget()
+                return Failure(TextUtils.translate("htslreborn.error.execute", this, e.message ?: ""))
+            }
+            nested.add(CommitActions(param))
+            Queue.addAll(nested, 0)
             return Success
         }
     }
 
-    data object ExportConditions : Operation {
+    data class ExportConditions(val param: KParameter) : Operation {
         override fun estimable() = false
 
         override suspend fun execute(mc: Minecraft): Status {
-            Exporter.handleConditions()
+            val collected = mutableListOf<Condition>()
+            Exporter.pushConditionTarget(collected)
+            val nested = try {
+                Exporter.readAllPages(Exporter.MenuItems.NO_CONDITIONS) { Exporter.handleConditions() }
+            } catch (e: Exception) {
+                Exporter.popConditionTarget()
+                return Failure(TextUtils.translate("htslreborn.error.execute", this, e.message ?: ""))
+            }
+            nested.add(CommitConditions(param))
+            Queue.addAll(nested, 0)
+            return Success
+        }
+    }
+
+    data class CommitActions(val param: KParameter) : Operation {
+        override fun fixedCost() = 0L
+
+        override suspend fun execute(mc: Minecraft): Status {
+            Exporter.currentArgs()[param] = Exporter.popActionTarget().toList()
+            return Success
+        }
+    }
+
+    data class CommitConditions(val param: KParameter) : Operation {
+        override fun fixedCost() = 0L
+
+        override suspend fun execute(mc: Minecraft): Status {
+            Exporter.currentArgs()[param] = Exporter.popConditionTarget().toList()
+            return Success
+        }
+    }
+
+    data object PushArgs : Operation {
+        override fun fixedCost() = 0L
+
+        override suspend fun execute(mc: Minecraft): Status {
+            Exporter.pushArgs()
             return Success
         }
     }
@@ -204,19 +239,27 @@ sealed interface Operation {
         override fun fixedCost() = 0L
 
         override suspend fun execute(mc: Minecraft): Status {
+            val frame = Exporter.popArgs()
             val constructor = clazz.primaryConstructor
-                ?: return Failure("No primary constructor found for condition class: ${clazz.simpleName}")
-            conditions.add(
-                if (args.size != constructor.parameters.size) {
+            if (constructor == null) {
+                Exporter.pushArgs(frame)
+                return Failure("No primary constructor found for condition class: ${clazz.simpleName}")
+            }
+            val condition = try {
+                if (frame.size != constructor.parameters.size) {
                     clazz.constructors.firstOrNull { it.parameters.size == constructor.parameters.size }
-                        ?.callBy(args)
-                        ?: constructor.callBy(args)
+                        ?.callBy(frame)
+                        ?: constructor.callBy(frame)
                 } else {
                     constructor.isAccessible = true
-                    constructor.callBy(args)
-                }.apply { this.inverted = this@CompileCondition.inverted }
-            )
-            args.clear()
+                    constructor.callBy(frame)
+                }
+            } catch (e: Exception) {
+                Exporter.pushArgs(frame)
+                return Failure("Failed to compile condition ${clazz.simpleName}: ${e.message}")
+            }
+            condition.inverted = inverted
+            Exporter.currentConditions().add(condition)
             return Success
         }
     }
@@ -225,19 +268,26 @@ sealed interface Operation {
         override fun fixedCost() = 0L
 
         override suspend fun execute(mc: Minecraft): Status {
+            val frame = Exporter.popArgs()
             val constructor = clazz.primaryConstructor
-                ?: return Failure("No primary constructor found for action class: ${clazz.simpleName}")
-            actions.add(
-                if (args.size != constructor.parameters.size) {
+            if (constructor == null) {
+                Exporter.pushArgs(frame)
+                return Failure("No primary constructor found for action class: ${clazz.simpleName}")
+            }
+            val action = try {
+                if (frame.size != constructor.parameters.size) {
                     clazz.constructors.firstOrNull { it.parameters.size == constructor.parameters.size }
-                        ?.callBy(args)
-                        ?: constructor.callBy(args)
+                        ?.callBy(frame)
+                        ?: constructor.callBy(frame)
                 } else {
                     constructor.isAccessible = true
-                    constructor.callBy(args)
+                    constructor.callBy(frame)
                 }
-            )
-            args.clear()
+            } catch (e: Exception) {
+                Exporter.pushArgs(frame)
+                return Failure("Failed to compile action ${clazz.simpleName}: ${e.message}")
+            }
+            Exporter.currentActions().add(action)
             return Success
         }
     }
@@ -248,7 +298,7 @@ sealed interface Operation {
         override suspend fun execute(mc: Minecraft): Status {
             try {
                 Exporter.handleSimpleProperty(prop, colorValue).let { value ->
-                    args[param] = value
+                    Exporter.currentArgs()[param] = value
                 }
             } catch (e: Exception) {
                 return Failure("Failed to handle simple property '${prop.name}': ${e.message}")
@@ -261,7 +311,7 @@ sealed interface Operation {
         override suspend fun execute(mc: Minecraft): Status {
             try {
                 Exporter.handleLongProperty(prop, colorValue, propertyIndex).let { value ->
-                    args[param] = value
+                    Exporter.currentArgs()[param] = value
                 }
             } catch (e: Exception) {
                 return Failure("Failed to handle long property '${prop.name}': ${e.message}")
@@ -274,7 +324,7 @@ sealed interface Operation {
         override suspend fun execute(mc: Minecraft): Status {
             try {
                 Exporter.handleItemProperty(propertyIndex).let { value ->
-                    args[param] = value
+                    Exporter.currentArgs()[param] = value
                 }
             } catch (e: Exception) {
                 return Failure("Failed to handle item property at index $propertyIndex: ${e.message}")
@@ -288,8 +338,8 @@ sealed interface Operation {
         override fun fixedCost() = 0L
 
         override suspend fun execute(mc: Minecraft): Status {
-            args.clear()
-            while (actions.size > keep) actions.removeLast()
+            Exporter.clearNestedExport()
+            while (Exporter.actions.size > keep) Exporter.actions.removeLast()
             ExportSession.begin()
             return Success
         }

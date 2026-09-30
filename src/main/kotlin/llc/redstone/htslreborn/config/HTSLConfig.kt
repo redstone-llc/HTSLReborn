@@ -35,6 +35,7 @@ object HTSLConfig {
             data.silenceImportMessages = loaded.silenceImportMessages
             data.silenceImportSounds = loaded.silenceImportSounds
             data.debugMode = loaded.debugMode
+            data.hideWorkingScreen = loaded.hideWorkingScreen
         }.onFailure {
             HTSLReborn.LOGGER.warn("Failed to read {}", file, it)
         }
@@ -111,4 +112,5 @@ class HTSLConfigData {
     var silenceImportMessages: Boolean = true
     var silenceImportSounds: Boolean = false
     var debugMode: Boolean = false
+    var hideWorkingScreen: Boolean = false
 }

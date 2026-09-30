@@ -1,6 +1,7 @@
 package llc.redstone.htslreborn.mixins;
 
 import llc.redstone.htslreborn.accessor.HandledScreenAccessor;
+import llc.redstone.htslreborn.config.HTSLConfig;
 import llc.redstone.htslreborn.queue.Queue;
 import llc.redstone.htslreborn.ui.HTSLScreen;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -45,7 +46,7 @@ public abstract class ScreenHandlerMixin extends Screen implements HandledScreen
         }
         HTSLScreen.getINSTANCE().extractRenderState(graphics, mouseX, mouseY, a);
         menuRendered = true;
-        if (Queue.INSTANCE.isActive() || HTSLScreen.Companion.isBrowsing()) {
+        if ((Queue.INSTANCE.isActive() && !HTSLConfig.INSTANCE.getData().getHideWorkingScreen()) || HTSLScreen.Companion.isBrowsing()) {
             ci.cancel();
         }
     }

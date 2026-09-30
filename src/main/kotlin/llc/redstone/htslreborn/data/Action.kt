@@ -7,6 +7,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import llc.redstone.htslreborn.data.ScopeType.*
 import llc.redstone.htslreborn.data.enums.*
+import net.minecraft.world.item.ItemStack.matches
+import java.util.Objects
 
 sealed class Action(
     @Transient private val actionName: String = ""
@@ -1051,9 +1053,20 @@ interface KeyedLabeled : Keyed {
 
 data class ItemStack(
     val stack: net.minecraft.world.item.ItemStack? = null,
-    val slot: Int? = null,
-    val relativeFileLocation: String,
-)
+    val slot: Int? = null
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ItemStack) return false
+
+        return stack != null && other.stack != null && matches(other.stack, stack) && other.slot == slot
+    }
+
+    override fun hashCode(): Int {
+        val mc = stack
+        return Objects.hash(mc?.item, mc?.count, slot)
+    }
+}
 
 @Serializable
 sealed class Location(override val key: String) : Keyed {
@@ -1143,7 +1156,7 @@ enum class Operator(vararg val symbol: String, val advanced: Boolean = false, ov
 
 sealed class InventorySlot(override val key: String, val slot: Int) : Keyed {
     @CustomKey
-    data class ManualInput(val inputSlot: Int) : InventorySlot("Manual Input", inputSlot)
+    class ManualInput(inputSlot: Int) : InventorySlot("Manual Input", inputSlot)
     class HandSlot : InventorySlot("Hand Slot", -2)
     class FirstAvailableSlot : InventorySlot("First Available Slot", -1)
     class HotbarSlot(slot: Int) : InventorySlot("Hotbar Slot $slot", slot - 1)
@@ -1152,6 +1165,14 @@ sealed class InventorySlot(override val key: String, val slot: Int) : Keyed {
     class ChestplateSlot : InventorySlot("Chestplate", 38)
     class LeggingsSlot : InventorySlot("Leggings", 37)
     class BootsSlot : InventorySlot("Boots", 36)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is InventorySlot) return false
+        return slot == other.slot
+    }
+
+    override fun hashCode(): Int = slot
 
     override fun toString(): String {
         return "$slot"

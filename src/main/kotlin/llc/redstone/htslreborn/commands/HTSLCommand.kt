@@ -1,12 +1,12 @@
 package llc.redstone.htslreborn.commands
 
+//? if >=26.2 {
+/*import llc.redstone.htslreborn.screen
+*///?}
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import kotlinx.coroutines.runBlocking
-//? if >=26.2 {
-/*import llc.redstone.htslreborn.screen
-*///?}
 import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.config.HTSLConfigScreen
@@ -46,6 +46,7 @@ object HTSLCommand {
                         )
                 )
                 .then(literal("resume").executes(::resume))
+                .then(literal("cancel").executes(::cancel))
                 .then(literal("config").executes(::openConfig))
                 .then(literal("item")
                     .then(literal("give").then(
@@ -78,6 +79,11 @@ object HTSLCommand {
 
     fun resume(context: CommandContext<FabricClientCommandSource>): Int {
         Queue.resume()
+        return 1
+    }
+
+    fun cancel(context: CommandContext<FabricClientCommandSource>): Int {
+        Queue.cancel()
         return 1
     }
 

@@ -175,6 +175,9 @@ enum class Comparator(vararg val symbol: String, override val key: String): Keye
         fun fromSymbol(symbol: String): Comparator? {
             return entries.find { it.symbol.any { s -> s.equals(symbol, ignoreCase = true) } }
         }
+        fun fromKey(key: String): Comparator? {
+            return entries.find { it.key.equals(key, ignoreCase = true) }
+        }
     }
 }
 

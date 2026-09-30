@@ -6,6 +6,7 @@ package llc.redstone.htslreborn.ui
 
 import llc.redstone.htslreborn.HTSLReborn.MC
 import llc.redstone.htslreborn.accessor.HandledScreenAccessor
+import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.ui.browser.BrowsingWidget
 import llc.redstone.htslreborn.ui.browser.FileHandler
@@ -105,7 +106,7 @@ class HTSLScreen : Screen(Component.translatable("htslreborn.screen.working")) {
         if (Queue.isActive && !isBrowsing && widgets.find { it is WorkingWidget } == null) {
             widgets.clear()
             widgets.add(TopbarWidget((this.width - biggerImageWidth) / 2, menuTop - 19, wide = true, containersActive = !Queue.isActive))
-            widgets.add(WorkingWidget((this.width - biggerImageWidth) / 2, (this.height - 222) / 2))
+            if (!HTSLConfig.data.hideWorkingScreen) widgets.add(WorkingWidget((this.width - biggerImageWidth) / 2, (this.height - 222) / 2))
             widgets.add(BottombarWidget((this.width - biggerImageWidth) / 2, (this.height - menuSize) / 2 + menuSize))
             return
         }
@@ -187,7 +188,7 @@ class HTSLScreen : Screen(Component.translatable("htslreborn.screen.working")) {
     }
 
     fun getMenuHeight(): Int {
-        if (Queue.isActive || isBrowsing) return 222
+        if ((Queue.isActive ) || isBrowsing) return 222
         return 144
     }
 

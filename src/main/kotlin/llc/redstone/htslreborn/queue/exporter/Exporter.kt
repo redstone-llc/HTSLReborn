@@ -1,5 +1,6 @@
 package llc.redstone.htslreborn.queue.exporter
 
+import kotlinx.coroutines.delay
 import llc.redstone.htslreborn.data.*
 import llc.redstone.htslreborn.parser.ActionParser
 import llc.redstone.htslreborn.parser.ActionParser.handleSwaps
@@ -17,7 +18,9 @@ import llc.redstone.htslreborn.utils.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.htslreborn.utils.PredicateUtils.ItemSelector
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
+import net.minecraft.nbt.NbtIo
 import net.minecraft.world.item.Items
+import java.io.DataOutputStream
 import java.lang.reflect.ParameterizedType
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
@@ -29,11 +32,50 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.javaField
+import kotlin.time.Duration.Companion.milliseconds
 
 object Exporter : BuildableContainer {
     val actions = mutableListOf<Action>()
     val conditions = mutableListOf<Condition>()
-    val args = mutableMapOf<KParameter, Any?>()
+
+    private val argFrames = ArrayDeque<MutableMap<KParameter, Any?>>()
+    private val actionTargets = ArrayDeque<MutableList<Action>>()
+    private val conditionTargets = ArrayDeque<MutableList<Condition>>()
+
+    fun currentArgs(): MutableMap<KParameter, Any?> =
+        argFrames.lastOrNull() ?: error("Export argument frame is missing")
+
+    fun pushArgs(frame: MutableMap<KParameter, Any?> = mutableMapOf()) {
+        argFrames.addLast(frame)
+    }
+
+    fun popArgs(): MutableMap<KParameter, Any?> =
+        argFrames.removeLastOrNull() ?: error("Export argument frame is missing")
+
+    fun currentActions(): MutableList<Action> = actionTargets.lastOrNull() ?: actions
+
+    fun pushActionTarget(target: MutableList<Action>) {
+        actionTargets.addLast(target)
+    }
+
+    fun popActionTarget(): MutableList<Action> =
+        actionTargets.removeLastOrNull() ?: error("Nested action export is missing")
+
+    fun currentConditions(): MutableList<Condition> = conditionTargets.lastOrNull() ?: conditions
+
+    fun pushConditionTarget(target: MutableList<Condition>) {
+        conditionTargets.addLast(target)
+    }
+
+    fun popConditionTarget(): MutableList<Condition> =
+        conditionTargets.removeLastOrNull() ?: error("Nested condition export is missing")
+
+    fun clearNestedExport() {
+        argFrames.clear()
+        actionTargets.clear()
+        conditionTargets.clear()
+        conditions.clear()
+    }
 
     fun process(container: ScriptContainer, path: Path) {
         Queue.containers.add(ContainerQueueEntry(container = container, context = Exporter, source = path))
@@ -47,6 +89,7 @@ object Exporter : BuildableContainer {
             return emptyList()
         }
 
+        actions.clear()
         builder.apply {
             enterContext(container)
             buildOps(startIndex = exportFrom)
@@ -68,17 +111,18 @@ object Exporter : BuildableContainer {
 
     fun OperationBuilder.buildOps(startIndex: Int) {
         val perPage = ACTION_SLOTS.size
-        val startPage = startIndex / perPage
+        val startPage = (startIndex / perPage) + 1
         +Operation.ResetExport(keep = startIndex)
         +OpenMenu(NameContains("Actions"), checkIfOpened = true)
         +Operation.Callback {
             MenuUtils.goToFirstPage()
-
+            delay(50.milliseconds)
             val queue = ArrayDeque<Operation>()
             queue.add(Operation.GotoPage(startPage))
             queue.addAll(handleActions(skip = startIndex % perPage, checkpointFrom = startIndex))
             var index = (startPage + 1) * perPage
             while (MenuUtils.nextPage()) {
+                delay(50.milliseconds)
                 queue.add(Operation.NextPage)
                 queue.addAll(handleActions(checkpointFrom = index))
                 index += perPage
@@ -99,6 +143,7 @@ object Exporter : BuildableContainer {
         val slots = MenuUtils.actionSlotsOnPage().drop(skip)
         for ((offset, slot) in slots.withIndex()) {
             if (checkpointFrom != null) queue.add(Operation.ExportCheckpoint(checkpointFrom + offset))
+            queue.add(Operation.PushArgs)
             val itemProperties = slot.item.getProperties(true).toMutableList()
             val name = TextUtils.convertTextToString(slot.item.hoverName, false)
 
@@ -106,6 +151,7 @@ object Exporter : BuildableContainer {
                 it.findAnnotations(ActionDefinition::class).any { ann -> ann.displayName == name }
             } ?: throw IllegalStateException("No action class found for action name: $name")
 
+            var addIndex = 0
             if (itemProperties.firstOrNull() != null && itemProperties.first().first == "Holder") {
                 val holderName = itemProperties.first().second
                 actionClass = when (holderName) {
@@ -115,6 +161,7 @@ object Exporter : BuildableContainer {
                     else -> throw IllegalStateException("Unknown holder type: $holderName")
                 }
                 itemProperties.removeAt(0)
+                addIndex = 1
             }
 
             val constructor = actionClass.primaryConstructor
@@ -129,7 +176,7 @@ object Exporter : BuildableContainer {
                     it.first.returnType.classifier == ItemStack::class
                             || it.first.returnType.classifier == List::class
                 } || itemProperties.any {
-                    it.second == "0.0" || it.second.endsWith("...")
+                    it.second.matches(Regex("\\d+\\.\\d+")) || it.second.endsWith("...")
                 }
 
             if (shouldOpenActionSettings) {
@@ -141,24 +188,25 @@ object Exporter : BuildableContainer {
                 val (prop, param) = pair
                 val colorValue = itemProperties.getOrNull(index)?.second
                 val value = colorValue?.replace(Regex("&[0-9a-fk-or]"), "")
+                val slot = ACTION_SLOTS[index + addIndex]
 
                 if (prop.returnType.classifier == ItemStack::class) {
-                    queue.add(Operation.ItemProperty(param, ACTION_SLOTS[index]))
+                    queue.add(Operation.ItemProperty(param, slot))
                     queue.add(OpenMenu(NameContains("Action Settings"), checkIfOpened = true))
-                } else if (value == "0.0" || value?.endsWith("...") == true) {
-                    queue.add(Operation.LongProperty(param, prop, colorValue, ACTION_SLOTS[index]))
+                } else if (value?.matches(Regex("\\d+\\.\\d+")) == true || value?.endsWith("...") == true) {
+                    queue.add(Operation.LongProperty(param, prop, colorValue, slot))
                 } else if (prop.returnType.classifier == List::class) {
                     val field = prop.javaField?.genericType as? ParameterizedType
                         ?: error("Could not get parameterized type for List property ${prop.name}")
                     val listType = field.actualTypeArguments[0]
                     if (listType == Action::class.java) {
-                        queue.add(Operation.Click(ACTION_SLOTS[index]))
+                        queue.add(Operation.Click(slot))
                         queue.add(OpenMenu(NameContains("Actions")))
-                        queue.add(Operation.ExportActions)
+                        queue.add(Operation.ExportActions(param))
                     } else if (listType == Condition::class.java) {
-                        queue.add(Operation.Click(ACTION_SLOTS[index]))
+                        queue.add(Operation.Click(slot))
                         queue.add(OpenMenu(NameContains("Conditions")))
-                        queue.add(Operation.ExportConditions)
+                        queue.add(Operation.ExportConditions(param))
                     }
                     queue.add(Operation.ClickItem(MenuItems.BACK))
                     queue.add(OpenMenu(NameContains("Action Settings"), checkIfOpened = true))
@@ -185,6 +233,7 @@ object Exporter : BuildableContainer {
 
         val slots = MenuUtils.actionSlotsOnPage()
         for (slot in slots) {
+            queue.add(Operation.PushArgs)
             val itemProperties = slot.item.getProperties(true).toMutableList()
             val inverted = slot.item.loreLines(true).any { it.contains("Inverted", ignoreCase = true) }
             val name = TextUtils.convertTextToString(slot.item.hoverName, false)
@@ -193,6 +242,7 @@ object Exporter : BuildableContainer {
                 it.findAnnotations(DisplayName::class).any { ann -> ann.value == name }
             } ?: throw IllegalStateException("No condition class found for action name: $name")
 
+            var addIndex = 0
             if (itemProperties.firstOrNull() != null && itemProperties.first().first == "Holder") {
                 val holderName = itemProperties.first().second
                 conditionClass = when (holderName) {
@@ -202,6 +252,7 @@ object Exporter : BuildableContainer {
                     else -> throw IllegalStateException("Unknown holder type: $holderName")
                 }
                 itemProperties.removeAt(0)
+                addIndex = 1
             }
 
             val constructor = conditionClass.primaryConstructor
@@ -215,7 +266,7 @@ object Exporter : BuildableContainer {
                 properties.any {
                     it.first.returnType.classifier == ItemStack::class
                 } || itemProperties.any {
-                    it.second == "0.0" || it.second.endsWith("...")
+                    it.second.matches(Regex("\\d+\\.\\d+")) || it.second.endsWith("...")
                 }
 
             if (shouldOpenConditionSettings) {
@@ -228,13 +279,13 @@ object Exporter : BuildableContainer {
                 val colorValue = itemProperties[index].second
                 val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
                 val index = index + 1 // Adjust the index to account for the "Inverted" property at index 0
-
+                val slot = ACTION_SLOTS[index + addIndex]
 
                 if (prop.returnType.classifier == ItemStack::class) {
-                    queue.add(Operation.ItemProperty(param, ACTION_SLOTS[index]))
+                    queue.add(Operation.ItemProperty(param, slot))
                     queue.add(OpenMenu(NameContains("Settings"), checkIfOpened = true))
-                } else if (value == "0.0" || value.endsWith("...")) {
-                    queue.add(Operation.LongProperty(param, prop, colorValue, ACTION_SLOTS[index]))
+                } else if (value.matches(Regex("\\d+\\.\\d+")) || value.endsWith("...")) {
+                    queue.add(Operation.LongProperty(param, prop, colorValue, slot))
                 } else {
                     queue.add(Operation.SimpleProperty(param, prop, colorValue))
                 }
@@ -247,6 +298,25 @@ object Exporter : BuildableContainer {
             queue.add(Operation.CompileCondition(conditionClass, inverted))
         }
         return queue
+    }
+
+    /** Snapshots every page, then leaves the menu on the first page so those ops can replay navigation. */
+    suspend fun readAllPages(
+        emptyItem: ItemSelector,
+        readPage: suspend () -> Collection<Operation>,
+    ): ArrayDeque<Operation> {
+        val queued = ArrayDeque<Operation>()
+        if (MenuUtils.findSlots(emptyItem).firstOrNull() != null) return queued
+        MenuUtils.goToFirstPage()
+        delay(50.milliseconds)
+        queued.addAll(readPage())
+        while (MenuUtils.nextPage()) {
+            delay(50.milliseconds)
+            queued.add(Operation.NextPage)
+            queued.addAll(readPage())
+        }
+        MenuUtils.goToFirstPage()
+        return queued
     }
 
     fun handleSimpleProperty(prop: KProperty1<Action, *>, colorValue: String): Any? {
@@ -262,7 +332,7 @@ object Exporter : BuildableContainer {
         }
 
         val result = when (prop.returnType.classifier) {
-            String::class -> colorValue
+            String::class -> colorValue.replace("\"", "")
             Int::class -> value.toIntOrNull()
             Long::class -> value.toLongOrNull()
             Double::class -> value.toDoubleOrNull()
@@ -314,8 +384,7 @@ object Exporter : BuildableContainer {
         MenuUtils.onOpen(null)
 
         return ItemStack(
-            stack = received.stack,
-            relativeFileLocation = "",
+            stack = received.stack
         )
     }
 
@@ -347,8 +416,8 @@ object Exporter : BuildableContainer {
     }
 
     private fun quoteIfNeeded(value: String): String {
-        val escaped = value.replace("\"", "\\\"")
-        return if (escaped.isEmpty() || escaped.any { it.isWhitespace() } || escaped == "null" || escaped.contains("\\\"")) {
+        val escaped = value.replace("\"", "")
+        return if (escaped.isEmpty() || escaped.any { it.isWhitespace() } || escaped == "null") {
             "\"$escaped\""
         } else {
             escaped
@@ -429,14 +498,12 @@ object Exporter : BuildableContainer {
                 val itemStack = value as ItemStack
                 val stack = itemStack.stack ?: error("ItemStack is null for property ${property.name}")
                 val nbt = NbtHelper.serializeItemStack(stack).getOrNull() ?: return properties
-                val nbtString = nbt.toString()
                 val itemName = stack.hoverName.string.replace(" ", "_")
-                if (path.parent.resolve("$itemName.nbt").exists()) {
-                    properties.add("\"$itemName.nbt\"")
-                } else {
-                    path.parent.resolve("$itemName.nbt").writeText(nbtString)
-                    properties.add("\"$itemName.nbt\"")
+                val nbtFile = path.parent.resolve("$itemName.nbt")
+                if (!nbtFile.exists()) {
+                    DataOutputStream(nbtFile.toFile().outputStream()).use { NbtIo.write(nbt, it) }
                 }
+                properties.add("\"$itemName.nbt\"")
             }
 
             else -> {

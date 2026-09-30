@@ -9,6 +9,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import llc.redstone.htslreborn.commands.HTSLCommand
+import llc.redstone.htslreborn.data.InventorySlot
+import llc.redstone.htslreborn.data.ItemStack
 import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.overlay.DebugHud
 import llc.redstone.htslreborn.queue.Queue
@@ -38,6 +40,8 @@ object HTSLReborn : ClientModInitializer {
     const val VERSION = /*$ mod_version*/ "0.2.3";
     const val MINECRAFT = /*$ minecraft*/ "1.21.11";
     internal val JAVERS = JaversBuilder.javers()
+        .registerValue(ItemStack::class.java)
+        .registerValue(InventorySlot::class.java)
         .withListCompareAlgorithm(ListCompareAlgorithm.LEVENSHTEIN_DISTANCE)
         .build()
 

@@ -53,7 +53,6 @@ object MenuUtils {
             pendingScreen = null
             pendingNameMatch = null
             markScreenConsumed()
-            if (!checkIfOpened) ClientThread.settleMenu()
             return alreadyOpen
         } else {
             return try {
@@ -65,7 +64,6 @@ object MenuUtils {
             } finally {
                 pendingScreen = null
                 pendingNameMatch = null
-                ClientThread.settleMenu()
             }
         }
     }
@@ -272,8 +270,9 @@ object MenuUtils {
     val pattern = Regex("\\((\\d+)/(\\d+)\\)")
     suspend fun gotoPage(page: Int) {
         val title = currentMenu()?.title?.string ?: error(TextUtils.translate("htslreborn.error.no_menu"))
-        if (page == 0 && !title.contains("/")) return // already on first page
-        val match = pattern.find(title) ?: return
+        if (page == 1 && !title.contains("/")) return // already on first page
+        val match = pattern.find(title)
+            ?: "(1/1000)".let { pattern.find(it)!! } // default to page 1 of 1 if no match found
         var currentPage = match.groupValues[1].toInt()
         var totalPages = match.groupValues[2].toInt()
         if (page < 0 || page > totalPages) throw IllegalArgumentException("Invalid page number: $page")
@@ -302,7 +301,7 @@ object MenuUtils {
     }
 
     fun getSlotAndPage(slotIndex: Int): Pair<Int, Int> {
-        val page = slotIndex / 21
+        val page = (slotIndex / 21) + 1
         val index = slotIndex % 21
         return Pair(page, index)
     }

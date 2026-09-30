@@ -33,11 +33,15 @@ class HtslAstBuilder(
 
     companion object {
         fun parseFile(file: Path, includedFiles: MutableSet<Path> = mutableSetOf()): List<ScriptContainer> {
-            val charStream = CharStreams.fromPath(file)
-            val lexer = HTSLLexer(charStream).throwOnError()
-            val tokens = CommonTokenStream(lexer)
-            val parser = HTSLParser(tokens).throwOnError()
-            return HtslAstBuilder(file, includedFiles).visitProgram(parser.program())
+            return try {
+                val charStream = CharStreams.fromPath(file)
+                val lexer = HTSLLexer(charStream).throwOnError()
+                val tokens = CommonTokenStream(lexer)
+                val parser = HTSLParser(tokens).throwOnError()
+                HtslAstBuilder(file, includedFiles).visitProgram(parser.program())
+            } catch (e: Exception) {
+                throw RuntimeException("Failed to parse file: $file", e)
+            }
         }
     }
 }

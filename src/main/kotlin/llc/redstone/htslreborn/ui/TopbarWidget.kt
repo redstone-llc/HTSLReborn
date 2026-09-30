@@ -1,8 +1,10 @@
 package llc.redstone.htslreborn.ui
 
 import kotlinx.coroutines.runBlocking
+import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.ui.HTSLScreen.Companion.notBrowsing
 import llc.redstone.htslreborn.utils.CommandUtils
+import llc.redstone.htslreborn.utils.ToastUtils
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 
@@ -55,9 +57,17 @@ class TopbarWidget(x: Int, y: Int, val wide: Boolean = false, val containersActi
             }
         },
         Icon(if (wide) 192 else 145, 0, tooltip = Component.translatable("htslreborn.topbar.export")) {
+            if (Queue.paused) {
+                ToastUtils.currentlyPaused()
+                return@Icon
+            }
             HTSLScreen.export()
         },
         Icon(if (wide) 207 else 160, 0, tooltip = Component.translatable("htslreborn.topbar.import")) {
+            if (Queue.paused) {
+                ToastUtils.currentlyPaused()
+                return@Icon
+            }
             HTSLScreen.import()
         }
     )

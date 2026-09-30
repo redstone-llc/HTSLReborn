@@ -79,13 +79,12 @@ object PropertyParser {
         arg: HTSLParser.ArgumentContext,
         path: Path
     ): ItemStack {
-        var argValue = arg.text
+        var argValue = arg.text.replace("\"", "")
         if (argValue.startsWith("slot_")) {
             val slot = argValue.removePrefix("slot_").toIntOrNull()
                 ?: throw IllegalArgumentException("Invalid slot index: $argValue")
             return ItemStack(
-                slot = slot,
-                relativeFileLocation = argValue,
+                slot = slot
             )
         }
         val stack = try {
@@ -95,13 +94,13 @@ object PropertyParser {
             }
             val file = parent.resolve(argValue)
             ItemUtils.fileToItemStack(file)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            e.printStackTrace()
             htslCompileError("Error reading NBT file: $argValue", arg)
         }
 
         return ItemStack(
-            stack = stack,
-            relativeFileLocation = argValue,
+            stack = stack
         )
     }
 

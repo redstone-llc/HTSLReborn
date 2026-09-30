@@ -1,6 +1,8 @@
 package llc.redstone.htslreborn.queue.differ
 
+import llc.redstone.htslreborn.HTSLReborn
 import llc.redstone.htslreborn.HTSLReborn.JAVERS
+import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.data.*
 import llc.redstone.htslreborn.queue.*
 import llc.redstone.htslreborn.queue.exporter.Exporter
@@ -60,7 +62,8 @@ object Differ : BuildableContainer {
 
     fun handleActions(oldActions: List<Action>, newActions: List<Action>): List<Operation> {
         val diff = JAVERS.compare(oldActions, newActions)
-        val changes = diff.getChangesByType(ListChange::class.java).getOrNull(0)?.changes ?: return emptyList()
+        if (HTSLConfig.data.debugMode) HTSLReborn.LOGGER.info("Diffing actions: ${diff.prettyPrint()}")
+        val changes = diff.getChangesByType(ListChange::class.java).getOrNull(0)?.changes?.reversed() ?: return emptyList()
 
         var newIndex = oldActions.size - 1
 
@@ -72,7 +75,7 @@ object Differ : BuildableContainer {
 
                 fun handleAdd(action: Action) {
                     newIndex += 1
-                    if (index >= oldActions.size) {
+                    if (index >= newIndex) {
                         handleActions(listOf(action))
                         +Operation.OpenMenu(NameContains("Actions"))
                     } else {
@@ -128,7 +131,6 @@ object Differ : BuildableContainer {
                             handleAdd(newValue)
                         } else {
                             updateAction(ACTION_SLOTS[slot], oldValue, newValue)
-
                         }
                     }
                 }
@@ -152,7 +154,7 @@ object Differ : BuildableContainer {
                     is ValueAdded -> {
                         val action = change.addedValue as? Condition ?: continue
                         newIndex += 1
-                        if (index >= oldActions.size) {
+                        if (index >= newIndex) {
                             handleConditions(listOf(action))
                         } else {
                             val (page, slot) = MenuUtils.getSlotAndPage(newIndex)
@@ -211,6 +213,12 @@ object Differ : BuildableContainer {
         val properties = mutableListOf<KProperty1<Condition, *>>()
         for (parm in parameters) {
             properties.add(conditionProperties.find { it.name == parm.name } ?: continue)
+        }
+
+        properties.add(0, conditionProperties.find { it.name == "inverted" } ?: return)
+
+        if (newValue is Condition.VariableRequirement) {
+            properties.add(0, conditionProperties.find { it.name == "holder" } ?: return)
         }
 
         for ((index, property) in properties.withIndex()) {

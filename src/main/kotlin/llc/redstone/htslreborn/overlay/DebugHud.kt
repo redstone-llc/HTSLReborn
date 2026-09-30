@@ -29,6 +29,7 @@ object DebugHud {
         }
 
         line(TextUtils.translate("htslreborn.debug.title"))
+        line(TextUtils.translate("htslreborn.debug.containers", Queue.tasksStarted, Queue.containers.size))
         line(TextUtils.translate("htslreborn.debug.queue", Queue.size()))
         line(TextUtils.translate("htslreborn.debug.operation", "${Queue.current}"))
         line(TextUtils.translate("htslreborn.debug.gui_context", "${Queue.guiContext}"))

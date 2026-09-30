@@ -31,8 +31,4 @@ object ClientThread {
             lastPacketAt = System.currentTimeMillis()
         }
     }
-
-    suspend fun settleMenu() {
-        delay((50 + InputUtils.getClientPing().coerceAtLeast(0)).milliseconds)
-    }
 }
