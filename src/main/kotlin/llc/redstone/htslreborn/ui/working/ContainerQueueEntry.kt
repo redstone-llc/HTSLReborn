@@ -55,8 +55,6 @@ data class ContainerQueueEntry(
             State.COMPLETE -> COMPLETE
         }
 
-    override val isWholeHovered: Boolean = true
-
     override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, delta)
         val contextName = Component.translatable(
