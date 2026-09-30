@@ -1,5 +1,6 @@
 
 import com.strumenta.antlrkotlin.gradle.AntlrKotlinTask
+import org.gradle.api.file.DuplicatesStrategy
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -154,5 +155,24 @@ tasks {
 
     test {
         useJUnitPlatform()
+    }
+}
+
+// The active version already writes its jar to the root build/libs.
+// Other versions build under versions/<mc>/build/libs, so copy those up.
+if (project == rootProject) {
+    tasks.register("collectJar") {
+        group = "build"
+        description = "Builds this version's mod jar into build/libs"
+        dependsOn(loomx.modJar)
+    }
+} else {
+    tasks.register<Copy>("collectJar") {
+        group = "build"
+        description = "Builds this version's mod jar and copies it to the root build/libs"
+        dependsOn(loomx.modJar)
+        from(loomx.modJar.flatMap { it.archiveFile })
+        into(rootProject.layout.buildDirectory.dir("libs"))
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 }

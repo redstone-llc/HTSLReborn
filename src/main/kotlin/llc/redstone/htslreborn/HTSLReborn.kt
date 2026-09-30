@@ -16,6 +16,7 @@ import llc.redstone.htslreborn.overlay.DebugHud
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.ui.browser.FileExplorerHandler
 import llc.redstone.htslreborn.ui.browser.FileHandler
+import llc.redstone.htslreborn.utils.HousingUtils
 import llc.redstone.htslreborn.utils.ToastUtils
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -60,6 +61,7 @@ object HTSLReborn : ClientModInitializer {
         var notifiedResumable = false
 
         ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
+            HousingUtils.clearHouse()
             if (Queue.pause()) {
                 LOGGER.info("Paused import due to disconnect")
                 notifiedResumable = false

@@ -12,7 +12,8 @@
     "ReceivePreviousInputMixin",
     "ScreenCloseMixin",
     "ScreenHandlerMixin",
-    "SoundSilencerMixin"
+    "SoundSilencerMixin",
+    "TabListMixin"
   ],
   "injectors": {
     "defaultRequire": 1

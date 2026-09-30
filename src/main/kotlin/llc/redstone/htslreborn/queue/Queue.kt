@@ -124,6 +124,9 @@ object Queue {
                 }
                 tasksStarted++
                 session?.begin(entry.container, entry.source)
+                if (entry.context is Importer || entry.context is Differ) {
+                    ImportCache.stage(entry)
+                }
                 Progress.reset()
                 addAll(entry.context.build(entry.container, path = entry.source))
             }
@@ -156,6 +159,9 @@ object Queue {
                     if (current == null) {
                         val finished = tasksStarted >= containers.size
                         Progress.reset()
+                        if (session is ImportSession || session is DiffSession) {
+                            ImportCache.commit()
+                        }
                         session?.end()
                         session = null
                         if (finished && HTSLConfig.data.playCompleteSound) {

@@ -181,7 +181,7 @@ object PropertyParser {
     }
 
     fun checkCoordinate(coord: String): Boolean {
-        val regex = Regex("^[~^]?[+-]?\\d+(\\.\\d+)?$")
+        val regex = Regex("^(?:[~^]?[+-]?\\d+(\\.\\d+)?|%[^%]+%)$")
         return regex.matches(coord)
     }
 }

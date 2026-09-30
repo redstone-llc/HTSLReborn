@@ -25,7 +25,12 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.withNullability
 
 object Importer: BuildableContainer {
-    fun process(containers: List<ScriptContainer>, path: Path, context: ImportContext? = null, target: ContextTarget? = null) {
+    fun process(
+        containers: List<ScriptContainer>,
+        path: Path,
+        context: ImportContext? = null,
+        target: ContextTarget? = null,
+    ) {
         Queue.containers.addAll(containers.mapIndexed { index, container ->
             if (index == 0 && context != null && target != null && container.context == ImportContext.DEFAULT) {
                 container.context = context

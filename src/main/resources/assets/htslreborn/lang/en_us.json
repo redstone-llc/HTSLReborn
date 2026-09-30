@@ -64,6 +64,7 @@
   "htslreborn.browser.contexts": "Contexts",
   "htslreborn.browser.separator": " > ",
   "htslreborn.browser.unknown_folder": "Unknown Folder",
+  "htslreborn.browser.update": "§aUpdate\n\n§eShift-click to not use cached data",
   "htslreborn.browser.script": "Script",
   "htslreborn.browser.folder": "Folder",
 
@@ -105,7 +106,7 @@
   "htslreborn.toast.currently_paused": "Currently paused",
   "htslreborn.toast.currently_paused.description": "Run %s to continue the last operation or %s to cancel.",
   "htslreborn.toast.failed_to_compile": "Failed to compile",
-  "htslreborn.toast.failed_to_compile.description": "Failed to ",
+  "htslreborn.toast.failed_to_compile.description": "Failed to compile.\nReason:\n%s\n\nCheck logs for more information.",
 
   "htslreborn.error.nothing_to_resume": "Nothing to resume",
   "htslreborn.error.resume_busy": "An operation is still finishing, try again in a moment",

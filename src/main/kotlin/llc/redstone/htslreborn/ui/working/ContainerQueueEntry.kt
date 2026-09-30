@@ -18,7 +18,10 @@ import net.minecraft.resources.Identifier
 import java.nio.file.Path
 
 data class ContainerQueueEntry(
-    val container: ScriptContainer?, val context: BuildableContainer, val source: Path? = null
+    val container: ScriptContainer?,
+    val context: BuildableContainer,
+    val source: Path? = null,
+    val useCache: Boolean = true,
 ) : IconWidget(
     0, 0, 202, 15, container?.target?.name?.let { Component.literal(it) }
         ?: Component.translatable("htslreborn.queue.unknown_container")

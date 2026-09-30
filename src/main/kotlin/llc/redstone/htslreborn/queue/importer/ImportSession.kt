@@ -2,6 +2,7 @@ package llc.redstone.htslreborn.queue.importer
 
 import llc.redstone.htslreborn.data.ScriptContainer
 import llc.redstone.htslreborn.utils.TextUtils
+import llc.redstone.htslreborn.queue.ImportCache
 import llc.redstone.htslreborn.queue.Operation
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.queue.ResumableSession
@@ -47,6 +48,8 @@ object ImportSession : ResumableSession {
     }
 
     override fun end() {
+        ImportCache.discard()
+        ImportCache.invalidateIfUncommitted(container)
         source = null
         sourceHash = null
         container = null

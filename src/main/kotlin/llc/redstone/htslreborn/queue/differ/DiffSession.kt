@@ -2,6 +2,7 @@ package llc.redstone.htslreborn.queue.differ
 
 import llc.redstone.htslreborn.data.ImportContext
 import llc.redstone.htslreborn.data.ScriptContainer
+import llc.redstone.htslreborn.queue.ImportCache
 import llc.redstone.htslreborn.queue.Operation
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.queue.ResumableSession
@@ -49,6 +50,8 @@ object DiffSession : ResumableSession {
     }
 
     override fun end() {
+        ImportCache.discard()
+        if (phase == Phase.EDIT) ImportCache.invalidateIfUncommitted(container)
         container = null
         phase = Phase.EXPORT
     }

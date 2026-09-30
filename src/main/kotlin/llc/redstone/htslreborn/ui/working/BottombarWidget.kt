@@ -25,16 +25,10 @@ class BottombarWidget(
         get() = BottombarWidget.BACKGROUND
 
     override val icons = listOf(
-        Icon(208, 1, tooltip = Component.translatable("htslreborn.working.bottombar.clear")) {
+        Icon(208, 0, tooltip = Component.translatable("htslreborn.working.bottombar.clear")) {
             Queue.clear(true, discardContainers = true)
         }
     )
-
-    init {
-//        val menuSize = 114 + ((MC.screen as? ContainerScreen)?.menu?.rowCount ?: 0) * 18
-//        startingX = (this.width - this.imageWidth) / 2
-//        startingY = (this.height - menuSize) / 2 + menuSize
-    }
 
     override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
         super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, delta)

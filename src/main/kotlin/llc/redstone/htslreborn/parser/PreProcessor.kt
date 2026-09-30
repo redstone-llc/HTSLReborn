@@ -257,18 +257,6 @@ class PreProcessor(
         while (iterator.hasNext()) {
             val arg = iterator.next()
             when {
-                (Operator.fromSymbol(arg.text) != null) -> {
-                    newArguments.add(arg)
-                    handlePlaceholderShortcuts(iterator, newArguments)
-                    continue
-                }
-
-                (Comparator.fromSymbol(arg.text) != null) -> {
-                    newArguments.add(arg)
-                    handlePlaceholderShortcuts(iterator, newArguments)
-                    continue
-                }
-
                 arg.IDENTIFIER() != null -> {
                     val replacement = definedReplacements[arg.text]
                     if (replacement != null) {
@@ -286,6 +274,18 @@ class PreProcessor(
                     } else {
                         newArguments.add(arg)
                     }
+                }
+
+                (Operator.fromSymbol(arg.text) != null) -> {
+                    newArguments.add(arg)
+                    handlePlaceholderShortcuts(iterator, newArguments)
+                    continue
+                }
+
+                (Comparator.fromSymbol(arg.text) != null) -> {
+                    newArguments.add(arg)
+                    handlePlaceholderShortcuts(iterator, newArguments)
+                    continue
                 }
 
                 else -> {

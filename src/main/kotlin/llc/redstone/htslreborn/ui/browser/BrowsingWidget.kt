@@ -18,6 +18,7 @@ import llc.redstone.htslreborn.utils.CursorManager
 import llc.redstone.htslreborn.utils.MenuUtils
 import llc.redstone.htslreborn.utils.TextUtils
 import llc.redstone.htslreborn.utils.TextUtils.drawEllipsis
+import llc.redstone.htslreborn.utils.ToastUtils
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.components.EditBox
@@ -423,8 +424,15 @@ class BrowsingWidget(x: Int, y: Int) :
                 if (mouseX in x + 145..x + 145 + 25 && mouseY in y + 201..y + 201 + 13) {
                     CursorManager.setHandCursor()
                 }
-                if (mouseX in x + 145 + 27..x + 145 + 27 + 43 && mouseY in y + 201..y + 201 + 13) {
+                val updateHover = mouseX in x + 145 + 27..x + 145 + 27 + 43 && mouseY in y + 201..y + 201 + 13
+                if (updateHover) {
                     CursorManager.setHandCursor()
+                    guiGraphics.setComponentTooltipForNextFrame(
+                        MC.font,
+                        TextUtils.legacyTooltip(TextUtils.translate("htslreborn.browser.update")),
+                        mouseX,
+                        mouseY
+                    )
                 }
                 guiGraphics.blit(
                     RenderPipelines.GUI_TEXTURED,
@@ -438,7 +446,7 @@ class BrowsingWidget(x: Int, y: Int) :
                     UPDATE,
                     x + 145 + 27, y + 201, 0.0f, 0.0f,
                     43, 13, 43, 13,
-                    if (mouseX in x + 145 + 27..x + 145 + 27 + 43 && mouseY in y + 201..y + 201 + 13) 0xFFCCCCCD.toInt() else 0xFFFFFFFF.toInt()
+                    if (updateHover) 0xFFCCCCCD.toInt() else 0xFFFFFFFF.toInt()
                 )
             } else {
                 val hover = mouseX in x + 173..x + 173 + 42 && mouseY in y + 201..y + 201 + 13
@@ -564,6 +572,7 @@ class BrowsingWidget(x: Int, y: Int) :
                             MC.player?.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1f, 1f)
                         }
                     } catch (e: Exception) {
+                        ToastUtils.failedToCompile(e.message?: "Unknown error")
                         e.printStackTrace()
                         return false
                     }
@@ -571,13 +580,20 @@ class BrowsingWidget(x: Int, y: Int) :
                 } else if (event.x.toInt() in x + 145 + 27..x + 145 + 27 + 43 && event.y.toInt() in y + 201..y + 201 + 13) {
                     try {
                         val ast = HtslAstBuilder.parseFile(htslFile)
-                        Differ.process(ast, htslFile, selectedContainer.context, selectedContainer.target)
+                        Differ.process(
+                            ast,
+                            htslFile,
+                            selectedContainer.context,
+                            selectedContainer.target,
+                            useCache = !event.hasShiftDown()
+                        )
                         HTSLScreen.notBrowsing()
                         MC.execute {
                             MC.player?.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1f, 1f)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        ToastUtils.failedToCompile(e.message?: "Unknown error")
                         return false
                     }
                     return true

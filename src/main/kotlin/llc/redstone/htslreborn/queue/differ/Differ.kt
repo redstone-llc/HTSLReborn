@@ -27,13 +27,19 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 object Differ : BuildableContainer {
-    fun process(containers: List<ScriptContainer>, path: Path, context: ImportContext? = null, target: ContextTarget? = null) {
+    fun process(
+        containers: List<ScriptContainer>,
+        path: Path,
+        context: ImportContext? = null,
+        target: ContextTarget? = null,
+        useCache: Boolean = true,
+    ) {
         Queue.containers.addAll(containers.mapIndexed { index, container ->
             if (index == 0 && context != null && target != null && container.context == ImportContext.DEFAULT) {
                 container.context = context
                 container.target = target
             }
-            ContainerQueueEntry(container, Differ, path)
+            ContainerQueueEntry(container, Differ, path, useCache)
         })
     }
 
@@ -49,6 +55,23 @@ object Differ : BuildableContainer {
     }
 
     private fun buildContainer(container: ScriptContainer, exportFrom: Int): List<Operation> {
+        val allowCache = Queue.containers.getOrNull(Queue.tasksStarted - 1)?.useCache != false
+        val cached = if (allowCache && exportFrom == 0 && DiffSession.phase != DiffSession.Phase.EDIT) {
+            ImportCache.load(container)
+        } else {
+            null
+        }
+        if (cached != null) {
+            HTSLReborn.LOGGER.info("Diffing {} from the cached import", ImportCache.key(container))
+            return listOf(
+                Operation.DiffPhase(DiffSession.Phase.EDIT),
+                Operation.Callback {
+                    Queue.addAll(handleActions(cached, container.actions), 0)
+                    Status.Success
+                }
+            )
+        }
+
         val ops = mutableListOf<Operation>()
         ops += Operation.DiffPhase(DiffSession.Phase.EXPORT)
         ops += Exporter.build(container, exportFrom = exportFrom)

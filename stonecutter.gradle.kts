@@ -6,6 +6,12 @@ plugins {
 
 stonecutter active "26.1.2"
 
+tasks.register("buildAndCollect") {
+    group = "build"
+    description = "Builds every version and collects the mod jars in build/libs"
+    dependsOn(stonecutter.tasks.named("collectJar"))
+}
+
 /*
 // Make newer versions be published last
 stonecutter tasks {
