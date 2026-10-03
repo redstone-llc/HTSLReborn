@@ -13,14 +13,12 @@ import llc.redstone.htslreborn.queue.importer.Importer.handleProperty
 import llc.redstone.htslreborn.ui.working.ContainerQueueEntry
 import llc.redstone.htslreborn.utils.MenuUtils
 import llc.redstone.htslreborn.utils.MenuUtils.ACTION_SLOTS
+import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
 import llc.redstone.htslreborn.utils.ToastUtils
 import net.minecraft.world.inventory.ContainerInput
-import org.javers.core.diff.changetype.container.ElementValueChange
-import org.javers.core.diff.changetype.container.ListChange
-import org.javers.core.diff.changetype.container.ValueAdded
-import org.javers.core.diff.changetype.container.ValueRemoved
+import org.javers.core.diff.changetype.container.*
 import java.nio.file.Path
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
@@ -89,15 +87,38 @@ object Differ : BuildableContainer {
         val changes = diff.getChangesByType(ListChange::class.java).getOrNull(0)?.changes?.reversed() ?: return emptyList()
 
         var newIndex = oldActions.size - 1
+        val sim = oldActions.toMutableList()
+        val relocations = relocationsFor(changes, oldActions)
 
         val builder = OperationBuilder()
         builder.apply {
             for (change in changes) {
                 val index = change.index
+                if (relocations.any { it.partner === change }) continue
                 +Operation.OpenMenu(NameContains("Actions"), checkIfOpened = true)
+
+                val relocation = relocations.find { it.anchor === change }
+                if (relocation != null) {
+                    val liveFrom = sim.indexOfFirst { it === relocation.origin }
+                    if (liveFrom >= 0) {
+                        val dest = relocation.toIndex.coerceIn(0, sim.lastIndex)
+                        if (HTSLConfig.data.debugMode) {
+                            HTSLReborn.LOGGER.info("Moving action '{}' from {} to {}", relocation.origin, liveFrom, dest)
+                        }
+                        moveListEntry(liveFrom, dest, NameContains("Actions"))
+                        if (liveFrom != dest) {
+                            val item = sim.removeAt(liveFrom)
+                            sim.add(dest, item)
+                        }
+                        continue
+                    }
+                    relocations.remove(relocation)
+                }
 
                 fun handleAdd(action: Action) {
                     newIndex += 1
+                    val insertAt = if (index >= newIndex) newIndex else index
+                    if (insertAt in 0..sim.size) sim.add(insertAt, action)
                     if (index >= newIndex) {
                         handleActions(listOf(action))
                         +Operation.OpenMenu(NameContains("Actions"))
@@ -124,6 +145,7 @@ object Differ : BuildableContainer {
                 fun handleRemove() {
                     val (page, slot) = MenuUtils.getSlotAndPage(index)
                     newIndex -= 1
+                    if (index in sim.indices) sim.removeAt(index)
                     +Operation.GotoPage(page)
                     +Operation.Click(ACTION_SLOTS[slot], 1)
                     +Operation.OpenMenu(NameContains("Actions"))
@@ -167,16 +189,40 @@ object Differ : BuildableContainer {
         val changes = diff.getChangesByType(ListChange::class.java).getOrNull(0)?.changes ?: return emptyList()
 
         var newIndex = oldActions.size - 1
+        val sim = oldActions.toMutableList()
+        val relocations = relocationsFor(changes, oldActions)
 
         val builder = OperationBuilder()
         builder.apply {
             for (change in changes) {
                 val index = change.index
+                if (relocations.any { it.partner === change }) continue
                 +Operation.OpenMenu(NameExact("Edit Conditions"), checkIfOpened = true)
+
+                val relocation = relocations.find { it.anchor === change }
+                if (relocation != null) {
+                    val liveFrom = sim.indexOfFirst { it === relocation.origin }
+                    if (liveFrom >= 0) {
+                        val dest = relocation.toIndex.coerceIn(0, sim.lastIndex)
+                        if (HTSLConfig.data.debugMode) {
+                            HTSLReborn.LOGGER.info("Moving condition '{}' from {} to {}", relocation.origin, liveFrom, dest)
+                        }
+                        moveListEntry(liveFrom, dest, NameExact("Edit Conditions"))
+                        if (liveFrom != dest) {
+                            val item = sim.removeAt(liveFrom)
+                            sim.add(dest, item)
+                        }
+                        continue
+                    }
+                    relocations.remove(relocation)
+                }
+
                 when (change) {
                     is ValueAdded -> {
                         val action = change.addedValue as? Condition ?: continue
                         newIndex += 1
+                        val insertAt = if (index >= newIndex) newIndex else index
+                        if (insertAt in 0..sim.size) sim.add(insertAt, action)
                         if (index >= newIndex) {
                             handleConditions(listOf(action))
                         } else {
@@ -201,6 +247,7 @@ object Differ : BuildableContainer {
                     is ValueRemoved -> {
                         val (page, slot) = MenuUtils.getSlotAndPage(index)
                         newIndex -= 1
+                        if (index in sim.indices) sim.removeAt(index)
                         +Operation.GotoPage(page)
                         +Operation.Click(ACTION_SLOTS[slot], 1)
                         +Operation.OpenMenu(NameContains("Edit Conditions"))
@@ -346,5 +393,58 @@ object Differ : BuildableContainer {
 
         +Operation.OpenMenu(NameExact("Action Settings"), checkIfOpened = true)
         +Operation.ClickItem(Importer.MenuItems.BACK)
+    }
+
+    private class ListRelocation(
+        val anchor: ContainerElementChange,
+        val partner: ContainerElementChange,
+        val origin: Any,
+        val toIndex: Int,
+    )
+
+    private fun relocationsFor(
+        changes: List<ContainerElementChange>,
+        old: List<*>,
+    ): MutableList<ListRelocation> {
+        val availableAdds = changes.filterIsInstance<ValueAdded>().toMutableList()
+        val relocations = mutableListOf<ListRelocation>()
+        for ((removedPos, change) in changes.withIndex()) {
+            if (change !is ValueRemoved) continue
+            val removedValue = change.removedValue ?: continue
+            val addPosInRemaining = availableAdds.indexOfFirst { it.addedValue == removedValue }
+            if (addPosInRemaining < 0) continue
+            val added = availableAdds.removeAt(addPosInRemaining)
+            val from = change.index ?: continue
+            val to = added.index ?: continue
+            val origin = old.getOrNull(from) ?: continue
+            if (origin != removedValue) continue
+            val addedPos = changes.indexOfFirst { it === added }
+            val anchor = if (removedPos <= addedPos) change else added
+            val partner = if (anchor === change) added else change
+            relocations += ListRelocation(anchor, partner, origin, to)
+        }
+        return relocations
+    }
+
+    fun OperationBuilder.moveListEntry(from: Int, to: Int, menu: NameMatch) {
+        if (from == to) return
+        var current = from
+        if (from > to) {
+            while (current > to) {
+                val (page, slot) = MenuUtils.getSlotAndPage(current)
+                +Operation.GotoPage(page)
+                +Operation.Click(ACTION_SLOTS[slot], 0, ContainerInput.QUICK_MOVE)
+                +Operation.OpenMenu(menu)
+                current--
+            }
+        } else {
+            while (current < to) {
+                val (page, slot) = MenuUtils.getSlotAndPage(current + 1)
+                +Operation.GotoPage(page)
+                +Operation.Click(ACTION_SLOTS[slot], 0, ContainerInput.QUICK_MOVE)
+                +Operation.OpenMenu(menu)
+                current++
+            }
+        }
     }
 }
