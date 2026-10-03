@@ -164,7 +164,7 @@ sealed class Condition(
 }
 
 enum class Comparator(vararg val symbol: String, override val key: String): Keyed {
-    EQUALS("==", "=", "equals", key = "Equals"),
+    EQUALS("==", "=", "equals", key = "Equal"),
     NOT_EQUALS("!=", "notEquals", key = "THIS DOESNT EXIST :)"),
     GREATER_THAN(">", "greaterThan", key = "Greater Than"),
     LESS_THAN("<", "lessThan", key = "Less Than"),

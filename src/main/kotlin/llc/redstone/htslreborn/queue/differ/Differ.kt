@@ -169,9 +169,6 @@ object Differ : BuildableContainer {
 
                         +Operation.GotoPage(page)
                         if (oldValue::class != newValue::class) {
-//                            if (oldValue is Action.ChangeVariable && newValue is Action.ChangeVariable) {
-//                                continue
-//                            } //TODO: Handle ChangeVariable type change
                             handleRemove()
                             handleAdd(newValue)
                         } else {

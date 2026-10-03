@@ -256,6 +256,7 @@ sealed interface Operation {
                 }
             } catch (e: Exception) {
                 Exporter.pushArgs(frame)
+                e.printStackTrace()
                 return Failure("Failed to compile condition ${clazz.simpleName}: ${e.message}")
             }
             condition.inverted = inverted
