@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
-    //? if <26.1.2 {
+    //? if <=26.1.2 {
     @Inject(method = "setScreen", at = @At("RETURN"))
     private void onSetScreen(Screen screen, CallbackInfo ci) {
         if (screen == null) {

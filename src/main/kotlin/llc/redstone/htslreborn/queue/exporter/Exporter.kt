@@ -82,7 +82,7 @@ object Exporter : BuildableContainer {
     }
 
     override fun build(container: ScriptContainer?, exportFrom: Int, path: Path?): List<Operation> {
-        if (container == null) error("No container to diff")
+        if (container == null) error("No container to export")
         val builder = OperationBuilder()
         if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
             ToastUtils.skippingClosedContainer(container.context)

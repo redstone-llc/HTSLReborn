@@ -1,10 +1,6 @@
 package llc.redstone.htslreborn
 
 
-//? if <26.1 {
-//?} else {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
-*///?}
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,8 +34,8 @@ import java.nio.file.Files
 object HTSLReborn : ClientModInitializer {
     const val MOD_ID = "htslreborn"
     val LOGGER: Logger = LoggerFactory.getLogger("HTSL Reborn")
-    const val VERSION = /*$ mod_version*/ "0.2.3";
-    const val MINECRAFT = /*$ minecraft*/ "1.21.11";
+    const val VERSION = /*$ mod_version*/ "1.0.0";
+    const val MINECRAFT = /*$ minecraft*/ "26.1.2";
     internal val JAVERS = JaversBuilder.javers()
         .registerValue(ItemStack::class.java)
         .registerValue(InventorySlot::class.java)

@@ -14,7 +14,7 @@ object HTSLConfigScreen {
         //? if >=26.1.2 {
         /*HTSLReborn.MC.gui.setScreen(screen)
         *///?} else {
-        HTSLReborn.MC.setScreen(screen)
+        HTSLReborn.MC.setScreenAndShow(screen)
         //?}
     }
 

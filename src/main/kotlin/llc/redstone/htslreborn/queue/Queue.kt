@@ -83,6 +83,7 @@ object Queue {
     fun cancel() {
         clear(discardSession = true)
         paused = false
+        Progress.reset()
         HTSLReborn.LOGGER.info("Queue canceled")
     }
 

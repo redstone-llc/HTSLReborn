@@ -93,10 +93,17 @@ object ImportCache {
 
     fun load(container: ScriptContainer): List<Action>? {
         if (container.context == ImportContext.DEFAULT) return null
-        val house = HousingUtils.houseName() ?: return null
+        val house = HousingUtils.houseName()
         val key = key(container)
+        if (house == null) {
+            HTSLReborn.LOGGER.info("Import cache skipped for {}: house name is unknown", key.replace('\u0000', '/'))
+            return null
+        }
         val file = cacheFile(house, key)
-        if (!Files.isRegularFile(file)) return null
+        if (!Files.isRegularFile(file)) {
+            HTSLReborn.LOGGER.info("Import cache missing for {} in {}", key.replace('\u0000', '/'), house)
+            return null
+        }
         val root = runCatching { gson.fromJson(readCache(file), JsonObject::class.java) }.getOrElse {
             HTSLReborn.LOGGER.warn("Failed to read import cache {}", file, it)
             return null

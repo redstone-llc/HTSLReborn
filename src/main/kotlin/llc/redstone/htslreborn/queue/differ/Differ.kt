@@ -5,6 +5,7 @@ import llc.redstone.htslreborn.HTSLReborn.JAVERS
 import llc.redstone.htslreborn.config.HTSLConfig
 import llc.redstone.htslreborn.data.*
 import llc.redstone.htslreborn.queue.*
+import llc.redstone.htslreborn.queue.Container.enterContext
 import llc.redstone.htslreborn.queue.exporter.Exporter
 import llc.redstone.htslreborn.queue.importer.Importer
 import llc.redstone.htslreborn.queue.importer.Importer.handleActions
@@ -61,13 +62,20 @@ object Differ : BuildableContainer {
         }
         if (cached != null) {
             HTSLReborn.LOGGER.info("Diffing {} from the cached import", ImportCache.key(container))
-            return listOf(
-                Operation.DiffPhase(DiffSession.Phase.EDIT),
-                Operation.Callback {
+            if (container.context == ImportContext.DEFAULT && !MenuUtils.isActionContainerOpen()) {
+                ToastUtils.skippingClosedContainer(container.context)
+                return emptyList()
+            }
+            val builder = OperationBuilder()
+            builder.apply {
+                enterContext(container)
+                +Operation.DiffPhase(DiffSession.Phase.EDIT)
+                +Operation.Callback {
                     Queue.addAll(handleActions(cached, container.actions), 0)
                     Status.Success
                 }
-            )
+            }
+            return builder.ops
         }
 
         val ops = mutableListOf<Operation>()
