@@ -191,7 +191,7 @@ object Differ : BuildableContainer {
 
     fun handleConditions(oldActions: List<Condition>, newActions: List<Condition>): List<Operation> {
         val diff = JAVERS.compare(oldActions, newActions)
-        val changes = diff.getChangesByType(ListChange::class.java).getOrNull(0)?.changes ?: return emptyList()
+        val changes = diff.getChangesByType(ListChange::class.java).getOrNull(0)?.changes?.reversed() ?: return emptyList()
 
         var newIndex = oldActions.size - 1
         val sim = oldActions.toMutableList()
@@ -235,13 +235,14 @@ object Differ : BuildableContainer {
                             val (indexPage, indexSlot) = MenuUtils.getSlotAndPage(index)
                             +Operation.GotoPage(page)
                             handleConditions(listOf(action))
-                            var counter = 1
-                            var (currentPage, currentSlot) = MenuUtils.getSlotAndPage(newIndex - counter)
+                            +Operation.OpenMenu(NameExact("Edit Conditions"))
+                            var counter = 0
+                            var (currentPage, currentSlot) = MenuUtils.getSlotAndPage(newIndex)
                             while (currentSlot != indexSlot || currentPage != indexPage) {
                                 counter += 1
                                 +Operation.Click(ACTION_SLOTS[currentSlot], 0, ContainerInput.QUICK_MOVE)
                                 +Operation.OpenMenu(NameExact("Edit Conditions"))
-                                val (newPage, newSlot) = MenuUtils.getSlotAndPage(oldActions.size - counter)
+                                val (newPage, newSlot) = MenuUtils.getSlotAndPage(newIndex - counter)
                                 currentPage = newPage
                                 currentSlot = newSlot
                                 +Operation.GotoPage(currentPage)

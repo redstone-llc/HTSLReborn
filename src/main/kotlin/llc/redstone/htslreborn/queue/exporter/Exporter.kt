@@ -439,7 +439,7 @@ object Exporter : BuildableContainer {
                     properties.add("null")
                     return properties
                 }
-                if (property.name == "amount" || property.name == "variable") {
+                if (property.name == "amount" || property.name == "variable" || property.name == "value" || property.name == "fallbackValue") {
                     properties.add(quoteIfNeeded(value as String))
                 } else {
                     properties.add("\"${value as String}\"")

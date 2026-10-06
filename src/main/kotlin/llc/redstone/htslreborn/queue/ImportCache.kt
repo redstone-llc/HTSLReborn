@@ -318,7 +318,7 @@ object ImportCache {
     private fun cacheFile(house: String, key: String): Path {
         val safe = house.replace(Regex("""[^\w .\-]"""), "_").trim().trimEnd('.').take(48).ifBlank { "house" }
         val name = "$safe-${sha256("$house\u0000$key".toByteArray()).take(12)}.json"
-        return HTSLReborn.MC.gameDirectory.toPath().resolve("htsl/import-cache").resolve(name)
+        return HTSLReborn.MC.gameDirectory.toPath().resolve("htsl/.cache").resolve(name)
     }
 
     private fun sha256(bytes: ByteArray): String =

@@ -8,11 +8,15 @@ object CursorManager {
     private var iBeamRequested = false
 
     fun setHandCursor() {
-        handRequested = true
+        if (Minecraft.getInstance().options.allowCursorChanges().get()) {
+            handRequested = true
+        }
     }
 
     fun setIBeamCursor() {
-        iBeamRequested = true
+        if (Minecraft.getInstance().options.allowCursorChanges().get()) {
+            iBeamRequested = true
+        }
     }
 
     fun resetCursor() {

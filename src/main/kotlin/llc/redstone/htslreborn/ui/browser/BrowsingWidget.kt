@@ -482,7 +482,7 @@ class BrowsingWidget(x: Int, y: Int) :
         val box = searchBox
         if (box != null) {
             box.setPosition(x + 11, y + 204)
-            box.setSize(if (isImporting()) 128 else 156, 13)
+            box.setSize(if (isImporting()) 124 else 152, 13)
             box.extractRenderState(guiGraphics, mouseX, mouseY, delta)
             if (box.isMouseOver(mouseX.toDouble(), mouseY.toDouble())) {
                 CursorManager.setIBeamCursor()
