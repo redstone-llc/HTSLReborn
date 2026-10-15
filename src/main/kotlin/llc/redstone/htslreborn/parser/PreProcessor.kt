@@ -304,7 +304,6 @@ class PreProcessor(
         //Placeholder shortcuts
         if (iterator.hasNext()) {
             val nextArg = iterator.next()
-            println("Checking for placeholder shortcut: ${nextArg.text} line: ${nextArg.start?.line} col: ${nextArg.start?.charPositionInLine}")
             if (isPlaceholderShortcut(nextArg)) {
                 val shortcut = placeholderShortcuts.entries.first { it.key.startsWith(nextArg.text) }
 
