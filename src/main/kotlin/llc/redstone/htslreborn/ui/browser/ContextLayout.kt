@@ -21,6 +21,9 @@ class ContextLayout(
     data class ContextEntry(val context: ImportContext?, val target: ContextTarget?)
 
     private fun visiblePaths(): List<ContextEntry> {
+        if (BrowsingWidget.openContext == ImportContext.CUSTOMMENU || BrowsingWidget.openContext == ImportContext.NPC || BrowsingWidget.openContext == ImportContext.REGION) {
+            return listOf()
+        }
         val entries = if (BrowsingWidget.openContext != null) {
             BrowsingWidget.cachedContexts[BrowsingWidget.openContext!!]?.map {
                 ContextEntry(

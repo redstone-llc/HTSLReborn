@@ -304,6 +304,7 @@ class PreProcessor(
         //Placeholder shortcuts
         if (iterator.hasNext()) {
             val nextArg = iterator.next()
+            println("Checking for placeholder shortcut: ${nextArg.text} line: ${nextArg.start?.line} col: ${nextArg.start?.charPositionInLine}")
             if (isPlaceholderShortcut(nextArg)) {
                 val shortcut = placeholderShortcuts.entries.first { it.key.startsWith(nextArg.text) }
 
@@ -323,7 +324,7 @@ class PreProcessor(
                 } else {
                     val preProcessed = processArguments(args)
                     String.format(shortcut.value, *preProcessed.map { it.text }.toTypedArray()).let { formatted ->
-                        newArguments.add(parseTextToArgument(formatted.replace("|", "%")))
+                        newArguments.add(parseTextToArgument(formatted.replace("|", "%"), nextArg))
                     }
                 }
             } else {
@@ -332,8 +333,15 @@ class PreProcessor(
         }
     }
 
-    private fun parseTextToArgument(text: String): ArgumentContext {
+    private fun parseTextToArgument(text: String, source: ParserRuleContext? = null): ArgumentContext {
         val lexer = HTSLLexer(CharStreams.fromString(text)).throwOnError()
+        // Keep the source location of the expression this text replaces.
+        val line = source?.start?.line ?: 1
+        val column = source?.start?.charPositionInLine ?: 0
+        if (line >= 1 && column >= 0) {
+            lexer.line = line
+            lexer.charPositionInLine = column
+        }
         val tokens = CommonTokenStream(lexer)
         val parser = HTSLParser(tokens).throwOnError()
         val argumentContext = parser.argument()
@@ -363,7 +371,7 @@ class PreProcessor(
             if (result is String && result.contains(" ") && !result.contains("%")) {
                 result = "\"$result\""
             }
-            return parseTextToArgument(result.toString())
+            return parseTextToArgument(result.toString(), statement)
         } catch (e: Exception) {
             htslCompileError("Error evaluating JS code: ${e.message}", statement)
         }

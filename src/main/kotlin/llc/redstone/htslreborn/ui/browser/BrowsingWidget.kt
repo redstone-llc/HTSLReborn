@@ -107,8 +107,8 @@ class BrowsingWidget(x: Int, y: Int) :
             if (query.isEmpty() || query.contains('/') || query.contains('\\')) return null
             val existing = FileHandler.files.firstOrNull { path ->
                 !path.isDirectory() && path.name.endsWith(".htsl", ignoreCase = true) &&
-                    (path.name.equals(query, ignoreCase = true) ||
-                        path.nameWithoutExtension.equals(query, ignoreCase = true))
+                        (path.name.equals(query, ignoreCase = true) ||
+                                path.nameWithoutExtension.equals(query, ignoreCase = true))
             }
             if (existing != null) return existing
             val importing = when (HTSLScreen.browsingType) {
@@ -133,7 +133,7 @@ class BrowsingWidget(x: Int, y: Int) :
             fun matches(container: ScriptContainer): Boolean {
                 val name = container.target.name ?: return false
                 return name.equals(query, ignoreCase = true) ||
-                    TextUtils.titleCase(name).equals(query, ignoreCase = true)
+                        TextUtils.titleCase(name).equals(query, ignoreCase = true)
             }
             openContext?.let { context ->
                 cachedContexts[context]?.firstOrNull(::matches)?.let { return it }
@@ -309,8 +309,8 @@ class BrowsingWidget(x: Int, y: Int) :
         val nameY = y + 41
         for ((i, crumb) in crumbs.withIndex()) {
             val hovered = crumb.index >= 0 &&
-                mouseX in crumb.x..(crumb.x + crumb.width) &&
-                mouseY in nameY..(nameY + MC.font.lineHeight)
+                    mouseX in crumb.x..(crumb.x + crumb.width) &&
+                    mouseY in nameY..(nameY + MC.font.lineHeight)
             guiGraphics.text(
                 MC.font,
                 Component.literal(crumb.text),
@@ -479,6 +479,19 @@ class BrowsingWidget(x: Int, y: Int) :
         scroll.extractRenderState(guiGraphics, mouseX, mouseY, delta)
         scrollHeight = scroll.scrollAmount()
 
+        if (scroll == contextScroll &&
+            openContext == ImportContext.CUSTOMMENU || openContext == ImportContext.NPC || openContext == ImportContext.REGION
+        ) {
+            guiGraphics.text(
+                MC.font,
+                Component.translatable("htslreborn.browser.wip"),
+                x + 10,
+                y + 53,
+                0xFF3F3F3F.toInt(),
+                false
+            )
+        }
+
         val box = searchBox
         if (box != null) {
             box.setPosition(x + 11, y + 204)
@@ -572,7 +585,7 @@ class BrowsingWidget(x: Int, y: Int) :
                             MC.player?.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1f, 1f)
                         }
                     } catch (e: Exception) {
-                        ToastUtils.failedToCompile(e.message?: "Unknown error")
+                        ToastUtils.failedToCompile(e.message ?: "Unknown error")
                         e.printStackTrace()
                         return false
                     }
@@ -593,7 +606,7 @@ class BrowsingWidget(x: Int, y: Int) :
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        ToastUtils.failedToCompile(e.message?: "Unknown error")
+                        ToastUtils.failedToCompile(e.message ?: "Unknown error")
                         return false
                     }
                     return true

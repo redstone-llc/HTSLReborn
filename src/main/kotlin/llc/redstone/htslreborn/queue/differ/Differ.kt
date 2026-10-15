@@ -222,41 +222,50 @@ object Differ : BuildableContainer {
                     relocations.remove(relocation)
                 }
 
+                fun handleAdd(action: Condition) {
+                    newIndex += 1
+                    val insertAt = if (index >= newIndex) newIndex else index
+                    if (insertAt in 0..sim.size) sim.add(insertAt, action)
+                    if (index >= newIndex) {
+                        handleConditions(listOf(action))
+                        +Operation.OpenMenu(NameExact("Edit Conditions"))
+                    } else {
+                        val (page, slot) = MenuUtils.getSlotAndPage(newIndex)
+                        val (indexPage, indexSlot) = MenuUtils.getSlotAndPage(index)
+                        +Operation.GotoPage(page)
+                        handleConditions(listOf(action))
+                        +Operation.OpenMenu(NameExact("Edit Conditions"))
+                        var counter = 0
+                        var (currentPage, currentSlot) = MenuUtils.getSlotAndPage(newIndex)
+                        while (currentSlot != indexSlot || currentPage != indexPage) {
+                            counter += 1
+                            +Operation.Click(ACTION_SLOTS[currentSlot], 0, ContainerInput.QUICK_MOVE)
+                            +Operation.OpenMenu(NameExact("Edit Conditions"))
+                            val (newPage, newSlot) = MenuUtils.getSlotAndPage(newIndex - counter)
+                            currentPage = newPage
+                            currentSlot = newSlot
+                            +Operation.GotoPage(currentPage)
+                        }
+                    }
+                }
+
+                fun handleRemove() {
+                    val (page, slot) = MenuUtils.getSlotAndPage(index)
+                    newIndex -= 1
+                    if (index in sim.indices) sim.removeAt(index)
+                    +Operation.GotoPage(page)
+                    +Operation.Click(ACTION_SLOTS[slot], 1)
+                    +Operation.OpenMenu(NameExact("Edit Conditions"))
+                }
+
                 when (change) {
                     is ValueAdded -> {
                         val action = change.addedValue as? Condition ?: continue
-                        newIndex += 1
-                        val insertAt = if (index >= newIndex) newIndex else index
-                        if (insertAt in 0..sim.size) sim.add(insertAt, action)
-                        if (index >= newIndex) {
-                            handleConditions(listOf(action))
-                        } else {
-                            val (page, slot) = MenuUtils.getSlotAndPage(newIndex)
-                            val (indexPage, indexSlot) = MenuUtils.getSlotAndPage(index)
-                            +Operation.GotoPage(page)
-                            handleConditions(listOf(action))
-                            +Operation.OpenMenu(NameExact("Edit Conditions"))
-                            var counter = 0
-                            var (currentPage, currentSlot) = MenuUtils.getSlotAndPage(newIndex)
-                            while (currentSlot != indexSlot || currentPage != indexPage) {
-                                counter += 1
-                                +Operation.Click(ACTION_SLOTS[currentSlot], 0, ContainerInput.QUICK_MOVE)
-                                +Operation.OpenMenu(NameExact("Edit Conditions"))
-                                val (newPage, newSlot) = MenuUtils.getSlotAndPage(newIndex - counter)
-                                currentPage = newPage
-                                currentSlot = newSlot
-                                +Operation.GotoPage(currentPage)
-                            }
-                        }
+                        handleAdd(action)
                     }
 
                     is ValueRemoved -> {
-                        val (page, slot) = MenuUtils.getSlotAndPage(index)
-                        newIndex -= 1
-                        if (index in sim.indices) sim.removeAt(index)
-                        +Operation.GotoPage(page)
-                        +Operation.Click(ACTION_SLOTS[slot], 1)
-                        +Operation.OpenMenu(NameContains("Edit Conditions"))
+                        handleRemove()
                     }
 
                     is ElementValueChange -> {
@@ -267,7 +276,8 @@ object Differ : BuildableContainer {
 
                         +Operation.GotoPage(page)
                         if (oldValue::class != newValue::class) {
-                            println("I am pretty certain this cannot happen")
+                            handleRemove()
+                            handleAdd(newValue)
                         } else {
                             updateCondition(ACTION_SLOTS[slot], oldValue, newValue)
                         }
@@ -354,7 +364,6 @@ object Differ : BuildableContainer {
                 val slot = ACTION_SLOTS[index]
                 handleProperty(property, newPropValue, oldPropValue, slot, 0)
                 +Operation.OpenMenu(NameExact("Action Settings"))
-
             }
         }
         +Operation.OpenMenu(NameExact("Action Settings"), checkIfOpened = true)

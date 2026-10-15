@@ -80,13 +80,14 @@ OR: 'or';
 NULL: 'null';
 BOOLEAN: 'true' | 'false';
 COMPARATOR: '==' | '!=' | '<' | '<=' | '>' | '>=' | 'equals' | 'notEquals' | 'lessThan' | 'lessThanOrEqual' | 'greaterThan' | 'greaterThanOrEqual';
-OPERATOR: '+=' | '-=' | '=' | '*=' | '/=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '>>>=' | 'unset' | 'set' | 'increment' | 'decrement' | 'inc' | 'dec' | 'multiply' | 'divide' | 'xor' | 'shiftLeft' | 'shiftRight' | 'shiftRightUnsigned';
+OPERATOR: '+=' | '-=' | '=' | '*=' | '/=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '>>>=' | 'unset' | 'set' | 'increment' | 'decrement' | 'inc' | 'dec' | 'multiply' | 'divide' | 'div' | 'mult' | 'xor' | 'shiftLeft' | 'shiftRight' | 'shiftRightUnsigned';
 STRING: '"' ~["\r\n]* '"';
 PLACEHOLDER: '%' ~[%\r\n]* '%';
 NUMBER: '-'? [0-9]+(',' [0-9]+)* ('.' [0-9]+)? ('L' | 'D')? { text = text.replace(",", "") }; //EW, but it works ;)
 IDENTIFIER: ID_START ID_PART*;
 fragment ID_START: ~[ \t\r\n(){},"!%/0-9=<>+\-*|^];
-fragment ID_PART:  ~[ \t\r\n(){},"];COMMENT: '//' ~[\r\n]* -> skip;
+fragment ID_PART:  ~[ \t\r\n(){},"];
+COMMENT: '//' ~[\r\n]* -> skip;
 MULTI_LINE_COMMENT: '/*' .*? '*/' -> skip;
 NEWLINE: '\r'? '\n';
 WS: [ \t]+ -> skip;

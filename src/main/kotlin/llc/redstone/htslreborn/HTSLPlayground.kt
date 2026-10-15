@@ -5,7 +5,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-
 private fun parseHtslFile(path: Path) {
     val string = Files.readString(path)
     val ast = HtslAstBuilder.parseFile(path)
@@ -28,6 +27,7 @@ fun main() {
             try {
                 parseHtslFile(file.toPath())
             } catch (e: Exception) {
+                e.printStackTrace()
                 println("Error parsing file ${file.name}: ${e.message}")
             }
         }

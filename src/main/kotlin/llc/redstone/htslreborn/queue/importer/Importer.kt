@@ -9,14 +9,10 @@ import llc.redstone.htslreborn.queue.Operation.*
 import llc.redstone.htslreborn.queue.OperationBuilder
 import llc.redstone.htslreborn.queue.Queue
 import llc.redstone.htslreborn.ui.working.ContainerQueueEntry
-import llc.redstone.htslreborn.utils.MenuUtils
+import llc.redstone.htslreborn.utils.*
 import llc.redstone.htslreborn.utils.MenuUtils.ACTION_SLOTS
-import llc.redstone.htslreborn.utils.PredicateUtils
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameContains
 import llc.redstone.htslreborn.utils.PredicateUtils.NameMatch.NameExact
-import llc.redstone.htslreborn.utils.PropertyReflection
-import llc.redstone.htslreborn.utils.TextUtils
-import llc.redstone.htslreborn.utils.ToastUtils
 import net.minecraft.world.item.Items
 import java.nio.file.Path
 import kotlin.reflect.KProperty1
@@ -143,6 +139,20 @@ object Importer: BuildableContainer {
             +OpenMenu(NameContains("Edit Conditions"), checkIfOpened = true)
             +OpenMenu(NameExact("Add Condition"), slot = 50)
             +Option(displayName)
+
+            if (condition is Condition.VariableRequirement) {
+                +OpenMenu(NameExact("Settings"))
+                if (condition.holder == VariableHolder.Global) {
+                    +Click(ACTION_SLOTS[1])
+                    +OpenMenu(NameExact("Settings"))
+                }
+                if (condition.holder == VariableHolder.Team) {
+                    +Click(ACTION_SLOTS[1])
+                    +OpenMenu(NameExact("Settings"))
+                    +Click(ACTION_SLOTS[1])
+                    +OpenMenu(NameExact("Settings"))
+                }
+            }
 
             for ((index, property) in properties.withIndex()) {
                 val value = property.get(condition)

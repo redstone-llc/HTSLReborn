@@ -67,6 +67,7 @@
   "htslreborn.browser.update": "§aUpdate\n\n§eShift-click to not use cached data",
   "htslreborn.browser.script": "Script",
   "htslreborn.browser.folder": "Folder",
+  "htslreborn.browser.wip": "Work in Progress",
 
   "htslreborn.context.default": "Current Container",
   "htslreborn.context.function": "Function",
