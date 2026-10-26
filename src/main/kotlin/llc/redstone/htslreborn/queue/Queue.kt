@@ -129,7 +129,12 @@ object Queue {
                     ImportCache.stage(entry)
                 }
                 Progress.reset()
-                addAll(entry.context.build(entry.container, path = entry.source))
+                try {
+                    addAll(entry.context.build(entry.container, path = entry.source))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    ToastUtils.failedToCompile("${entry.source} ${entry.container?.target}: ${e.message}")
+                }
             }
         }
 

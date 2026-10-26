@@ -42,7 +42,7 @@ sealed class Condition(
 
     @DisplayName("Variable Requirement")
     data class TeamVariableRequirement(
-        @property:Pagination val team: String?,
+        @property:Pagination val team: String? = null,
         val variable: String = "Kills",
         val op: Comparator = Comparator.EQUALS,
         val value: String? = null,
