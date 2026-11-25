@@ -40,6 +40,7 @@ object HTSLReborn : ClientModInitializer {
         .registerValue(ItemStack::class.java)
         .registerValue(InventorySlot::class.java)
         .withListCompareAlgorithm(ListCompareAlgorithm.LEVENSHTEIN_DISTANCE)
+        .withPrintProBanner(false)
         .build()
 
     val MC = Minecraft.getInstance();
