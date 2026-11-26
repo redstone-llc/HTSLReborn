@@ -79,28 +79,22 @@ public abstract class ScreenHandlerMixin extends Screen implements HandledScreen
         }
     }
 
-    @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "mouseDragged", at = @At("HEAD"))
     public void htslreborn$mouseDragged(MouseButtonEvent click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
         if (!HTSLScreen.shouldBeVisible()) return;
-        if (HTSLScreen.getINSTANCE().mouseDragged(click, offsetX, offsetY)) {
-            cir.setReturnValue(true);
-        }
+        HTSLScreen.getINSTANCE().mouseDragged(click, offsetX, offsetY);
     }
 
-    @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "mouseReleased", at = @At("HEAD"))
     public void htslreborn$mouseReleased(MouseButtonEvent click, CallbackInfoReturnable<Boolean> cir) {
         if (!HTSLScreen.shouldBeVisible()) return;
-        if (HTSLScreen.getINSTANCE().mouseReleased(click)) {
-            cir.setReturnValue(true);
-        }
+        HTSLScreen.getINSTANCE().mouseReleased(click);
     }
 
-    @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "mouseScrolled", at = @At("HEAD"))
     public void htslreborn$mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount, CallbackInfoReturnable<Boolean> cir) {
         if (!HTSLScreen.shouldBeVisible()) return;
-        if (HTSLScreen.getINSTANCE().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
-            cir.setReturnValue(true);
-        }
+        HTSLScreen.getINSTANCE().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     @Inject(method = "onClose", at = @At("HEAD"))

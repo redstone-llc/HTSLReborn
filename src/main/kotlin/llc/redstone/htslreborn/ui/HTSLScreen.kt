@@ -148,7 +148,7 @@ class HTSLScreen : Screen(Component.translatable("htslreborn.screen.working")) {
                 return true
             }
         }
-        return super.mouseScrolled(d, e, f, g)
+        return false
     }
 
     override fun mouseDragged(mouseButtonEvent: MouseButtonEvent, d: Double, e: Double): Boolean {
@@ -157,7 +157,7 @@ class HTSLScreen : Screen(Component.translatable("htslreborn.screen.working")) {
                 return true
             }
         }
-        return super.mouseDragged(mouseButtonEvent, d, e)
+        return false
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
@@ -166,7 +166,7 @@ class HTSLScreen : Screen(Component.translatable("htslreborn.screen.working")) {
                 return true
             }
         }
-        return super.mouseReleased(mouseButtonEvent)
+        return false
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
