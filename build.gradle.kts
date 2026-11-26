@@ -1,6 +1,7 @@
 
 import com.strumenta.antlrkotlin.gradle.AntlrKotlinTask
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.declarative.dsl.schema.FqName.Empty.packageName
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -51,12 +52,10 @@ dependencies {
 
     implementation(include("org.mozilla:rhino:1.9.1")!!)
 
-    // include() is not transitive, so javers' own runtime dependencies have to be nested by hand.
     implementation(include("org.javers:javers-core:7.11.8")!!)
     include("org.picocontainer:picocontainer:2.15")
     include("io.github.classgraph:classgraph:4.8.184")
 
-    // The KMP root module resolves to the -jvm variant, which include() cannot pick on its own.
     implementation(include("com.strumenta:antlr-kotlin-runtime-jvm:1.0.13")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
