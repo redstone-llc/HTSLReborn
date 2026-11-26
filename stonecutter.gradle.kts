@@ -4,7 +4,13 @@ plugins {
 //    id("me.modmuss50.mod-publish-plugin") version "1.0.+" apply false // Publishes builds to hosting websites
 }
 
-stonecutter active "1.21.11"
+stonecutter active "26.1.2"
+
+tasks.register("buildAndCollect") {
+    group = "build"
+    description = "Builds every version and collects the mod jars in build/libs"
+    dependsOn(stonecutter.tasks.named("collectJar"))
+}
 
 /*
 // Make newer versions be published last
@@ -19,4 +25,8 @@ stonecutter parameters {
     swaps["minecraft"] = "\"" + node.metadata.version + "\";"
     constants["release"] = property("mod.id") != "htslreborn"
     dependencies["fapi"] = node.project.property("deps.fabric_api") as String
+
+    replacements {
+
+    }
 }

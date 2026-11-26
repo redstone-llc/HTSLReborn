@@ -1,0 +1,11 @@
+{
+  "providers": [
+    {
+      "type": "ttf",
+      "file": "htslreborn:mcfive.ttf",
+      "shift": [0, -2],
+      "size": 6,
+      "oversample": 2.0
+    }
+  ]
+}

@@ -5,15 +5,23 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "ChatSilencerMixin",
-    "KeyboardMixin",
+    "CommandSuggestionMixin",
+    "GuiMixin",
+    "KeyboardHandlerMixin",
+    "MinecraftMixin",
+    "ReceivePreviousInputMixin",
     "ScreenCloseMixin",
     "ScreenHandlerMixin",
-    "SoundSilencerMixin"
+    "SoundSilencerMixin",
+    "TabListMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
-  }
+  },
+  "mixins": [
+    "InventoryScreenMixin"
+  ]
 }

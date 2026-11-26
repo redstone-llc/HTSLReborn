@@ -1,66 +1,92 @@
 package llc.redstone.htslreborn
 
+
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import llc.redstone.htslreborn.commands.HTSLCommand
-import llc.redstone.htslreborn.config.HtslConfig
-import llc.redstone.htslreborn.ui.FileExplorer
-import llc.redstone.htslreborn.ui.FileExplorerHandler
-import llc.redstone.htslreborn.ui.FileHandler
-import llc.redstone.htslreborn.utils.RenderUtils.isInitialized
+import llc.redstone.htslreborn.data.InventorySlot
+import llc.redstone.htslreborn.data.ItemStack
+import llc.redstone.htslreborn.config.HTSLConfig
+import llc.redstone.htslreborn.overlay.DebugHud
+import llc.redstone.htslreborn.queue.Queue
+import llc.redstone.htslreborn.ui.browser.FileExplorerHandler
+import llc.redstone.htslreborn.ui.browser.FileHandler
+import llc.redstone.htslreborn.utils.HousingUtils
+import llc.redstone.htslreborn.utils.ToastUtils
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.Minecraft
-import net.minecraft.network.chat.Component
-import net.minecraft.world.entity.player.Player
+import org.javers.core.JaversBuilder
+import org.javers.core.diff.ListCompareAlgorithm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.nio.file.Path
-import kotlin.io.path.Path
+import java.nio.file.Files
+
+
+//? if >=26.2 {
+/*val Minecraft.screen: net.minecraft.client.gui.screens.Screen?
+    get() = this.gui.screen()
+*///?}
 
 object HTSLReborn : ClientModInitializer {
     const val MOD_ID = "htslreborn"
     val LOGGER: Logger = LoggerFactory.getLogger("HTSL Reborn")
-    const val VERSION = /*$ mod_version*/ "0.2.1";
-    const val MINECRAFT = /*$ minecraft*/ "1.21.11";
-    val CONFIG: HtslConfig = HtslConfig.createAndLoad();
-    val MC: Minecraft
-        get() = Minecraft.getInstance()
+    const val VERSION = /*$ mod_version*/ "1.0.0";
+    const val MINECRAFT = /*$ minecraft*/ "26.1.2";
+    internal val JAVERS = JaversBuilder.javers()
+        .registerValue(ItemStack::class.java)
+        .registerValue(InventorySlot::class.java)
+        .withListCompareAlgorithm(ListCompareAlgorithm.LEVENSHTEIN_DISTANCE)
+        .withPrintProBanner(false)
+        .build()
 
-    var importing = false
-    var importingFile: Path? = null
-    var exporting = false
-    var exportingFile: Path? = null
+    val MC = Minecraft.getInstance();
 
-    fun Player.sendSystemMessage(comp: Component) {
-        //? if <26.1 {
-        this.displayClientMessage(comp, false)
-        //?} else {
-         /*this.sendSystemMessage(comp)
-        *///?}
-    }
+    val SCOPE = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
 
     override fun onInitializeClient() {
-        // This code runs as soon as Minecraft is in a mod-load-ready state.
-        // However, some things (like resources) may still be uninitialized.
-        // Proceed with mild caution.
-
         LOGGER.info("Loaded HTSL Reborn v$VERSION for Minecraft $MINECRAFT.")
+
+        ClientTickEvents.START_CLIENT_TICK.register {
+            Queue.onTick()
+        }
+
+        var notifiedResumable = false
+
+        ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
+            HousingUtils.clearHouse()
+            if (Queue.pause()) {
+                LOGGER.info("Paused import due to disconnect")
+                notifiedResumable = false
+            }
+        }
+
+        ClientPlayConnectionEvents.JOIN.register { _, _, _ ->
+            if (!notifiedResumable && Queue.session?.canResume == true) {
+                ToastUtils.resumableSession()
+                notifiedResumable = true
+            }
+        }
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             HTSLCommand.register(dispatcher)
         }
 
-        CONFIG.subscribeToImportsDirectory {
-            FileHandler.baseDir = Path(it)
-            FileHandler.currentDir = FileHandler.baseDir
+        DebugHud.register()
 
-            FileHandler.refreshFiles(live = true)
-            FileExplorerHandler.setWatchedDir(FileHandler.currentDir)
-            LOGGER.info(FileHandler.filteredFiles.toString())
-            if (FileExplorer.INSTANCE.isInitialized()) {
-                FileExplorer.INSTANCE.refreshExplorer(true)
-                FileExplorer.INSTANCE.refreshBreadcrumbs()
-            }
-        }
+        HTSLConfig.load()
+        val htslDir = HTSLConfig.importsPath()
+        runCatching { Files.createDirectories(htslDir) }
+        FileHandler.baseDir = htslDir
+        FileHandler.currentDir = htslDir
+
+        FileHandler.refreshFiles()
+        FileExplorerHandler.setWatchedDir(FileHandler.currentDir)
+        LOGGER.info(FileHandler.filteredFiles.toString())
 
         FileExplorerHandler.init()
     }

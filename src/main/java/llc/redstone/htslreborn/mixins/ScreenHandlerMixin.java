@@ -1,10 +1,13 @@
 package llc.redstone.htslreborn.mixins;
 
-import llc.redstone.htslreborn.HTSLReborn;
-import llc.redstone.htslreborn.accessors.HandledScreenAccessor;
-import llc.redstone.htslreborn.ui.FileExplorer;
+import llc.redstone.htslreborn.accessor.HandledScreenAccessor;
+import llc.redstone.htslreborn.config.HTSLConfig;
+import llc.redstone.htslreborn.queue.Queue;
+import llc.redstone.htslreborn.ui.HTSLScreen;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -16,15 +19,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-//? if <26.1 {
-import net.minecraft.client.gui.GuiGraphics;
-
-//?} else {
-/*import net.minecraft.client.gui.GuiGraphicsExtractor;
-*///?}
-
 @Mixin(AbstractContainerScreen.class)
-public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor {
+public abstract class ScreenHandlerMixin extends Screen implements HandledScreenAccessor {
     @Shadow
     protected int topPos;
 
@@ -41,73 +37,70 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
     @Unique
     boolean menuRendered = false;
 
-    //? if <26.1 {
-    @Inject(method = "render", at = @At("HEAD"))
-    public void htslreborn$render(GuiGraphics context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-        if (!FileExplorer.inActionGui() || !HTSLReborn.INSTANCE.getCONFIG().getShowFileExplorer()) {
-            if (menuRendered) FileExplorer.getINSTANCE().resetCursor();
+    @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
+    public void htslreborn$render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
+        if (!HTSLScreen.shouldBeVisible()) {
+//            if (menuRendered) FileExplorer.getINSTANCE().resetCursor();
             menuRendered = false;
             return;
         }
-        FileExplorer.getINSTANCE().render(context, mouseX, mouseY, deltaTicks);
+        HTSLScreen.getINSTANCE().extractRenderState(graphics, mouseX, mouseY, a);
         menuRendered = true;
-    }
-    //? } else {
-    /*@Inject(method="extractRenderState", at=@At("HEAD"))
-    public void htslreborn$render(GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-        if (!FileExplorer.inActionGui() || !HTSLReborn.INSTANCE.getCONFIG().getShowFileExplorer()) {
-            if (menuRendered) FileExplorer.getINSTANCE().resetCursor();
-            menuRendered = false;
-            return;
+        if ((Queue.INSTANCE.isActive() && !HTSLConfig.INSTANCE.getData().getHideWorkingScreen()) || HTSLScreen.Companion.isBrowsing()) {
+            ci.cancel();
         }
-        FileExplorer.getINSTANCE().extractRenderState(context, mouseX, mouseY, deltaTicks);
-        menuRendered = true;
     }
-    *///? }
 
-    @Inject(method="mouseClicked" , at=@At("HEAD"), cancellable = true)
+    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     public void htslreborn$mouseClicked(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
-        if (!FileExplorer.inActionGui() || !HTSLReborn.INSTANCE.getCONFIG().getShowFileExplorer()) return;
-        if (FileExplorer.getINSTANCE().mouseClicked(click, doubled)) {
+        if (!HTSLScreen.shouldBeVisible()) return;
+        HTSLScreen.getINSTANCE().mouseClicked(click, doubled);
+        if (Queue.INSTANCE.isActive() || HTSLScreen.Companion.isBrowsing()) {
             cir.setReturnValue(true);
         }
     }
 
     @Inject(method = "init", at = @At("TAIL"))
     public void htslreborn$init(CallbackInfo ci) {
-        if (!FileExplorer.inActionGui() || !HTSLReborn.INSTANCE.getCONFIG().getShowFileExplorer()) return;
-        FileExplorer.setINSTANCE(new FileExplorer());
-        FileExplorer.getINSTANCE().init(this.width, this.height);
+        if (!HTSLScreen.shouldBeVisible()) return;
+        HTSLScreen.setINSTANCE(new HTSLScreen());
+        HTSLScreen.getINSTANCE().init(this.width, this.height);
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     public void htslreborn$keyPressed(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
-        if (!FileExplorer.inActionGui() || !HTSLReborn.INSTANCE.getCONFIG().getShowFileExplorer()) return;
-        if (FileExplorer.getINSTANCE().keyPressed(input)) {
+        if (!HTSLScreen.shouldBeVisible()) return;
+        if (HTSLScreen.getINSTANCE().keyPressed(input)) {
+            cir.setReturnValue(true);
+        }
+
+        if (Queue.INSTANCE.isActive()) {
             cir.setReturnValue(true);
         }
     }
 
-    @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "mouseDragged", at = @At("HEAD"))
     public void htslreborn$mouseDragged(MouseButtonEvent click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
-        if (!FileExplorer.inActionGui() || !HTSLReborn.INSTANCE.getCONFIG().getShowFileExplorer()) return;
-        if (FileExplorer.getINSTANCE().mouseDragged(click, offsetX, offsetY)) {
-            cir.setReturnValue(true);
-        }
+        if (!HTSLScreen.shouldBeVisible()) return;
+        HTSLScreen.getINSTANCE().mouseDragged(click, offsetX, offsetY);
     }
 
-    @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "mouseReleased", at = @At("HEAD"))
+    public void htslreborn$mouseReleased(MouseButtonEvent click, CallbackInfoReturnable<Boolean> cir) {
+        if (!HTSLScreen.shouldBeVisible()) return;
+        HTSLScreen.getINSTANCE().mouseReleased(click);
+    }
+
+    @Inject(method = "mouseScrolled", at = @At("HEAD"))
     public void htslreborn$mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount, CallbackInfoReturnable<Boolean> cir) {
-        if (!FileExplorer.inActionGui() || !HTSLReborn.INSTANCE.getCONFIG().getShowFileExplorer()) return;
-        if (FileExplorer.getINSTANCE().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
-            cir.setReturnValue(true);
-        }
+        if (!HTSLScreen.shouldBeVisible()) return;
+        HTSLScreen.getINSTANCE().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     @Inject(method = "onClose", at = @At("HEAD"))
     public void htslreborn$close(CallbackInfo ci) {
-        if (!FileExplorer.inActionGui() || !HTSLReborn.INSTANCE.getCONFIG().getShowFileExplorer()) return;
-        FileExplorer.getINSTANCE().onClose();
+        if (!HTSLScreen.shouldBeVisible()) return;
+        HTSLScreen.getINSTANCE().onClose();
     }
 
     @Override
@@ -117,6 +110,9 @@ public class ScreenHandlerMixin extends Screen implements HandledScreenAccessor 
 
     @Override
     public int getGuiTop() {
+        if (((Object) this) instanceof CreativeModeInventoryScreen) {
+            return this.topPos - 28;
+        }
         return this.topPos;
     }
 

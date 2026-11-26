@@ -1,9 +1,13 @@
+
+import com.strumenta.antlrkotlin.gradle.AntlrKotlinTask
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.declarative.dsl.schema.FqName.Empty.packageName
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm") version "2.3.0"
     id("dev.kikugie.loom-back-compat")
-    id("com.google.devtools.ksp") version "2.3.4"
+    id("com.strumenta.antlr-kotlin") version "1.0.13"
     `maven-publish`
 }
 
@@ -11,13 +15,7 @@ group = "llc.redstone"
 version = "${property("mod.version")}+${stonecutter.current.version}"
 base.archivesName = property("mod.id") as String
 
-val requiredJava: JavaVersion = when {
-    stonecutter.current.parsed >= "26.1" -> JavaVersion.VERSION_25
-    stonecutter.current.parsed >= "1.20.5" -> JavaVersion.VERSION_21
-    stonecutter.current.parsed >= "1.18" -> JavaVersion.VERSION_17
-    stonecutter.current.parsed >= "1.17" -> JavaVersion.VERSION_16
-    else -> JavaVersion.VERSION_1_8
-}
+val requiredJava: JavaVersion = JavaVersion.VERSION_25
 
 
 repositories {
@@ -39,7 +37,6 @@ repositories {
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     strictMaven("https://maven.terraformersmc.com/", "Terraformers", "com.terraformersmc")
     strictMaven("https://maven.isxander.dev/releases", "xanderRepoReleases", "dev.isxander", "org.quiltmc.parsers")
-    strictMaven("https://maven.wispforest.io/releases", "wispForestReleases", "io.wispforest", "io.wispforest.endec")
     strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth", "me.djtheredstoner")
 }
 
@@ -49,24 +46,19 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
+    modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
+    modCompileOnly("maven.modrinth:LQ3K71Q1:${property("deps.dynamic_fps")}")
 
-    modImplementation("io.wispforest:owo-lib:${property("deps.owo")}")
-    ksp("dev.kosmx.kowoconfig:ksp-owo-config:0.2.0")
-    modImplementation("llc.redstone:SystemsAPI:${property("deps.systemsapi")}") {
-        exclude(module = "dynamic-fps")
-    }
+    implementation(include("org.mozilla:rhino:1.9.1")!!)
 
-    implementation(include("org.mozilla:rhino:1.9.0")!!)
-    implementation(include("guru.zoroark.tegral:tegral-niwen-lexer:0.0.4")!!)
-    implementation(include("guru.zoroark.tegral:tegral-core:0.0.4")!!)
+    implementation(include("org.javers:javers-core:7.11.8")!!)
+    include("org.picocontainer:picocontainer:2.15")
+    include("io.github.classgraph:classgraph:4.8.184")
 
-    implementation(include("llc.redstone:SystemsData:1.2.1")!!)
+    implementation(include("com.strumenta:antlr-kotlin-runtime-jvm:1.0.13")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
-
-    testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 loom {
@@ -87,13 +79,29 @@ java {
     sourceCompatibility = requiredJava
 }
 
+val generateKotlinGrammarSource = tasks.register<AntlrKotlinTask>("generateKotlinGrammarSource") {
+    dependsOn("cleanGenerateKotlinGrammarSource")
+
+    source = fileTree(rootDir.resolve("antlr")) {
+        include("**/*.g4")
+    }
+
+    val pkgName = "com.strumenta.antlrkotlin.parsers.generated"
+    packageName = pkgName
+
+    arguments = listOf("-visitor")
+
+    val outDir = "generatedAntlr/${pkgName.replace(".", "/")}"
+    outputDirectory = layout.buildDirectory.dir(outDir).get().asFile
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.fromTarget(requiredJava.majorVersion))
     }
     sourceSets {
-        val test by getting {
-            kotlin.srcDir("../../src/test/kotlin")
+        main {
+            kotlin.srcDir(generateKotlinGrammarSource)
         }
     }
 }
@@ -139,8 +147,6 @@ tasks {
             "fabric_loader" to project.property("deps.fabric_loader"),
             "fabric_language_kotlin" to project.property("deps.fabric_language_kotlin"),
             "fabric_api" to project.property("deps.fabric_api"),
-            "systemsapi" to project.property("deps.systemsapi"),
-            "owo_lib" to project.property("deps.owo")
         )
 
         filesMatching("fabric.mod.json") { expand(props) }
@@ -148,5 +154,24 @@ tasks {
 
     test {
         useJUnitPlatform()
+    }
+}
+
+// The active version already writes its jar to the root build/libs.
+// Other versions build under versions/<mc>/build/libs, so copy those up.
+if (project == rootProject) {
+    tasks.register("collectJar") {
+        group = "build"
+        description = "Builds this version's mod jar into build/libs"
+        dependsOn(loomx.modJar)
+    }
+} else {
+    tasks.register<Copy>("collectJar") {
+        group = "build"
+        description = "Builds this version's mod jar and copies it to the root build/libs"
+        dependsOn(loomx.modJar)
+        from(loomx.modJar.flatMap { it.archiveFile })
+        into(rootProject.layout.buildDirectory.dir("libs"))
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 }
